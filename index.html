@@ -10,115 +10,119 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root {
-  --bg:#15130f; --surface:#211d17; --surface-2:#2c271f; --ink:#f5efe4; --ink-soft:#b8ad99;
-  --ink-faint:#847b6a; --line:#3a342a; --accent:#d98a4e; --accent-soft:#4a3826;
-  --green:#9ec46a; --green-bg:#2c331e; --red:#e08a7e; --red-bg:#3a241f; --gold:#e8b964;
-  --der:#7fb2e0; --der-bg:#1f2c3a; --die:#e08aa8; --die-bg:#3a2230; --das:#9ec46a; --das-bg:#2c331e;
+:root{
+  --bg:#0d1117; --surface:#161b26; --surface-2:#212836; --ink:#eef2fb; --ink-soft:#9aa6c0;
+  --ink-faint:#646f8a; --line:#2a3344; --accent:#2dd4bf; --accent-ink:#04201c; --accent-soft:#0f3b37;
+  --accent-2:#a78bfa; --green:#34d399; --green-bg:#0f3b2e; --red:#fb7185; --red-bg:#3a1f2a; --gold:#fbbf24;
+  --der:#60a5fa; --der-bg:#16294a; --die:#f472b6; --die-bg:#3a1f30; --das:#34d399; --das-bg:#0f3b2e;
 }
-* { box-sizing:border-box; margin:0; padding:0; }
-html,body { background:var(--bg); color:var(--ink); font-family:'Outfit',sans-serif; -webkit-font-smoothing:antialiased; }
-body { min-height:100vh; padding:2rem 1rem 4rem; }
-.wrap { max-width:580px; margin:0 auto; }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Outfit',sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding:2rem 1rem 4rem;
+  background-image:radial-gradient(900px 500px at 80% -10%, rgba(45,212,191,.10), transparent 60%),radial-gradient(700px 500px at 0% 0%, rgba(167,139,250,.10), transparent 55%);}
+.wrap{max-width:580px;margin:0 auto}
 
-.masthead { text-align:center; margin-bottom:1.5rem; }
-.masthead .kicker { font-size:12px; letter-spacing:0.35em; text-transform:uppercase; color:var(--accent); margin-bottom:0.4rem; }
-.masthead h1 { font-family:'Fraunces',serif; font-weight:500; font-size:40px; line-height:1; letter-spacing:-0.01em; }
-.masthead .sub { color:var(--ink-faint); font-size:13px; margin-top:0.5rem; }
+.masthead{text-align:center;margin-bottom:1.5rem}
+.masthead .kicker{font-size:12px;letter-spacing:.35em;text-transform:uppercase;color:var(--accent);margin-bottom:.4rem}
+.masthead h1{font-family:'Fraunces',serif;font-weight:600;font-size:42px;line-height:1;letter-spacing:-.01em;
+  background:linear-gradient(100deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.masthead .sub{color:var(--ink-faint);font-size:13px;margin-top:.5rem}
 
-.topnav { display:flex; gap:4px; background:var(--surface); padding:4px; border-radius:12px; margin-bottom:1.25rem; }
-.topnav button { flex:1; padding:9px; border:none; background:transparent; color:var(--ink-soft); font-family:inherit; font-size:14px; border-radius:9px; cursor:pointer; transition:all .18s; }
-.topnav button.active { background:var(--accent); color:#1a1209; font-weight:500; }
+.topnav{display:flex;gap:4px;background:var(--surface);padding:4px;border-radius:12px;margin-bottom:1.25rem;border:1px solid var(--line)}
+.topnav button{flex:1;padding:9px;border:none;background:transparent;color:var(--ink-soft);font-family:inherit;font-size:14px;border-radius:9px;cursor:pointer;transition:all .18s}
+.topnav button.active{background:var(--accent);color:var(--accent-ink);font-weight:600}
 
-.decks { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem; }
-.chip { padding:7px 14px; border-radius:22px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); font-size:13px; font-family:inherit; cursor:pointer; transition:all .18s; white-space:nowrap; }
-.chip .count { opacity:.55; font-size:11px; margin-left:3px; }
-.chip.active { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:500; }
-.chip.mixed { border-style:dashed; }
-.chip.mixed.active { border-style:solid; }
-.chip:hover:not(.active) { border-color:var(--ink-faint); }
+.decks{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+.chip{padding:7px 14px;border-radius:22px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:13px;font-family:inherit;cursor:pointer;transition:all .18s;white-space:nowrap}
+.chip .count{opacity:.55;font-size:11px;margin-left:3px}
+.chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.chip:hover:not(.active){border-color:var(--ink-faint)}
+.chip.mixed{border-style:dashed}
+.chip.mixed.active{border-style:solid}
 
-.controls { display:flex; gap:8px 12px; align-items:center; flex-wrap:wrap; margin-bottom:1.25rem; font-size:13px; }
-.controls .lbl { color:var(--ink-faint); }
-.seg { display:inline-flex; background:var(--surface); border-radius:9px; padding:3px; }
-.seg button { border:none; background:transparent; color:var(--ink-soft); padding:5px 10px; border-radius:7px; font-family:inherit; font-size:13px; cursor:pointer; transition:all .15s; }
-.seg button.active { background:var(--surface-2); color:var(--ink); font-weight:500; }
-.seg button:disabled { opacity:.35; cursor:not-allowed; }
+.controls{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;margin-bottom:1rem;font-size:13px}
+.controls .lbl{color:var(--ink-faint)}
+.seg{display:inline-flex;background:var(--surface);border-radius:9px;padding:3px;border:1px solid var(--line)}
+.seg button{border:none;background:transparent;color:var(--ink-soft);padding:5px 10px;border-radius:7px;font-family:inherit;font-size:13px;cursor:pointer;transition:all .15s}
+.seg button.active{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+.controls select{background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--ink);font-family:inherit;font-size:13px;padding:6px 8px}
 
-.stats { display:flex; gap:10px; margin-bottom:1.25rem; }
-.stat { flex:1; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:.7rem; text-align:center; }
-.stat .n { font-family:'Fraunces',serif; font-size:26px; font-weight:500; }
-.stat .n.g{color:var(--green)} .stat .n.r{color:var(--red)} .stat .n.s{color:var(--gold)}
-.stat .l { font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; margin-top:2px; }
+.stats{display:flex;gap:10px;margin-bottom:1.25rem}
+.stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.7rem;text-align:center}
+.stat .n{font-family:'Fraunces',serif;font-size:26px;font-weight:600}
+.stat .n.g{color:var(--green)}.stat .n.r{color:var(--red)}.stat .n.s{color:var(--gold)}
+.stat .l{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
 
-.prog { height:5px; background:var(--surface); border-radius:3px; overflow:hidden; margin-bottom:.5rem; }
-.prog>div { height:100%; background:var(--accent); border-radius:3px; transition:width .4s ease; }
-.prog-txt { font-size:12px; color:var(--ink-faint); text-align:right; margin-bottom:1.25rem; }
+.prog{height:6px;background:var(--surface);border-radius:3px;overflow:hidden;margin-bottom:.5rem;border:1px solid var(--line)}
+.prog>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:3px;transition:width .4s ease}
+.prog-txt{font-size:12px;color:var(--ink-faint);text-align:right;margin-bottom:1.25rem}
 
-.card-area { perspective:1400px; margin-bottom:1.25rem; cursor:pointer; }
-.card-inner { position:relative; min-height:230px; transition:transform .55s cubic-bezier(.34,1.2,.4,1); transform-style:preserve-3d; }
-.card-inner.flipped { transform:rotateY(180deg); }
-.face { position:absolute; inset:0; min-height:230px; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem 1.5rem; border:1px solid var(--line); }
-.face.front { background:var(--surface); }
-.face.back { background:linear-gradient(160deg,#2e2417,#241c12); border-color:var(--accent-soft); transform:rotateY(180deg); }
-.badge { position:absolute; top:14px; left:14px; font-size:11px; letter-spacing:.05em; padding:3px 9px; border-radius:20px; background:var(--surface-2); color:var(--ink-faint); text-transform:uppercase; }
-.lang { font-size:11px; letter-spacing:.22em; text-transform:uppercase; margin-bottom:.8rem; }
-.front .lang { color:var(--ink-faint); } .back .lang { color:var(--accent); }
-.word { font-family:'Fraunces',serif; font-size:30px; font-weight:500; text-align:center; line-height:1.25; }
-.back .word { color:var(--gold); }
-.article-tag { font-family:'Outfit',sans-serif; font-size:17px; font-weight:500; padding:2px 10px; border-radius:8px; margin-right:8px; vertical-align:middle; }
-.art-der{color:var(--der);background:var(--der-bg)} .art-die{color:var(--die);background:var(--die-bg)} .art-das{color:var(--das);background:var(--das-bg)}
-.hint { font-size:13px; color:var(--ink-faint); margin-top:.7rem; font-style:italic; }
-.taphint { position:absolute; bottom:14px; font-size:11px; color:var(--ink-faint); letter-spacing:.05em; }
+.card-area{perspective:1400px;margin-bottom:1.25rem;cursor:pointer}
+.card-inner{position:relative;min-height:230px;transition:transform .55s cubic-bezier(.34,1.2,.4,1);transform-style:preserve-3d}
+.card-inner.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;min-height:230px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.5rem;border:1px solid var(--line)}
+.face.front{background:var(--surface)}
+.face.back{background:linear-gradient(155deg,#11332f,#0c2440);border-color:var(--accent);transform:rotateY(180deg)}
+.badge{position:absolute;top:14px;left:14px;font-size:11px;letter-spacing:.05em;padding:3px 9px;border-radius:20px;background:var(--surface-2);color:var(--ink-soft);text-transform:uppercase}
+.lang{font-size:11px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:.8rem}
+.front .lang{color:var(--ink-faint)}.back .lang{color:var(--accent)}
+.word{font-family:'Fraunces',serif;font-size:30px;font-weight:500;text-align:center;line-height:1.25}
+.back .word{color:#fff}
+.article-tag{font-family:'Outfit',sans-serif;font-size:17px;font-weight:600;padding:2px 10px;border-radius:8px;margin-right:8px;vertical-align:middle}
+.art-der{color:var(--der);background:var(--der-bg)}.art-die{color:var(--die);background:var(--die-bg)}.art-das{color:var(--das);background:var(--das-bg)}
+.hint{font-size:13px;color:var(--ink-soft);margin-top:.7rem;font-style:italic}
+.taphint{position:absolute;bottom:14px;font-size:11px;color:var(--ink-faint);letter-spacing:.05em}
 
-.quiz-opts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1rem; }
-.quiz-opts.articles { grid-template-columns:1fr 1fr 1fr; }
-.opt { padding:.85rem 1rem; border-radius:11px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-family:inherit; font-size:14px; cursor:pointer; text-align:left; transition:all .15s; }
-.quiz-opts.articles .opt { text-align:center; font-size:18px; font-weight:500; }
-.opt:hover:not(:disabled) { border-color:var(--ink-faint); background:var(--surface-2); }
-.opt.correct { background:var(--green-bg); border-color:var(--green); color:var(--green); }
-.opt.wrong { background:var(--red-bg); border-color:var(--red); color:var(--red); }
-.opt:disabled { cursor:default; }
+.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.quiz-opts.articles{grid-template-columns:1fr 1fr 1fr}
+.opt{padding:.85rem 1rem;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-size:14px;cursor:pointer;text-align:left;transition:all .15s}
+.quiz-opts.articles .opt{text-align:center;font-size:18px;font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--surface-2)}
+.opt.correct{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.opt.wrong{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.opt:disabled{cursor:default}
 
-.actions { display:flex; gap:10px; justify-content:center; margin-bottom:1rem; flex-wrap:wrap; }
-.btn { padding:9px 18px; border-radius:10px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-family:inherit; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition:all .15s; }
-.btn:hover { background:var(--surface-2); border-color:var(--ink-faint); }
-.btn.primary { background:var(--accent); border-color:var(--accent); color:#1a1209; font-weight:500; }
-.btn.primary:hover { background:#e89a5e; }
-.btn.danger { color:var(--red); border-color:var(--red-bg); }
-.btn.danger:hover { background:var(--red-bg); }
+.actions{display:flex;gap:10px;justify-content:center;margin-bottom:1rem;flex-wrap:wrap}
+.btn{padding:9px 18px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .15s}
+.btn:hover{background:var(--surface-2);border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{background:#36e7d1}
+.btn.danger{color:var(--red);border-color:var(--red-bg)}
+.btn.danger:hover{background:var(--red-bg)}
 
-.result { text-align:center; padding:1.5rem 0; }
-.result .big { font-family:'Fraunces',serif; font-size:60px; font-weight:600; color:var(--accent); line-height:1; }
-.result .rlabel { color:var(--ink-faint); font-size:15px; margin:.5rem 0 1rem; }
-.result .rmsg { font-size:15px; margin-bottom:1.5rem; }
+.result{text-align:center;padding:1.5rem 0}
+.result .big{font-family:'Fraunces',serif;font-size:60px;font-weight:600;line-height:1;
+  background:linear-gradient(100deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.result .rlabel{color:var(--ink-faint);font-size:15px;margin:.5rem 0 1rem}
+.result .rmsg{font-size:15px;margin-bottom:1.5rem}
 
-.panel { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:1.25rem; margin-bottom:1.25rem; }
-.panel h3 { font-family:'Fraunces',serif; font-weight:500; font-size:18px; margin-bottom:.9rem; display:flex; align-items:center; gap:8px; }
-.field { display:flex; flex-direction:column; gap:5px; margin-bottom:.8rem; }
-.field label { font-size:12px; color:var(--ink-faint); letter-spacing:.04em; }
-.field input, .field select { background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:10px 12px; color:var(--ink); font-family:inherit; font-size:14px; }
-.field input:focus, .field select:focus { outline:none; border-color:var(--accent); }
-.inline-fields { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.io-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-.io-note { font-size:12px; color:var(--ink-faint); margin-top:.7rem; line-height:1.55; }
-.io-note code { background:var(--bg); padding:1px 6px; border-radius:5px; color:var(--ink-soft); font-size:11px; }
-.status { font-size:12px; margin-top:.6rem; padding:8px 10px; border-radius:8px; }
-.status.ok { background:var(--green-bg); color:var(--green); }
-.status.err { background:var(--red-bg); color:var(--red); }
-.status.info { background:var(--surface-2); color:var(--ink-soft); }
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem}
+.panel h3{font-family:'Fraunces',serif;font-weight:500;font-size:18px;margin-bottom:.9rem;display:flex;align-items:center;gap:8px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:.8rem}
+.field label{font-size:12px;color:var(--ink-faint);letter-spacing:.04em}
+.field input,.field select{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--ink);font-family:inherit;font-size:14px}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.inline-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.io-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.io-note{font-size:12px;color:var(--ink-faint);margin-top:.7rem;line-height:1.55}
+.io-note code{background:var(--bg);padding:1px 6px;border-radius:5px;color:var(--ink-soft);font-size:11px}
+.status{font-size:12px;margin-top:.6rem;padding:8px 10px;border-radius:8px}
+.status.ok{background:var(--green-bg);color:var(--green)}
+.status.err{background:var(--red-bg);color:var(--red)}
+.status.info{background:var(--surface-2);color:var(--ink-soft)}
 
-.wordlist { display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto; margin-top:.5rem; }
-.row { display:flex; align-items:center; gap:10px; padding:9px 12px; background:var(--bg); border:1px solid var(--line); border-radius:10px; }
-.row .de { font-weight:500; flex:1; } .row .en { color:var(--ink-soft); flex:1; font-size:14px; }
-.row .ico-btn { background:transparent; border:none; color:var(--ink-faint); cursor:pointer; font-size:16px; padding:4px; border-radius:6px; }
-.row .ico-btn:hover { color:var(--accent); background:var(--surface-2); }
-.row .ico-btn.del:hover { color:var(--red); }
-.empty { color:var(--ink-faint); font-size:14px; text-align:center; padding:1.5rem; font-style:italic; }
-.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--accent); color:#1a1209; padding:11px 22px; border-radius:10px; font-size:14px; font-weight:500; opacity:0; pointer-events:none; transition:all .3s; z-index:100; }
-.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-.hidden { display:none !important; }
-@media (max-width:480px){ .masthead h1{font-size:32px} .inline-fields{grid-template-columns:1fr} }
+.wordlist{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;margin-top:.5rem}
+.row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border:1px solid var(--line);border-radius:10px}
+.row .de{font-weight:500;flex:1}.row .en{color:var(--ink-soft);flex:1;font-size:14px}
+.row .ico-btn{background:transparent;border:none;color:var(--ink-faint);cursor:pointer;font-size:16px;padding:4px;border-radius:6px}
+.row .ico-btn:hover{color:var(--accent);background:var(--surface-2)}
+.row .ico-btn.del:hover{color:var(--red)}
+.empty{color:var(--ink-faint);font-size:14px;text-align:center;padding:1.5rem;font-style:italic}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:var(--accent-ink);padding:11px 22px;border-radius:10px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hidden{display:none!important}
+@media (max-width:480px){.masthead h1{font-size:34px}.inline-fields{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -126,7 +130,7 @@ body { min-height:100vh; padding:2rem 1rem 4rem; }
   <div class="masthead">
     <div class="kicker">Vokabeltrainer</div>
     <h1>Deutsch Flashcards</h1>
-    <div class="sub" id="sourceSub">Loading your words…</div>
+    <div class="sub" id="sourceSub">Loading…</div>
   </div>
 
   <div class="topnav">
@@ -137,7 +141,7 @@ body { min-height:100vh; padding:2rem 1rem 4rem; }
 
   <div class="decks" id="decks"></div>
 
-  <!-- ================= STUDY ================= -->
+  <!-- ===== STUDY ===== -->
   <div id="studyView">
     <div class="controls">
       <span class="lbl">Show</span>
@@ -160,6 +164,11 @@ body { min-height:100vh; padding:2rem 1rem 4rem; }
         <button id="mQuiz" onclick="setMode('quiz')">Quiz</button>
         <button id="mArt" onclick="setMode('article')">der/die/das</button>
       </div>
+    </div>
+    <div class="controls">
+      <span class="lbl">Round length</span>
+      <select id="roundSel" onchange="setRound(this.value)"></select>
+      <span class="lbl" id="poolInfo" style="margin-left:auto"></span>
     </div>
 
     <div class="stats">
@@ -210,16 +219,22 @@ body { min-height:100vh; padding:2rem 1rem 4rem; }
       </div>
     </div>
 
-    <div id="emptyDeck" class="empty hidden">No words match this filter. Try a different deck or filter, or add words in the Setup tab.</div>
+    <div id="emptyDeck" class="empty hidden">No words to study yet. Go to the <strong>Setup</strong> tab and connect your Google Sheet, or add a word in the <strong>Words</strong> tab.</div>
   </div>
 
-  <!-- ================= MANAGE ================= -->
+  <!-- ===== MANAGE ===== -->
   <div id="manageView" class="hidden">
     <div class="panel">
-      <h3>+ Quick add (this device)</h3>
+      <h3>+ Add a word (this device)</h3>
       <div class="inline-fields">
         <div class="field"><label>German (noun: just the word, no article)</label><input id="inDE" placeholder="e.g. Tisch"></div>
         <div class="field"><label>English meaning</label><input id="inEN" placeholder="e.g. table"></div>
+      </div>
+      <div class="inline-fields">
+        <div class="field"><label>Deck</label>
+          <select id="inDeck" onchange="toggleNewDeck()"></select>
+        </div>
+        <div class="field" id="newDeckField" style="display:none"><label>New deck name</label><input id="inNewDeck" placeholder="e.g. Travel"></div>
       </div>
       <div class="inline-fields">
         <div class="field"><label>Type</label>
@@ -233,8 +248,8 @@ body { min-height:100vh; padding:2rem 1rem 4rem; }
         </div>
       </div>
       <div class="field"><label>Hint (optional)</label><input id="inHint" placeholder="optional note"></div>
-      <button class="btn primary" onclick="addWord()">Add to “<span id="addDeckName">…</span>”</button>
-      <div class="io-note">Quick-add saves on <strong>this device only</strong>. To have words everywhere, add them to your Google Sheet (Setup tab) — or use Export below to copy them into the sheet.</div>
+      <button class="btn primary" onclick="addWord()">Add word</button>
+      <div class="io-note"><strong>Where does it save?</strong> If you've set up write-back (Setup → ③), new words go <strong>straight into your Google Sheet</strong> and appear on every device. If not, they're saved on <strong>this device only</strong> — add them to the sheet (or use Export) to sync. Either way, you'll get a warning if the word already exists.</div>
     </div>
 
     <div class="panel">
@@ -248,11 +263,11 @@ body { min-height:100vh; padding:2rem 1rem 4rem; }
         <button class="btn" onclick="exportXlsx()">Export all to Excel (.xlsx)</button>
         <button class="btn" onclick="exportCsv()">Export to CSV</button>
       </div>
-      <div class="io-note">Downloads everything currently loaded (sheet words + your quick-adds) in the exact column format your Google Sheet uses, so you can paste rows straight back in.</div>
+      <div class="io-note">Downloads everything currently loaded (sheet words + your device words) in your sheet's exact column format, so you can paste rows straight back into the sheet.</div>
     </div>
   </div>
 
-  <!-- ================= SETUP ================= -->
+  <!-- ===== SETUP ===== -->
   <div id="setupView" class="hidden">
     <div class="panel">
       <h3>① Connect your Google Sheet</h3>
@@ -265,9 +280,9 @@ body { min-height:100vh; padding:2rem 1rem 4rem; }
       </div>
       <div id="setupStatus" class="status info">Not connected yet.</div>
       <div class="io-note">
-        Your sheet must be shared so the link works for anyone: <strong>Share → General access → “Anyone with the link → Viewer.”</strong><br>
-        Required columns (first row): <code>Deck</code> <code>German</code> <code>Article</code> <code>English</code> <code>Type</code> <code>Hint</code>.
-        Make a new deck just by typing a new name in the <code>Deck</code> column. For nouns, put <code>der/die/das</code> in <code>Article</code> and the bare word in <code>German</code>.
+        Share the sheet so the link works for anyone: <strong>Share → General access → "Anyone with the link → Viewer."</strong><br>
+        Columns (first row): <code>Deck</code> <code>German</code> <code>Article</code> <code>English</code> <code>Type</code> <code>Hint</code>.
+        New deck = a new name in the <code>Deck</code> column. For nouns, put <code>der/die/das</code> in <code>Article</code> and the bare word in <code>German</code>.
       </div>
     </div>
 
@@ -281,9 +296,19 @@ body { min-height:100vh; padding:2rem 1rem 4rem; }
     </div>
 
     <div class="panel">
-      <h3>③ Reset</h3>
-      <button class="btn danger" onclick="loadStarter()">Load built-in starter words</button>
-      <button class="btn danger" onclick="clearLocal()">Clear this device’s saved data</button>
+      <h3>③ (Optional) Save new words straight to the sheet</h3>
+      <div class="field"><label>Apps Script web-app URL (ends in /exec)</label>
+        <input id="writeUrl" placeholder="https://script.google.com/macros/s/…/exec">
+      </div>
+      <div class="io-row"><button class="btn primary" onclick="saveWriteUrl()">Save</button></div>
+      <div id="writeStatus" class="status info">Not set up — words added in the app stay on this device.</div>
+      <div class="io-note">
+        Set this up once and the <strong>Words → Add a word</strong> form writes new rows directly into your Google Sheet (so they appear on every device). How to get the URL:
+        <br>1. In your sheet: <strong>Extensions → Apps Script</strong>.
+        <br>2. Delete whatever's there and paste the script from the guide, then <strong>Save</strong>.
+        <br>3. <strong>Deploy → New deployment → Web app</strong>. Set <strong>Execute as: Me</strong>, <strong>Who has access: Anyone</strong>. Deploy and authorise.
+        <br>4. Copy the <strong>Web app URL</strong> (ends in <code>/exec</code>) and paste it above.
+      </div>
     </div>
   </div>
 </div>
@@ -291,110 +316,38 @@ body { min-height:100vh; padding:2rem 1rem 4rem; }
 <div class="toast" id="toast"></div>
 
 <script>
-const LS = { sheet:'gf_sheet_id', cache:'gf_cache', local:'gf_local' };
-const ALL = '__ALL__';   // mixed-practice sentinel
+const LS = { sheet:'gf_sheet_id', cache:'gf_cache', local:'gf_local', writeUrl:'gf_write_url' };
+const ALL = '__ALL__';
 
-const STARTER = `Deck,German,Article,English,Type,Hint
-Procurement,Beschaffung,die,procurement / sourcing,noun,
-Procurement,Ausschreibung,die,tender / call for bids,noun,
-Procurement,Angebot,das,offer / quotation,noun,
-Procurement,Lieferant,der,supplier / vendor,noun,
-Procurement,Rahmenvertrag,der,framework agreement,noun,
-Procurement,Bestellung,die,purchase order,noun,
-Procurement,Rechnung,die,invoice,noun,
-Procurement,Lieferkette,die,supply chain,noun,
-Procurement,Einkauf,der,purchasing / buying,noun,
-Procurement,Lastenheft,das,requirements specification,noun,
-Procurement,Vergabe,die,awarding of a contract,noun,
-Procurement,Lager,das,warehouse / stock,noun,
-Procurement,verhandeln,,to negotiate,verb,
-Procurement,genehmigen,,to approve / authorize,verb,
-Procurement,beauftragen,,to commission / assign,verb,
-Corporate,Geschäftsführung,die,management / board,noun,
-Corporate,Besprechung,die,meeting,noun,
-Corporate,Tagesordnung,die,agenda,noun,
-Corporate,Abteilung,die,department,noun,
-Corporate,Umsatz,der,revenue / turnover,noun,
-Corporate,Gewinn,der,profit,noun,
-Corporate,Haushalt,der,budget,noun,
-Corporate,Antrag,der,application / request,noun,
-Corporate,verbindlich,,binding / mandatory,adjective,
-Corporate,fristgerecht,,within deadline,adjective,
-Common Verbs,bestellen,,to order,verb,
-Common Verbs,erhalten,,to receive,verb,
-Common Verbs,bestätigen,,to confirm,verb,
-Common Verbs,liefern,,to deliver,verb,
-Common Verbs,zahlen,,to pay,verb,
-Common Verbs,vereinbaren,,to agree / arrange,verb,
-Common Verbs,entscheiden,,to decide,verb,
-Common Verbs,verschieben,,to postpone,verb,
-Everyday Nouns,Tisch,der,table,noun,
-Everyday Nouns,Fenster,das,window,noun,
-Everyday Nouns,Tür,die,door,noun,
-Everyday Nouns,Auto,das,car,noun,
-Everyday Nouns,Haus,das,house,noun,
-Everyday Nouns,Stadt,die,city,noun,
-Everyday Nouns,Buch,das,book,noun,
-Everyday Nouns,Frau,die,woman,noun,
-Everyday Nouns,Mann,der,man,noun,
-Everyday Nouns,Kind,das,child,noun,
-Everyday Nouns,Zeit,die,time,noun,`;
-
-let allWords = [];        // {deck,de,en,article,type,hint, _local?}
-let decksOrder = [];
-let currentDeck = null;
-let view='study', dir='de-en', mode='flip', filter='all';
+let allWords=[], decksOrder=[], currentDeck=null;
+let view='study', dir='de-en', mode='flip', filter='all', roundSize=0;
 let deck=[], idx=0, flipped=false, quizAnswered=false;
 let correct=0, wrong=0, streak=0, missed=[];
 
-// ---------- utils ----------
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function norm(s){return (s||'').toString().trim();}
 function lc(s){return norm(s).toLowerCase();}
+function extractSheetId(input){input=norm(input);const m=input.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);if(m)return m[1];if(/^[a-zA-Z0-9-_]{20,}$/.test(input))return input;return null;}
 
-function extractSheetId(input){
-  input = norm(input);
-  const m = input.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  if (m) return m[1];
-  if (/^[a-zA-Z0-9-_]{20,}$/.test(input)) return input;
-  return null;
-}
-
-// ---------- data loading ----------
 function rowsToWords(rows){
   const out=[];
   rows.forEach(r=>{
-    const get=(...keys)=>{ for(const k of Object.keys(r)){ if(keys.includes(lc(k))) return norm(r[k]); } return ''; };
-    const de=get('german','deutsch','de','word');
-    const en=get('english','meaning','en');
-    if(!de && !en) return;
-    let type=lc(get('type','category'))||'';
-    let article=lc(get('article','artikel','gender'));
-    if(article && !['der','die','das'].includes(article)) article='';
-    if(article && !type) type='noun';
-    out.push({
-      deck: get('deck','set','topic') || 'My Words',
-      de, en, article, type: type||'other',
-      hint: get('hint','note')
-    });
+    const get=(...keys)=>{for(const k of Object.keys(r)){if(keys.includes(lc(k)))return norm(r[k]);}return '';};
+    const de=get('german','deutsch','de','word'); const en=get('english','meaning','en');
+    if(!de&&!en) return;
+    let type=lc(get('type','category'))||''; let article=lc(get('article','artikel','gender'));
+    if(article&&!['der','die','das'].includes(article)) article='';
+    if(article&&!type) type='noun';
+    out.push({deck:get('deck','set','topic')||'My Words',de,en,article,type:type||'other',hint:get('hint','note')});
   });
   return out;
 }
-
-function buildFromCsvText(text, markLocal){
-  const parsed = Papa.parse(text.trim(), {header:true, skipEmptyLines:true});
-  let w = rowsToWords(parsed.data);
-  if(markLocal) w = w.map(x=>({...x,_local:true}));
-  return w;
-}
+function buildFromCsvText(text,markLocal){let w=rowsToWords(Papa.parse(text.trim(),{header:true,skipEmptyLines:true}).data);if(markLocal)w=w.map(x=>({...x,_local:true}));return w;}
 
 function rebuild(){
-  // merge sheet/import words + local quick-adds
-  let local=[];
-  try{ local=JSON.parse(localStorage.getItem(LS.local)||'[]'); }catch(e){}
-  const merged=[...allWords.filter(w=>!w._local), ...local];
-  allWords=merged;
+  let local=[]; try{local=JSON.parse(localStorage.getItem(LS.local)||'[]');}catch(e){}
+  allWords=[...allWords.filter(w=>!w._local),...local];
   decksOrder=[...new Set(allWords.map(w=>w.deck))];
   if(currentDeck!==ALL && !decksOrder.includes(currentDeck)) currentDeck=decksOrder[0]||null;
   renderDecks();
@@ -403,122 +356,69 @@ function rebuild(){
 
 async function fetchSheet(id){
   const url=`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
-  const res=await fetch(url);
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const text=await res.text();
-  if(text.trim().startsWith('<')) throw new Error('not-shared');
+  const res=await fetch(url); if(!res.ok) throw new Error('HTTP '+res.status);
+  const text=await res.text(); if(text.trim().startsWith('<')) throw new Error('not-shared');
   return text;
 }
-
 async function connectSheet(){
   const id=extractSheetId(document.getElementById('sheetUrl').value);
-  if(!id){ setStatus('err','That doesn’t look like a valid Google Sheet link or ID.'); return; }
+  if(!id){setStatus('err','That doesn’t look like a valid Google Sheet link or ID.');return;}
   setStatus('info','Connecting…');
   try{
-    const text=await fetchSheet(id);
-    const words=buildFromCsvText(text,false);
+    const text=await fetchSheet(id); const words=buildFromCsvText(text,false);
     if(!words.length) throw new Error('empty');
-    localStorage.setItem(LS.sheet,id);
-    localStorage.setItem(LS.cache,text);
+    localStorage.setItem(LS.sheet,id); localStorage.setItem(LS.cache,text);
     allWords=words; rebuild();
     setStatus('ok',`Connected ✓ Loaded ${words.length} words across ${decksOrder.length} deck(s).`);
     document.getElementById('sourceSub').textContent='Live from your Google Sheet';
     toast('Sheet connected ✓');
   }catch(e){
-    if(e.message==='not-shared') setStatus('err','Loaded the page but it’s not public. Set sharing to “Anyone with the link → Viewer” and try again.');
-    else if(e.message==='empty') setStatus('err','Connected, but found no rows. Check your column headers (Deck, German, Article, English, Type, Hint).');
-    else setStatus('err','Could not reach the sheet. Check the link and that it’s shared, then retry.');
+    if(e.message==='not-shared') setStatus('err','Reached the page but it isn’t public. Set sharing to “Anyone with the link → Viewer” and retry.');
+    else if(e.message==='empty') setStatus('err','Connected but found no rows. Check headers: Deck, German, Article, English, Type, Hint.');
+    else setStatus('err','Couldn’t reach the sheet. Check the link and sharing, then retry.');
   }
 }
 async function reloadSheet(){
-  const id=localStorage.getItem(LS.sheet);
-  if(!id){ setStatus('info','No sheet connected yet.'); return; }
+  const id=localStorage.getItem(LS.sheet); if(!id){setStatus('info','No sheet connected yet.');return;}
   setStatus('info','Reloading…');
-  try{
-    const text=await fetchSheet(id);
-    localStorage.setItem(LS.cache,text);
-    allWords=buildFromCsvText(text,false); rebuild();
-    setStatus('ok','Reloaded ✓ '+allWords.filter(w=>!w._local).length+' words from the sheet.');
-    toast('Words reloaded ✓');
-  }catch(e){ setStatus('err','Reload failed — using last cached copy.'); }
+  try{const text=await fetchSheet(id);localStorage.setItem(LS.cache,text);allWords=buildFromCsvText(text,false);rebuild();
+    setStatus('ok','Reloaded ✓ '+allWords.filter(w=>!w._local).length+' words from the sheet.');toast('Words reloaded ✓');
+  }catch(e){setStatus('err','Reload failed — using last cached copy.');}
 }
-function setStatus(kind,msg){const el=document.getElementById('setupStatus');el.className='status '+kind;el.textContent=msg;}
+function setStatus(k,m){const el=document.getElementById('setupStatus');el.className='status '+k;el.textContent=m;}
 
 function importFile(ev){
-  const file=ev.target.files[0]; if(!file) return;
-  const reader=new FileReader();
+  const file=ev.target.files[0]; if(!file) return; const reader=new FileReader();
   reader.onload=e=>{
     try{
       let words;
-      if(file.name.toLowerCase().endsWith('.csv')){
-        words=buildFromCsvText(e.target.result,false);
-      }else{
-        const wb=XLSX.read(e.target.result,{type:'binary'});
-        const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
-        words=rowsToWords(rows);
-      }
-      if(!words.length){ toast('No rows found in that file'); return; }
-      localStorage.setItem(LS.cache,JSON.stringify({_imported:words}));
-      allWords=words; rebuild();
-      toast('Imported '+words.length+' words ✓');
-      setView('study');
-    }catch(err){ toast('Could not read that file'); }
+      if(file.name.toLowerCase().endsWith('.csv')) words=buildFromCsvText(e.target.result,false);
+      else{const wb=XLSX.read(e.target.result,{type:'binary'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});words=rowsToWords(rows);}
+      if(!words.length){toast('No rows found in that file');return;}
+      localStorage.setItem(LS.cache,JSON.stringify({_imported:words})); localStorage.removeItem(LS.sheet);
+      allWords=words; rebuild(); document.getElementById('sourceSub').textContent='Imported / cached words';
+      toast('Imported '+words.length+' words ✓'); setView('study');
+    }catch(err){toast('Could not read that file');}
   };
-  if(file.name.toLowerCase().endsWith('.csv')) reader.readAsText(file);
-  else reader.readAsBinaryString(file);
+  if(file.name.toLowerCase().endsWith('.csv')) reader.readAsText(file); else reader.readAsBinaryString(file);
   ev.target.value='';
 }
 
-function loadStarter(){
-  allWords=buildFromCsvText(STARTER,false);
-  localStorage.setItem(LS.cache,STARTER);
-  localStorage.removeItem(LS.sheet);
-  rebuild();
-  document.getElementById('sourceSub').textContent='Built-in starter words';
-  toast('Starter words loaded ✓');
-  setView('study');
-}
-function clearLocal(){
-  if(!confirm('Clear this device’s quick-adds and cached words? Your Google Sheet itself is not touched.')) return;
-  localStorage.removeItem(LS.local);
-  localStorage.removeItem(LS.cache);
-  toast('Cleared');
-  boot();
-}
+function currentExportRows(){return allWords.map(w=>({Deck:w.deck,German:w.de,Article:w.article||'',English:w.en,Type:w.type||'',Hint:w.hint||''}));}
+function exportXlsx(){const ws=XLSX.utils.json_to_sheet(currentExportRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Vocab');XLSX.writeFile(wb,'deutsch-vocab.xlsx');toast('Excel exported ✓');}
+function exportCsv(){const csv=Papa.unparse(currentExportRows());const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='deutsch-vocab.csv';a.click();URL.revokeObjectURL(url);toast('CSV exported ✓');}
 
-// ---------- export ----------
-function currentExportRows(){
-  return allWords.map(w=>({Deck:w.deck,German:w.de,Article:w.article||'',English:w.en,Type:w.type||'',Hint:w.hint||''}));
-}
-function exportXlsx(){
-  const ws=XLSX.utils.json_to_sheet(currentExportRows());
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Vocab');
-  XLSX.writeFile(wb,'deutsch-vocab.xlsx'); toast('Excel exported ✓');
-}
-function exportCsv(){
-  const csv=Papa.unparse(currentExportRows());
-  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='deutsch-vocab.csv'; a.click();
-  URL.revokeObjectURL(url); toast('CSV exported ✓');
-}
-
-// ---------- chips & views ----------
 function renderDecks(){
   const c=document.getElementById('decks'); c.innerHTML='';
   if(decksOrder.length>1){
-    const b=document.createElement('button');
-    b.className='chip mixed'+(currentDeck===ALL?' active':'');
+    const b=document.createElement('button'); b.className='chip mixed'+(currentDeck===ALL?' active':'');
     b.innerHTML=`✦ All decks (mixed)<span class="count">${allWords.length}</span>`;
-    b.onclick=()=>{currentDeck=ALL;renderDecks();view==='study'?restart():renderManage();};
-    c.appendChild(b);
+    b.onclick=()=>{currentDeck=ALL;renderDecks();view==='study'?restart():renderManage();}; c.appendChild(b);
   }
   decksOrder.forEach(d=>{
-    const n=allWords.filter(w=>w.deck===d).length;
-    const b=document.createElement('button');
-    b.className='chip'+(d===currentDeck?' active':'');
-    b.innerHTML=`${d}<span class="count">${n}</span>`;
-    b.onclick=()=>{currentDeck=d;renderDecks();view==='study'?restart():renderManage();};
-    c.appendChild(b);
+    const n=allWords.filter(w=>w.deck===d).length; const b=document.createElement('button');
+    b.className='chip'+(d===currentDeck?' active':''); b.innerHTML=`${d}<span class="count">${n}</span>`;
+    b.onclick=()=>{currentDeck=d;renderDecks();view==='study'?restart():renderManage();}; c.appendChild(b);
   });
 }
 function setView(v){
@@ -531,28 +431,13 @@ function setView(v){
   if(v==='study') restart(); else if(v==='manage') renderManage();
 }
 function setDir(d){dir=d;document.getElementById('dirDE').classList.toggle('active',d==='de-en');document.getElementById('dirEN').classList.toggle('active',d==='en-de');restart();}
-function setFilter(f){
-  filter=f;
-  document.querySelectorAll('#filterSeg button').forEach(b=>b.classList.toggle('active',b.dataset.f===f));
-  if(mode==='article' && f!=='noun' && f!=='all'){ setMode('flip'); } else restart();
-  updateArticleModeAvail();
-}
-function setMode(m){
-  mode=m;
-  document.getElementById('mFlip').classList.toggle('active',m==='flip');
-  document.getElementById('mQuiz').classList.toggle('active',m==='quiz');
-  document.getElementById('mArt').classList.toggle('active',m==='article');
-  restart();
-}
-function updateArticleModeAvail(){
-  const hasNouns=getFilteredWords().some(w=>w.type==='noun'&&['der','die','das'].includes(w.article));
-  document.getElementById('mArt').disabled=!hasNouns;
-  if(!hasNouns && mode==='article'){ setMode('flip'); }
-}
+function setFilter(f){filter=f;document.querySelectorAll('#filterSeg button').forEach(b=>b.classList.toggle('active',b.dataset.f===f));if(mode==='article'&&f!=='noun'&&f!=='all'){setMode('flip');}else restart();updateArticleModeAvail();}
+function setMode(m){mode=m;document.getElementById('mFlip').classList.toggle('active',m==='flip');document.getElementById('mQuiz').classList.toggle('active',m==='quiz');document.getElementById('mArt').classList.toggle('active',m==='article');restart();}
+function setRound(v){roundSize=parseInt(v,10)||0;restart();}
+function updateArticleModeAvail(){const has=basePool().some(w=>w.type==='noun'&&['der','die','das'].includes(w.article));document.getElementById('mArt').disabled=!has;if(!has&&mode==='article')setMode('flip');}
 
-// ---------- study core ----------
-function getFilteredWords(){
-  let w = currentDeck===ALL ? allWords.slice() : allWords.filter(x=>x.deck===currentDeck);
+function basePool(){
+  let w=currentDeck===ALL?allWords.slice():allWords.filter(x=>x.deck===currentDeck);
   if(filter==='noun') w=w.filter(x=>x.type==='noun');
   else if(filter==='verb') w=w.filter(x=>x.type==='verb');
   else if(filter==='other') w=w.filter(x=>x.type!=='noun'&&x.type!=='verb');
@@ -561,40 +446,27 @@ function getFilteredWords(){
 }
 function restart(){
   updateArticleModeAvail();
-  const words=getFilteredWords();
+  const pool=basePool();
   document.getElementById('result').classList.add('hidden');
-  if(!words.length){
-    document.getElementById('game').classList.add('hidden');
-    document.getElementById('emptyDeck').classList.remove('hidden');
-    return;
-  }
-  document.getElementById('game').classList.remove('hidden');
-  document.getElementById('emptyDeck').classList.add('hidden');
-  deck=shuffle(words);idx=0;correct=0;wrong=0;streak=0;missed=[];
-  updateStats();showCard();
+  const info=document.getElementById('poolInfo');
+  if(!pool.length){document.getElementById('game').classList.add('hidden');document.getElementById('emptyDeck').classList.remove('hidden');info.textContent='';return;}
+  document.getElementById('game').classList.remove('hidden'); document.getElementById('emptyDeck').classList.add('hidden');
+  deck=shuffle(pool); if(roundSize>0) deck=deck.slice(0,roundSize);
+  info.textContent=`${deck.length} of ${pool.length} available`;
+  idx=0;correct=0;wrong=0;streak=0;missed=[]; updateStats(); showCard();
 }
-function reviewMissed(){
-  if(!missed.length){restart();return;}
-  document.getElementById('result').classList.add('hidden');
-  document.getElementById('game').classList.remove('hidden');
-  deck=shuffle(missed);idx=0;correct=0;wrong=0;streak=0;missed=[];
-  updateStats();showCard();
-}
+function reviewMissed(){if(!missed.length){restart();return;}document.getElementById('result').classList.add('hidden');document.getElementById('game').classList.remove('hidden');deck=shuffle(missed);idx=0;correct=0;wrong=0;streak=0;missed=[];updateStats();showCard();}
 function artClass(a){return a==='der'?'art-der':a==='die'?'art-die':'art-das';}
 
 function showCard(){
   if(idx>=deck.length) return showResult();
   const c=deck[idx]; flipped=false; quizAnswered=false;
   document.getElementById('cardInner').classList.remove('flipped');
-  document.getElementById('fBadge').textContent = c.type && c.type!=='other' ? c.type : '';
-  const isNoun = c.type==='noun' && ['der','die','das'].includes(c.article);
-  const deDisplay = c.de;                       // bare word (front, so you recall gender)
-  const deWithArt = isNoun ? `<span class="article-tag ${artClass(c.article)}">${c.article}</span>${c.de}` : c.de;
-
+  document.getElementById('fBadge').textContent=c.type&&c.type!=='other'?c.type:'';
+  const isNoun=c.type==='noun'&&['der','die','das'].includes(c.article);
+  const deWithArt=isNoun?`<span class="article-tag ${artClass(c.article)}">${c.article}</span>${c.de}`:c.de;
   const tap=document.getElementById('tapHint');
-
   if(mode==='article'){
-    // front: German noun, choose article
     document.getElementById('cardArea').style.pointerEvents='none';
     document.getElementById('fLang').textContent='Welcher Artikel?';
     document.getElementById('fWord').textContent=c.de;
@@ -602,142 +474,129 @@ function showCard(){
     document.getElementById('bLang').textContent='Antwort';
     document.getElementById('bWord').innerHTML=deWithArt;
     document.getElementById('bHint').textContent=c.en||'';
-    tap.style.display='none';
-    buildArticleQuiz(c);
-    document.getElementById('quizOpts').className='quiz-opts articles';
-    document.getElementById('quizOpts').classList.remove('hidden');
-    document.getElementById('flipActions').style.display='none';
-    document.getElementById('nextAction').style.display='none';
+    tap.style.display='none'; buildArticleQuiz(c);
+    const q=document.getElementById('quizOpts'); q.className='quiz-opts articles'; q.classList.remove('hidden');
+    document.getElementById('flipActions').style.display='none'; document.getElementById('nextAction').style.display='none';
   } else if(mode==='quiz'){
     document.getElementById('cardArea').style.pointerEvents='none';
     document.getElementById('fLang').textContent=dir==='de-en'?'Deutsch':'English';
-    document.getElementById('fWord').innerHTML = dir==='de-en' ? (isNoun?deWithArt:c.de) : c.en;
+    document.getElementById('fWord').innerHTML=dir==='de-en'?(isNoun?deWithArt:c.de):c.en;
     document.getElementById('fHint').textContent=c.hint?('('+c.hint+')'):'';
     document.getElementById('bLang').textContent=dir==='de-en'?'English':'Deutsch';
     document.getElementById('bWord').innerHTML=dir==='de-en'?c.en:deWithArt;
     document.getElementById('bHint').textContent='';
-    tap.style.display='none';
-    buildQuiz(c);
-    document.getElementById('quizOpts').className='quiz-opts';
-    document.getElementById('quizOpts').classList.remove('hidden');
-    document.getElementById('flipActions').style.display='none';
-    document.getElementById('nextAction').style.display='none';
-  } else { // flip
+    tap.style.display='none'; buildQuiz(c);
+    const q=document.getElementById('quizOpts'); q.className='quiz-opts'; q.classList.remove('hidden');
+    document.getElementById('flipActions').style.display='none'; document.getElementById('nextAction').style.display='none';
+  } else {
     document.getElementById('cardArea').style.pointerEvents='';
     document.getElementById('quizOpts').classList.add('hidden');
     document.getElementById('fLang').textContent=dir==='de-en'?'Deutsch':'English';
-    // front hides article for nouns so you must recall it
-    document.getElementById('fWord').textContent = dir==='de-en' ? deDisplay : c.en;
+    document.getElementById('fWord').textContent=dir==='de-en'?c.de:c.en;
     document.getElementById('fHint').textContent=c.hint?('('+c.hint+')'):'';
     document.getElementById('bLang').textContent=dir==='de-en'?'English':'Deutsch';
-    document.getElementById('bWord').innerHTML = dir==='de-en' ? c.en : deWithArt;
-    document.getElementById('bHint').innerHTML = dir==='de-en' && isNoun ? deWithArt : '';
+    document.getElementById('bWord').innerHTML=dir==='de-en'?c.en:deWithArt;
+    document.getElementById('bHint').innerHTML=dir==='de-en'&&isNoun?deWithArt:'';
     tap.style.display='block';
-    document.getElementById('flipActions').style.display='none';
-    document.getElementById('nextAction').style.display='none';
+    document.getElementById('flipActions').style.display='none'; document.getElementById('nextAction').style.display='none';
   }
   document.getElementById('progFill').style.width=Math.round(idx/deck.length*100)+'%';
   document.getElementById('progTxt').textContent=`Card ${idx+1} of ${deck.length}`;
 }
-function flip(){
-  if(mode!=='flip') return;
-  flipped=!flipped;
-  document.getElementById('cardInner').classList.toggle('flipped',flipped);
-  document.getElementById('flipActions').style.display=flipped?'flex':'none';
-  document.getElementById('tapHint').style.display=flipped?'none':'block';
-}
-function mark(ok){ if(ok){correct++;streak++;}else{wrong++;streak=0;missed.push(deck[idx]);} updateStats();idx++;showCard(); }
-
-function buildQuiz(c){
-  const right=dir==='de-en'?c.en:c.de;
-  const pool=getFilteredWords().filter(w=>w!==c);
-  const distract=shuffle(pool).slice(0,3).map(w=>dir==='de-en'?w.en:w.de);
-  renderOpts(shuffle([right,...distract]),right,false);
-}
-function buildArticleQuiz(c){ renderOpts(['der','die','das'],c.article,true); }
-function renderOpts(opts,right,isArticle){
-  const cc=document.getElementById('quizOpts'); cc.innerHTML='';
-  opts.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o;b.onclick=()=>answer(b,o,right);cc.appendChild(b);});
-}
-function answer(btn,chosen,right){
-  if(quizAnswered) return; quizAnswered=true;
-  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===right)b.classList.add('correct');});
-  if(chosen===right){btn.classList.add('correct');correct++;streak++;}
-  else{btn.classList.add('wrong');wrong++;streak=0;missed.push(deck[idx]);}
-  updateStats();
-  document.getElementById('cardInner').classList.add('flipped');
-  document.getElementById('nextAction').style.display='flex';
-}
+function flip(){if(mode!=='flip')return;flipped=!flipped;document.getElementById('cardInner').classList.toggle('flipped',flipped);document.getElementById('flipActions').style.display=flipped?'flex':'none';document.getElementById('tapHint').style.display=flipped?'none':'block';}
+function mark(ok){if(ok){correct++;streak++;}else{wrong++;streak=0;missed.push(deck[idx]);}updateStats();idx++;showCard();}
+function buildQuiz(c){const right=dir==='de-en'?c.en:c.de;const pool=basePool().filter(w=>w!==c);const d=shuffle(pool).slice(0,3).map(w=>dir==='de-en'?w.en:w.de);renderOpts(shuffle([right,...d]),right);}
+function buildArticleQuiz(c){renderOpts(['der','die','das'],c.article);}
+function renderOpts(opts,right){const cc=document.getElementById('quizOpts');cc.innerHTML='';opts.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o;b.onclick=()=>answer(b,o,right);cc.appendChild(b);});}
+function answer(btn,chosen,right){if(quizAnswered)return;quizAnswered=true;document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===right)b.classList.add('correct');});if(chosen===right){btn.classList.add('correct');correct++;streak++;}else{btn.classList.add('wrong');wrong++;streak=0;missed.push(deck[idx]);}updateStats();document.getElementById('cardInner').classList.add('flipped');document.getElementById('nextAction').style.display='flex';}
 function next(){idx++;showCard();}
 function updateStats(){document.getElementById('sCorrect').textContent=correct;document.getElementById('sWrong').textContent=wrong;document.getElementById('sStreak').textContent=streak;}
-function showResult(){
-  document.getElementById('game').classList.add('hidden');
-  document.getElementById('result').classList.remove('hidden');
-  const tot=correct+wrong,pct=tot?Math.round(correct/tot*100):0;
-  document.getElementById('rScore').textContent=pct+'%';
-  let m; if(pct>=90)m='Ausgezeichnet! Outstanding.';else if(pct>=70)m='Gut gemacht! Keep it up.';else if(pct>=50)m='Nicht schlecht — review the missed ones.';else m='Weiter üben! You’ll get there.';
-  document.getElementById('rMsg').textContent=m;
-}
+function showResult(){document.getElementById('game').classList.add('hidden');document.getElementById('result').classList.remove('hidden');const tot=correct+wrong,pct=tot?Math.round(correct/tot*100):0;document.getElementById('rScore').textContent=pct+'%';let m;if(pct>=90)m='Ausgezeichnet! Outstanding.';else if(pct>=70)m='Gut gemacht! Keep it up.';else if(pct>=50)m='Nicht schlecht — review the missed ones.';else m='Weiter üben! You’ll get there.';document.getElementById('rMsg').textContent=m;}
 
-// ---------- manage ----------
+// ----- manage -----
+function fillDeckSelect(){
+  const sel=document.getElementById('inDeck'); const prev=sel.value; sel.innerHTML='';
+  decksOrder.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
+  const o=document.createElement('option');o.value='__new__';o.textContent='＋ New deck…';sel.appendChild(o);
+  if(currentDeck&&currentDeck!==ALL&&decksOrder.includes(currentDeck)) sel.value=currentDeck;
+  else if(decksOrder.includes(prev)) sel.value=prev;
+  toggleNewDeck();
+}
+function toggleNewDeck(){document.getElementById('newDeckField').style.display=document.getElementById('inDeck').value==='__new__'?'flex':'none';}
 function toggleArticleField(){document.getElementById('articleField').style.display=document.getElementById('inType').value==='noun'?'flex':'none';}
 function renderManage(){
-  const mixed = currentDeck===ALL;
-  const addTarget = mixed ? (decksOrder[0]||'My Words') : (currentDeck||'My Words');
-  document.getElementById('addDeckName').textContent=addTarget;
-  const words = mixed ? allWords.slice() : allWords.filter(w=>w.deck===currentDeck);
-  document.getElementById('listTitle').textContent = mixed
-    ? `All decks (mixed) — ${words.length} words`
-    : `Words in “${currentDeck||''}” (${words.length})`;
+  fillDeckSelect();
+  const mixed=currentDeck===ALL;
+  const words=mixed?allWords.slice():allWords.filter(w=>w.deck===currentDeck);
+  document.getElementById('listTitle').textContent=mixed?`All decks — ${words.length} words`:`Words in “${currentDeck||''}” (${words.length})`;
   const list=document.getElementById('wordlist'); list.innerHTML='';
   if(!words.length){list.innerHTML='<div class="empty">No words yet.</div>';return;}
   words.forEach(w=>{
-    const row=document.createElement('div');row.className='row';
-    const art=w.article?w.article+' ':'';
+    const row=document.createElement('div');row.className='row';const art=w.article?w.article+' ':'';
     row.innerHTML=`<span class="de"></span><span class="en"></span>`;
-    row.querySelector('.de').textContent=art+w.de;
-    row.querySelector('.en').textContent = mixed ? (w.en+'  ·  '+w.deck) : w.en;
-    if(w._local){
-      const del=document.createElement('button');del.className='ico-btn del';del.textContent='🗑';del.title='Delete (local)';
-      del.onclick=()=>delLocal(w);row.appendChild(del);
-    }
+    row.querySelector('.de').textContent=art+w.de; row.querySelector('.en').textContent=mixed?(w.en+'  ·  '+w.deck):w.en;
+    if(w._local){const del=document.createElement('button');del.className='ico-btn del';del.textContent='🗑';del.title='Delete (this device)';del.onclick=()=>delLocal(w);row.appendChild(del);}
     list.appendChild(row);
   });
 }
-function addWord(){
+function findDuplicate(de){const n=lc(de);return allWords.find(w=>lc(w.de)===n);}
+function clearAddInputs(){document.getElementById('inDE').value='';document.getElementById('inEN').value='';document.getElementById('inHint').value='';document.getElementById('inNewDeck').value='';}
+function addLocal(obj){let local=[];try{local=JSON.parse(localStorage.getItem(LS.local)||'[]');}catch(e){}local.push({...obj,_local:true});localStorage.setItem(LS.local,JSON.stringify(local));currentDeck=obj.deck;rebuild();renderManage();toast('Added ✓ (this device)');}
+async function addWord(){
   const de=norm(document.getElementById('inDE').value), en=norm(document.getElementById('inEN').value);
   if(!de||!en){toast('Fill in German and English');return;}
+  let target=document.getElementById('inDeck').value;
+  if(target==='__new__'){target=norm(document.getElementById('inNewDeck').value);if(!target){toast('Type a name for the new deck');return;}}
   const type=document.getElementById('inType').value;
   const article=type==='noun'?document.getElementById('inArticle').value:'';
   const hint=norm(document.getElementById('inHint').value);
-  let local=[]; try{local=JSON.parse(localStorage.getItem(LS.local)||'[]');}catch(e){}
-  const targetDeck = currentDeck===ALL ? (decksOrder[0]||'My Words') : (currentDeck||'My Words');
-  local.push({deck:targetDeck,de,en,article,type,hint,_local:true});
-  localStorage.setItem(LS.local,JSON.stringify(local));
-  document.getElementById('inDE').value='';document.getElementById('inEN').value='';document.getElementById('inHint').value='';
-  document.getElementById('inDE').focus();
-  rebuild(); renderManage(); toast('Added ✓ (this device)');
+  const dup=findDuplicate(de);
+  if(dup && !confirm(`"${de}" already exists in deck "${dup.deck}" (= ${dup.en}). Add it anyway?`)) return;
+  const writeUrl=localStorage.getItem(LS.writeUrl);
+  const obj={deck:target,de,en,article,type,hint};
+  if(writeUrl){
+    toast('Saving to your Google Sheet…');
+    try{
+      await fetch(writeUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({deck:target,german:de,article,english:en,type,hint})});
+      clearAddInputs(); currentDeck=target; document.getElementById('inDE').focus();
+      toast('Sent to sheet ✓ reloading…');
+      setTimeout(reloadSheet,1700);
+    }catch(e){ toast('Couldn’t reach the script — saved on this device'); addLocal(obj); clearAddInputs(); }
+  } else {
+    addLocal(obj); clearAddInputs(); document.getElementById('inDE').focus();
+  }
 }
-function delLocal(target){
-  let local=[]; try{local=JSON.parse(localStorage.getItem(LS.local)||'[]');}catch(e){}
-  const i=local.findIndex(w=>w.de===target.de&&w.en===target.en&&w.deck===target.deck);
-  if(i>-1){local.splice(i,1);localStorage.setItem(LS.local,JSON.stringify(local));rebuild();renderManage();toast('Deleted');}
+function saveWriteUrl(){
+  const u=norm(document.getElementById('writeUrl').value);
+  const st=document.getElementById('writeStatus');
+  if(!u){localStorage.removeItem(LS.writeUrl);st.className='status info';st.textContent='Cleared — words added in the app stay on this device.';return;}
+  if(!/script\.google\.com\/macros\/.*\/exec/.test(u)){st.className='status err';st.textContent='That doesn’t look like an Apps Script web-app URL (it should end in /exec).';return;}
+  localStorage.setItem(LS.writeUrl,u); st.className='status ok'; st.textContent='Saved ✓ New words will be written straight to your sheet.'; toast('Write-back enabled ✓');
 }
+function populateRoundOptions(){
+  const sel=document.getElementById('roundSel'); sel.innerHTML='';
+  const all=document.createElement('option'); all.value='0'; all.textContent='All words'; sel.appendChild(all);
+  for(let n=10;n<=500;n+=10){const o=document.createElement('option');o.value=String(n);o.textContent=n+' words';sel.appendChild(o);}
+  sel.value=String(roundSize);
+}
+function delLocal(t){let local=[];try{local=JSON.parse(localStorage.getItem(LS.local)||'[]');}catch(e){}const i=local.findIndex(w=>w.de===t.de&&w.en===t.en&&w.deck===t.deck);if(i>-1){local.splice(i,1);localStorage.setItem(LS.local,JSON.stringify(local));rebuild();renderManage();toast('Deleted');}}
 
-// ---------- boot ----------
+// ----- boot -----
 function boot(){
-  const id=localStorage.getItem(LS.sheet);
-  const cache=localStorage.getItem(LS.cache);
+  populateRoundOptions();
+  const writeUrl=localStorage.getItem(LS.writeUrl);
+  if(writeUrl){document.getElementById('writeUrl').value=writeUrl;const st=document.getElementById('writeStatus');st.className='status ok';st.textContent='Active ✓ New words are written straight to your sheet.';}
+  const id=localStorage.getItem(LS.sheet); const cache=localStorage.getItem(LS.cache);
   if(id){
     document.getElementById('sheetUrl').value='https://docs.google.com/spreadsheets/d/'+id;
-    if(cache){ allWords=buildFromCsvText(cache,false); rebuild(); document.getElementById('sourceSub').textContent='Live from your Google Sheet'; setStatus('info','Using cached copy — hit “Reload words” for the latest.'); }
+    if(cache){allWords=buildFromCsvText(cache,false);rebuild();document.getElementById('sourceSub').textContent='Live from your Google Sheet';setStatus('info','Using cached copy — hit “Reload words” for the latest.');}
     reloadSheet();
   } else if(cache){
-    try{ const obj=JSON.parse(cache); if(obj._imported){ allWords=obj._imported; } }
-    catch(e){ allWords=buildFromCsvText(cache,false); }
+    try{const obj=JSON.parse(cache);if(obj._imported)allWords=obj._imported;}catch(e){allWords=buildFromCsvText(cache,false);}
     rebuild(); document.getElementById('sourceSub').textContent='Imported / cached words';
   } else {
-    loadStarter();
+    rebuild(); document.getElementById('sourceSub').textContent='No words yet — open Setup to connect your sheet';
   }
   toggleArticleField();
 }
@@ -745,4 +604,3 @@ boot();
 </script>
 </body>
 </html>
-
