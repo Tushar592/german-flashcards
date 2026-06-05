@@ -319,6 +319,13 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
 const LS = { sheet:'gf_sheet_id', cache:'gf_cache', local:'gf_local', writeUrl:'gf_write_url' };
 const ALL = '__ALL__';
 
+// Baked-in defaults so any device auto-connects on first open.
+const CONFIG = {
+  sheetId: '1rTIN4Kwz7Jzx3gWXULMniIaKAtEQ_jNpKlYEWOfyPJE',
+  writeUrl: 'https://script.google.com/macros/s/AKfycbyJc3zFijSuu6la5lHfzQ8AUIOHKCEqCziLLTymdUK4wZww5ZNRhv7wp-ozBWKU6-1K/exec',
+  secret: 'fk2p9-Qm7Xv3Lw8'
+};
+
 let allWords=[], decksOrder=[], currentDeck=null;
 let view='study', dir='de-en', mode='flip', filter='all', roundSize=0;
 let deck=[], idx=0, flipped=false, quizAnswered=false;
@@ -558,7 +565,7 @@ async function addWord(){
     toast('Saving to your Google Sheet…');
     try{
       await fetch(writeUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({deck:target,german:de,article,english:en,type,hint})});
+        body:JSON.stringify({secret:CONFIG.secret,deck:target,german:de,article,english:en,type,hint})});
       clearAddInputs(); currentDeck=target; document.getElementById('inDE').focus();
       toast('Sent to sheet ✓ reloading…');
       setTimeout(reloadSheet,1700);
@@ -584,6 +591,9 @@ function delLocal(t){let local=[];try{local=JSON.parse(localStorage.getItem(LS.l
 
 // ----- boot -----
 function boot(){
+  // Seed baked-in defaults so a fresh device connects with no pasting.
+  if(!localStorage.getItem(LS.sheet) && CONFIG.sheetId) localStorage.setItem(LS.sheet, CONFIG.sheetId);
+  if(!localStorage.getItem(LS.writeUrl) && CONFIG.writeUrl) localStorage.setItem(LS.writeUrl, CONFIG.writeUrl);
   populateRoundOptions();
   const writeUrl=localStorage.getItem(LS.writeUrl);
   if(writeUrl){document.getElementById('writeUrl').value=writeUrl;const st=document.getElementById('writeStatus');st.className='status ok';st.textContent='Active ✓ New words are written straight to your sheet.';}
