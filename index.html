@@ -146,14 +146,14 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
   <div class="admin-menu hidden" id="adminMenu">
     <div id="adminLocked">
       <div class="am-title">Admin access</div>
-      <p>Unlock to add words and open Setup. Viewers only see Study.</p>
+      <p>Enter your password to add words and open Setup. It's checked by your sheet's script, not stored in the page.</p>
       <input type="password" id="adminPassInput" placeholder="Password" onkeydown="if(event.key==='Enter')submitAdminPass()">
       <button class="am-btn" onclick="submitAdminPass()">Unlock</button>
       <div class="am-msg" id="adminMsg"></div>
     </div>
     <div id="adminUnlocked" class="hidden">
       <div class="am-title">Admin mode active ✓</div>
-      <p>You can add words and change setup. Lock again before sharing the link.</p>
+      <p>You can add words and change setup. If the password is wrong, words simply won't save. Lock again before sharing the link.</p>
       <button class="am-btn lock" onclick="lockAdmin()">Lock (view only)</button>
     </div>
   </div>
@@ -281,7 +281,7 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
       </div>
       <div class="field"><label>Hint (optional)</label><input id="inHint" placeholder="optional note"></div>
       <button class="btn primary" onclick="addWord()">Add word</button>
-      <div class="io-note"><strong>Where does it save?</strong> If you've set up write-back (Setup → ③), new words go <strong>straight into your Google Sheet</strong> and appear on every device. If not, they're saved on <strong>this device only</strong> — add them to the sheet (or use Export) to sync. Either way, you'll get a warning if the word already exists.</div>
+      <div class="io-note"><strong>Where does it save?</strong> New words are written <strong>straight into your Google Sheet</strong> (so they appear on every device), but only if your admin password is correct — the password is checked by the sheet's script, not stored in this page. You'll get a warning if the word already exists, and a heads-up if it didn't save.</div>
     </div>
 
     <div class="panel">
@@ -352,11 +352,11 @@ const LS = { sheet:'gf_sheet_id', cache:'gf_cache', local:'gf_local', writeUrl:'
 const ALL = '__ALL__';
 
 // Baked-in defaults so any device auto-connects on first open.
+// NOTE: the admin password is NOT here on purpose — it lives only inside your
+// Apps Script (server-side). You type it once per device to enable adding words.
 const CONFIG = {
   sheetId: '1rTIN4Kwz7Jzx3gWXULMniIaKAtEQ_jNpKlYEWOfyPJE',
-  writeUrl: 'https://script.google.com/macros/s/AKfycbyJc3zFijSuu6la5lHfzQ8AUIOHKCEqCziLLTymdUK4wZww5ZNRhv7wp-ozBWKU6-1K/exec',
-  secret: 'fk2p9-Qm7Xv3Lw8',
-  adminPass: 'Tushar-Admin-2026'   // <-- change this line to set your own admin password
+  writeUrl: 'https://script.google.com/macros/s/AKfycbyJc3zFijSuu6la5lHfzQ8AUIOHKCEqCziLLTymdUK4wZww5ZNRhv7wp-ozBWKU6-1K/exec'
 };
 
 let allWords=[], decksOrder=[], currentDeck=null;
@@ -366,7 +366,7 @@ let correct=0, wrong=0, streak=0, missed=[];
 let isAdmin=false;
 
 function applyAdmin(){
-  isAdmin = localStorage.getItem('gf_admin')==='1';
+  isAdmin = !!localStorage.getItem('gf_admin_pass');
   document.getElementById('navManage').style.display = isAdmin?'':'none';
   document.getElementById('navSetup').style.display = isAdmin?'':'none';
   document.getElementById('adminIcon').classList.toggle('active', isAdmin);
@@ -380,16 +380,15 @@ function toggleAdminMenu(){
   if(!m.classList.contains('hidden') && !isAdmin) setTimeout(()=>document.getElementById('adminPassInput').focus(),0);
 }
 function submitAdminPass(){
-  const v=document.getElementById('adminPassInput').value;
-  if(v===CONFIG.adminPass){
-    localStorage.setItem('gf_admin','1');
-    document.getElementById('adminPassInput').value='';
-    document.getElementById('adminMsg').textContent='';
-    applyAdmin(); toast('Admin unlocked ✓');
-  } else { document.getElementById('adminMsg').textContent='Wrong password'; }
+  const v=document.getElementById('adminPassInput').value.trim();
+  if(!v){ document.getElementById('adminMsg').textContent='Enter your password'; return; }
+  localStorage.setItem('gf_admin_pass', v);
+  document.getElementById('adminPassInput').value='';
+  document.getElementById('adminMsg').textContent='';
+  applyAdmin(); toast('Admin enabled on this device');
 }
 function lockAdmin(){
-  localStorage.removeItem('gf_admin'); applyAdmin(); setView('study');
+  localStorage.removeItem('gf_admin_pass'); applyAdmin(); setView('study');
   document.getElementById('adminMenu').classList.add('hidden'); toast('Locked — view only');
 }
 document.addEventListener('click',function(e){
@@ -626,20 +625,21 @@ async function addWord(){
   const hint=norm(document.getElementById('inHint').value);
   const dup=findDuplicate(de);
   if(dup && !confirm(`"${de}" already exists in deck "${dup.deck}" (= ${dup.en}). Add it anyway?`)) return;
-  const writeUrl=localStorage.getItem(LS.writeUrl);
-  const obj={deck:target,de,en,article,type,hint};
-  if(writeUrl){
-    toast('Saving to your Google Sheet…');
-    try{
-      await fetch(writeUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({secret:CONFIG.secret,deck:target,german:de,article,english:en,type,hint})});
-      clearAddInputs(); currentDeck=target; document.getElementById('inDE').focus();
-      toast('Sent to sheet ✓ reloading…');
-      setTimeout(reloadSheet,1700);
-    }catch(e){ toast('Couldn’t reach the script — saved on this device'); addLocal(obj); clearAddInputs(); }
-  } else {
-    addLocal(obj); clearAddInputs(); document.getElementById('inDE').focus();
-  }
+  const pass=localStorage.getItem('gf_admin_pass');
+  if(!pass){ toast('Unlock admin (top-right icon) to add words'); return; }
+  const writeUrl=localStorage.getItem(LS.writeUrl)||CONFIG.writeUrl;
+  toast('Saving to your Google Sheet…');
+  try{
+    await fetch(writeUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({secret:pass,deck:target,german:de,article,english:en,type,hint})});
+    clearAddInputs(); currentDeck=target; document.getElementById('inDE').focus();
+    toast('Sent — checking the sheet…');
+    setTimeout(async ()=>{
+      await reloadSheet();
+      const ok=allWords.some(w=>!w._local && lc(w.de)===lc(de) && w.deck===target);
+      toast(ok ? 'Added to sheet ✓' : 'Not saved — check your admin password');
+    },1800);
+  }catch(e){ toast('Couldn’t reach the script — check your connection'); }
 }
 function saveWriteUrl(){
   const u=norm(document.getElementById('writeUrl').value);
@@ -677,6 +677,10 @@ function boot(){
   }
   toggleArticleField();
   applyAdmin();
+  if(new URLSearchParams(location.search).get('admin')==='true'){
+    document.getElementById('adminMenu').classList.remove('hidden');
+    if(!isAdmin) setTimeout(()=>document.getElementById('adminPassInput').focus(),0);
+  }
 }
 boot();
 </script>
