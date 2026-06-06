@@ -121,11 +121,43 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
 .empty{color:var(--ink-faint);font-size:14px;text-align:center;padding:1.5rem;font-style:italic}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:var(--accent-ink);padding:11px 22px;border-radius:10px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s;z-index:100}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.admin-wrap{position:fixed;top:16px;right:16px;z-index:200}
+.admin-icon{width:40px;height:40px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.admin-icon:hover{border-color:var(--accent);color:var(--ink)}
+.admin-icon.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.admin-icon svg{width:20px;height:20px}
+.admin-menu{position:absolute;top:48px;right:0;width:235px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 14px 34px rgba(0,0,0,.45)}
+.admin-menu .am-title{font-family:'Fraunces',serif;font-size:15px;margin-bottom:10px;color:var(--ink)}
+.admin-menu input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--ink);font-family:inherit;font-size:14px;margin-bottom:8px}
+.admin-menu input:focus{outline:none;border-color:var(--accent)}
+.admin-menu .am-btn{width:100%;background:var(--accent);color:var(--accent-ink);border:none;border-radius:9px;padding:9px;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer}
+.admin-menu .am-btn.lock{background:var(--surface-2);color:var(--ink)}
+.admin-menu p{font-size:12px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
+.admin-menu .am-msg{font-size:12px;color:var(--red);min-height:14px;margin-top:4px}
 .hidden{display:none!important}
 @media (max-width:480px){.masthead h1{font-size:34px}.inline-fields{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+<div class="admin-wrap" id="adminWrap">
+  <button class="admin-icon" id="adminIcon" onclick="toggleAdminMenu()" aria-label="Admin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>
+  </button>
+  <div class="admin-menu hidden" id="adminMenu">
+    <div id="adminLocked">
+      <div class="am-title">Admin access</div>
+      <p>Unlock to add words and open Setup. Viewers only see Study.</p>
+      <input type="password" id="adminPassInput" placeholder="Password" onkeydown="if(event.key==='Enter')submitAdminPass()">
+      <button class="am-btn" onclick="submitAdminPass()">Unlock</button>
+      <div class="am-msg" id="adminMsg"></div>
+    </div>
+    <div id="adminUnlocked" class="hidden">
+      <div class="am-title">Admin mode active ✓</div>
+      <p>You can add words and change setup. Lock again before sharing the link.</p>
+      <button class="am-btn lock" onclick="lockAdmin()">Lock (view only)</button>
+    </div>
+  </div>
+</div>
 <div class="wrap">
   <div class="masthead">
     <div class="kicker">Vokabeltrainer</div>
@@ -323,13 +355,47 @@ const ALL = '__ALL__';
 const CONFIG = {
   sheetId: '1rTIN4Kwz7Jzx3gWXULMniIaKAtEQ_jNpKlYEWOfyPJE',
   writeUrl: 'https://script.google.com/macros/s/AKfycbyJc3zFijSuu6la5lHfzQ8AUIOHKCEqCziLLTymdUK4wZww5ZNRhv7wp-ozBWKU6-1K/exec',
-  secret: 'fk2p9-Qm7Xv3Lw8'
+  secret: 'fk2p9-Qm7Xv3Lw8',
+  adminPass: 'Tushar-Admin-2026'   // <-- change this line to set your own admin password
 };
 
 let allWords=[], decksOrder=[], currentDeck=null;
 let view='study', dir='de-en', mode='flip', filter='all', roundSize=0;
 let deck=[], idx=0, flipped=false, quizAnswered=false;
 let correct=0, wrong=0, streak=0, missed=[];
+let isAdmin=false;
+
+function applyAdmin(){
+  isAdmin = localStorage.getItem('gf_admin')==='1';
+  document.getElementById('navManage').style.display = isAdmin?'':'none';
+  document.getElementById('navSetup').style.display = isAdmin?'':'none';
+  document.getElementById('adminIcon').classList.toggle('active', isAdmin);
+  document.getElementById('adminLocked').classList.toggle('hidden', isAdmin);
+  document.getElementById('adminUnlocked').classList.toggle('hidden', !isAdmin);
+  if(!isAdmin && (view==='manage'||view==='setup')) setView('study');
+}
+function toggleAdminMenu(){
+  const m=document.getElementById('adminMenu');
+  m.classList.toggle('hidden');
+  if(!m.classList.contains('hidden') && !isAdmin) setTimeout(()=>document.getElementById('adminPassInput').focus(),0);
+}
+function submitAdminPass(){
+  const v=document.getElementById('adminPassInput').value;
+  if(v===CONFIG.adminPass){
+    localStorage.setItem('gf_admin','1');
+    document.getElementById('adminPassInput').value='';
+    document.getElementById('adminMsg').textContent='';
+    applyAdmin(); toast('Admin unlocked ✓');
+  } else { document.getElementById('adminMsg').textContent='Wrong password'; }
+}
+function lockAdmin(){
+  localStorage.removeItem('gf_admin'); applyAdmin(); setView('study');
+  document.getElementById('adminMenu').classList.add('hidden'); toast('Locked — view only');
+}
+document.addEventListener('click',function(e){
+  const w=document.getElementById('adminWrap');
+  if(w && !w.contains(e.target)) document.getElementById('adminMenu').classList.add('hidden');
+});
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -429,6 +495,7 @@ function renderDecks(){
   });
 }
 function setView(v){
+  if((v==='manage'||v==='setup') && !isAdmin){ v='study'; }
   view=v;
   ['Study','Manage','Setup'].forEach(x=>document.getElementById('nav'+x).classList.toggle('active',v===x.toLowerCase()));
   document.getElementById('studyView').classList.toggle('hidden',v!=='study');
@@ -609,6 +676,7 @@ function boot(){
     rebuild(); document.getElementById('sourceSub').textContent='No words yet — open Setup to connect your sheet';
   }
   toggleArticleField();
+  applyAdmin();
 }
 boot();
 </script>
