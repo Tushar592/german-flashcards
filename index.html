@@ -11,15 +11,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  --bg:#0d1117; --surface:#161b26; --surface-2:#212836; --ink:#eef2fb; --ink-soft:#9aa6c0;
-  --ink-faint:#646f8a; --line:#2a3344; --accent:#2dd4bf; --accent-ink:#04201c; --accent-soft:#0f3b37;
-  --accent-2:#a78bfa; --green:#34d399; --green-bg:#0f3b2e; --red:#fb7185; --red-bg:#3a1f2a; --gold:#fbbf24;
-  --der:#60a5fa; --der-bg:#16294a; --die:#f472b6; --die-bg:#3a1f30; --das:#34d399; --das-bg:#0f3b2e;
+  --bg:#f5f7fb; --surface:#ffffff; --surface-2:#eef2f8; --ink:#1b2233; --ink-soft:#566076;
+  --ink-faint:#8b94a7; --line:#e4e8f0; --accent:#4f46e5; --accent-ink:#ffffff; --accent-soft:#ecebfe;
+  --accent-2:#0ea5e9; --green:#16a34a; --green-bg:#e7f6ec; --red:#dc2626; --red-bg:#fdeaea; --gold:#b45309;
+  --der:#2563eb; --der-bg:#e8f0fe; --die:#db2777; --die-bg:#fce8f3; --das:#16a34a; --das-bg:#e7f6ec;
+  --shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px rgba(16,24,40,.06);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--ink);font-family:'Outfit',sans-serif;-webkit-font-smoothing:antialiased}
 body{min-height:100vh;padding:2rem 1rem 4rem;
-  background-image:radial-gradient(900px 500px at 80% -10%, rgba(45,212,191,.10), transparent 60%),radial-gradient(700px 500px at 0% 0%, rgba(167,139,250,.10), transparent 55%);}
+  background-image:radial-gradient(900px 500px at 80% -10%, rgba(79,70,229,.07), transparent 60%),radial-gradient(700px 500px at 0% 0%, rgba(14,165,233,.07), transparent 55%);}
 .wrap{max-width:580px;margin:0 auto}
 
 .masthead{text-align:center;margin-bottom:1.5rem}
@@ -61,14 +62,14 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
 .card-area{perspective:1400px;margin-bottom:1.25rem;cursor:pointer}
 .card-inner{position:relative;min-height:230px;transition:transform .55s cubic-bezier(.34,1.2,.4,1);transform-style:preserve-3d}
 .card-inner.flipped{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;min-height:230px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.5rem;border:1px solid var(--line)}
+.face{position:absolute;inset:0;min-height:230px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.5rem;border:1px solid var(--line);box-shadow:var(--shadow)}
 .face.front{background:var(--surface)}
-.face.back{background:linear-gradient(155deg,#11332f,#0c2440);border-color:var(--accent);transform:rotateY(180deg)}
+.face.back{background:linear-gradient(155deg,#f1f0fe,#e8f4fe);border-color:var(--accent);transform:rotateY(180deg)}
 .badge{position:absolute;top:14px;left:14px;font-size:11px;letter-spacing:.05em;padding:3px 9px;border-radius:20px;background:var(--surface-2);color:var(--ink-soft);text-transform:uppercase}
 .lang{font-size:11px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:.8rem}
 .front .lang{color:var(--ink-faint)}.back .lang{color:var(--accent)}
 .word{font-family:'Fraunces',serif;font-size:30px;font-weight:500;text-align:center;line-height:1.25}
-.back .word{color:#fff}
+.back .word{color:#312e81}
 .article-tag{font-family:'Outfit',sans-serif;font-size:17px;font-weight:600;padding:2px 10px;border-radius:8px;margin-right:8px;vertical-align:middle}
 .art-der{color:var(--der);background:var(--der-bg)}.art-die{color:var(--die);background:var(--die-bg)}.art-das{color:var(--das);background:var(--das-bg)}
 .hint{font-size:13px;color:var(--ink-soft);margin-top:.7rem;font-style:italic}
@@ -126,7 +127,7 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
 .admin-icon:hover{border-color:var(--accent);color:var(--ink)}
 .admin-icon.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .admin-icon svg{width:20px;height:20px}
-.admin-menu{position:absolute;top:48px;right:0;width:235px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 14px 34px rgba(0,0,0,.45)}
+.admin-menu{position:absolute;top:48px;right:0;width:235px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 14px 34px rgba(16,24,40,.16)}
 .admin-menu .am-title{font-family:'Fraunces',serif;font-size:15px;margin-bottom:10px;color:var(--ink)}
 .admin-menu input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--ink);font-family:inherit;font-size:14px;margin-bottom:8px}
 .admin-menu input:focus{outline:none;border-color:var(--accent)}
@@ -135,6 +136,8 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
 .admin-menu p{font-size:12px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
 .admin-menu .am-msg{font-size:12px;color:var(--red);min-height:14px;margin-top:4px}
 .hidden{display:none!important}
+.credit{text-align:center;margin-top:2.5rem;font-size:12px;color:var(--ink-faint);letter-spacing:.04em}
+.credit strong{color:var(--ink-soft);font-weight:600}
 @media (max-width:480px){.masthead h1{font-size:34px}.inline-fields{grid-template-columns:1fr}}
 </style>
 </head>
@@ -302,47 +305,25 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
   <!-- ===== SETUP ===== -->
   <div id="setupView" class="hidden">
     <div class="panel">
-      <h3>① Connect your Google Sheet</h3>
-      <div class="field"><label>Paste your Google Sheet link or ID</label>
-        <input id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/…">
-      </div>
-      <div class="io-row">
-        <button class="btn primary" onclick="connectSheet()">Connect & load</button>
-        <button class="btn" onclick="reloadSheet()">↻ Reload words</button>
-      </div>
-      <div id="setupStatus" class="status info">Not connected yet.</div>
+      <h3>Your word source</h3>
+      <div id="setupStatus" class="status info">Connected to your Google Sheet ✓</div>
+      <div class="io-row"><button class="btn primary" onclick="reloadSheet()">↻ Reload words</button></div>
       <div class="io-note">
-        Share the sheet so the link works for anyone: <strong>Share → General access → "Anyone with the link → Viewer."</strong><br>
-        Columns (first row): <code>Deck</code> <code>German</code> <code>Article</code> <code>English</code> <code>Type</code> <code>Hint</code>.
-        New deck = a new name in the <code>Deck</code> column. For nouns, put <code>der/die/das</code> in <code>Article</code> and the bare word in <code>German</code>.
+        Words come live from your Google Sheet. To add words, use the <strong>Words</strong> tab; to edit or delete, change the sheet directly.
+        The sheet and script links are fixed in the app — they can't be changed here, so nothing important can be altered by accident.
       </div>
     </div>
 
     <div class="panel">
-      <h3>② Or import an Excel / CSV file</h3>
+      <h3>Export a backup</h3>
       <div class="io-row">
-        <button class="btn" onclick="document.getElementById('importFile').click()">Choose .xlsx / .csv file</button>
-        <input type="file" id="importFile" accept=".xlsx,.xls,.csv" class="hidden" onchange="importFile(event)">
+        <button class="btn" onclick="exportXlsx()">Export to Excel (.xlsx)</button>
+        <button class="btn" onclick="exportCsv()">Export to CSV</button>
       </div>
-      <div class="io-note">Same columns as above. Imported words load for this session and are remembered on this device.</div>
-    </div>
-
-    <div class="panel">
-      <h3>③ (Optional) Save new words straight to the sheet</h3>
-      <div class="field"><label>Apps Script web-app URL (ends in /exec)</label>
-        <input id="writeUrl" placeholder="https://script.google.com/macros/s/…/exec">
-      </div>
-      <div class="io-row"><button class="btn primary" onclick="saveWriteUrl()">Save</button></div>
-      <div id="writeStatus" class="status info">Not set up — words added in the app stay on this device.</div>
-      <div class="io-note">
-        Set this up once and the <strong>Words → Add a word</strong> form writes new rows directly into your Google Sheet (so they appear on every device). How to get the URL:
-        <br>1. In your sheet: <strong>Extensions → Apps Script</strong>.
-        <br>2. Delete whatever's there and paste the script from the guide, then <strong>Save</strong>.
-        <br>3. <strong>Deploy → New deployment → Web app</strong>. Set <strong>Execute as: Me</strong>, <strong>Who has access: Anyone</strong>. Deploy and authorise.
-        <br>4. Copy the <strong>Web app URL</strong> (ends in <code>/exec</code>) and paste it above.
-      </div>
+      <div class="io-note">Downloads everything currently loaded, in your sheet's column format.</div>
     </div>
   </div>
+  <div class="credit">Created by <strong>Tushar Jejurkar</strong></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -356,7 +337,10 @@ const ALL = '__ALL__';
 // Apps Script (server-side). You type it once per device to enable adding words.
 const CONFIG = {
   sheetId: '1rTIN4Kwz7Jzx3gWXULMniIaKAtEQ_jNpKlYEWOfyPJE',
-  writeUrl: 'https://script.google.com/macros/s/AKfycbyJc3zFijSuu6la5lHfzQ8AUIOHKCEqCziLLTymdUK4wZww5ZNRhv7wp-ozBWKU6-1K/exec'
+  writeUrl: 'https://script.google.com/macros/s/AKfycbyJc3zFijSuu6la5lHfzQ8AUIOHKCEqCziLLTymdUK4wZww5ZNRhv7wp-ozBWKU6-1K/exec',
+  // SHA-256 hash of the admin password (not the password itself), so the page can
+  // reject a wrong password without the real password ever being readable in the code.
+  adminHash: 'd84d19b993f1f65a43985a6c6509e9e4671483929f2fa38b9e3083a1885526a5'
 };
 
 let allWords=[], decksOrder=[], currentDeck=null;
@@ -379,13 +363,20 @@ function toggleAdminMenu(){
   m.classList.toggle('hidden');
   if(!m.classList.contains('hidden') && !isAdmin) setTimeout(()=>document.getElementById('adminPassInput').focus(),0);
 }
-function submitAdminPass(){
+async function sha256Hex(str){
+  const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function submitAdminPass(){
   const v=document.getElementById('adminPassInput').value.trim();
   if(!v){ document.getElementById('adminMsg').textContent='Enter your password'; return; }
+  let h='';
+  try{ h=await sha256Hex(v); }catch(e){ document.getElementById('adminMsg').textContent='Cannot verify here (needs https).'; return; }
+  if(h!==CONFIG.adminHash){ document.getElementById('adminMsg').textContent='Wrong password'; return; }
   localStorage.setItem('gf_admin_pass', v);
   document.getElementById('adminPassInput').value='';
   document.getElementById('adminMsg').textContent='';
-  applyAdmin(); toast('Admin enabled on this device');
+  applyAdmin(); toast('Admin unlocked ✓');
 }
 function lockAdmin(){
   localStorage.removeItem('gf_admin_pass'); applyAdmin(); setView('study');
@@ -657,25 +648,26 @@ function populateRoundOptions(){
 function delLocal(t){let local=[];try{local=JSON.parse(localStorage.getItem(LS.local)||'[]');}catch(e){}const i=local.findIndex(w=>w.de===t.de&&w.en===t.en&&w.deck===t.deck);if(i>-1){local.splice(i,1);localStorage.setItem(LS.local,JSON.stringify(local));rebuild();renderManage();toast('Deleted');}}
 
 // ----- boot -----
-function boot(){
+async function boot(){
   // Seed baked-in defaults so a fresh device connects with no pasting.
   if(!localStorage.getItem(LS.sheet) && CONFIG.sheetId) localStorage.setItem(LS.sheet, CONFIG.sheetId);
   if(!localStorage.getItem(LS.writeUrl) && CONFIG.writeUrl) localStorage.setItem(LS.writeUrl, CONFIG.writeUrl);
   populateRoundOptions();
-  const writeUrl=localStorage.getItem(LS.writeUrl);
-  if(writeUrl){document.getElementById('writeUrl').value=writeUrl;const st=document.getElementById('writeStatus');st.className='status ok';st.textContent='Active ✓ New words are written straight to your sheet.';}
   const id=localStorage.getItem(LS.sheet); const cache=localStorage.getItem(LS.cache);
   if(id){
-    document.getElementById('sheetUrl').value='https://docs.google.com/spreadsheets/d/'+id;
-    if(cache){allWords=buildFromCsvText(cache,false);rebuild();document.getElementById('sourceSub').textContent='Live from your Google Sheet';setStatus('info','Using cached copy — hit “Reload words” for the latest.');}
+    if(cache){allWords=buildFromCsvText(cache,false);rebuild();document.getElementById('sourceSub').textContent='Live from your Google Sheet';setStatus('info','Using cached words — tap Reload for the latest.');}
     reloadSheet();
   } else if(cache){
     try{const obj=JSON.parse(cache);if(obj._imported)allWords=obj._imported;}catch(e){allWords=buildFromCsvText(cache,false);}
     rebuild(); document.getElementById('sourceSub').textContent='Imported / cached words';
   } else {
-    rebuild(); document.getElementById('sourceSub').textContent='No words yet — open Setup to connect your sheet';
+    rebuild(); document.getElementById('sourceSub').textContent='Loading your words…';
   }
   toggleArticleField();
+  // Revalidate any saved admin unlock against the password hash. This also clears
+  // a stale unlock left by an older version that accepted any password.
+  const sp=localStorage.getItem('gf_admin_pass');
+  if(sp){ try{ if(await sha256Hex(sp)!==CONFIG.adminHash) localStorage.removeItem('gf_admin_pass'); }catch(e){} }
   applyAdmin();
   if(new URLSearchParams(location.search).get('admin')==='true'){
     document.getElementById('adminMenu').classList.remove('hidden');
