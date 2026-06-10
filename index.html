@@ -350,8 +350,10 @@ const ALL = '__ALL__';
 // Apps Script (server-side). You type it once per device to enable adding words.
 const CONFIG = {
   sheetId: '1rTIN4Kwz7Jzx3gWXULMniIaKAtEQ_jNpKlYEWOfyPJE',
-  writeUrl: 'https://script.google.com/macros/s/AKfycbzQhl2euru3n1Vk0FQI8VJVJIF6qXp2EN0N1r-Lz-WENUXbEcGfyB4MxsF4dIUJnCQA/exec'
-  // The admin password is NOT here. It lives only in your Apps Script.
+  writeUrl: 'https://script.google.com/macros/s/AKfycbzQhl2euru3n1Vk0FQI8VJVJIF6qXp2EN0N1r-Lz-WENUXbEcGfyB4MxsF4dIUJnCQA/exec',
+  // One-way fingerprint (SHA-256) of the admin password — used only to check the
+  // password you type. It is NOT the password and cannot be reversed.
+  adminHash: 'd84d19b993f1f65a43985a6c6509e9e4671483929f2fa38b9e3083a1885526a5'
 };
 
 let allWords=[], decksOrder=[], currentDeck=null;
@@ -374,35 +376,25 @@ function toggleAdminMenu(){
   m.classList.toggle('hidden');
   if(!m.classList.contains('hidden') && !isAdmin) setTimeout(()=>document.getElementById('adminPassInput').focus(),0);
 }
-// Ask the Apps Script (which holds the real password) whether the typed one is correct.
-// Uses JSONP so it works across origins without any CORS setup.
-function jsonp(url){
-  return new Promise((resolve,reject)=>{
-    const cb='gfcb_'+Date.now()+Math.floor(Math.random()*1000);
-    const s=document.createElement('script');
-    const timer=setTimeout(()=>{cleanup();reject(new Error('timeout'));},10000);
-    function cleanup(){clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);}
-    window[cb]=(data)=>{cleanup();resolve(data);};
-    s.onerror=()=>{cleanup();reject(new Error('network'));};
-    s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
-    document.body.appendChild(s);
-  });
+// Verify the typed password against a one-way fingerprint (SHA-256 hash).
+// The hash is NOT the password and can't be reversed, so the password stays
+// unreadable in the code — while the check works instantly and offline.
+async function sha256Hex(str){
+  const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 async function submitAdminPass(){
   const v=document.getElementById('adminPassInput').value.trim();
   const msg=document.getElementById('adminMsg');
-  if(!v){ msg.textContent='Enter your password'; return; }
-  msg.style.color='var(--ink-faint)'; msg.textContent='Checking…';
-  const base=localStorage.getItem(LS.writeUrl)||CONFIG.writeUrl;
-  try{
-    const data=await jsonp(base+'?action=check&pw='+encodeURIComponent(v));
-    if(data && data.ok){
-      localStorage.setItem('gf_admin_pw', v);
-      document.getElementById('adminPassInput').value='';
-      msg.textContent='';
-      applyAdmin(); toast('Admin unlocked ✓');
-    } else { msg.style.color='var(--red)'; msg.textContent='Wrong password'; }
-  }catch(e){ msg.style.color='var(--red)'; msg.textContent='Could not verify — check your connection'; }
+  if(!v){ msg.style.color='var(--red)'; msg.textContent='Enter your password'; return; }
+  let h='';
+  try{ h=await sha256Hex(v); }
+  catch(e){ msg.style.color='var(--red)'; msg.textContent='Cannot verify here (the site must be https).'; return; }
+  if(h!==CONFIG.adminHash){ msg.style.color='var(--red)'; msg.textContent='Wrong password'; return; }
+  localStorage.setItem('gf_admin_pw', v);
+  document.getElementById('adminPassInput').value='';
+  msg.textContent='';
+  applyAdmin(); toast('Admin unlocked ✓');
 }
 function lockAdmin(){
   localStorage.removeItem('gf_admin_pw'); applyAdmin(); setView('study');
@@ -693,7 +685,9 @@ async function boot(){
   // Prefill the (admin-only) setup fields with the current links.
   const su=document.getElementById('sheetUrl'); if(su) su.value='https://docs.google.com/spreadsheets/d/'+(localStorage.getItem(LS.sheet)||CONFIG.sheetId);
   const wu=document.getElementById('writeUrl'); if(wu) wu.value=localStorage.getItem(LS.writeUrl)||CONFIG.writeUrl;
-  // Drop any admin unlock from the previous version (which used a different check).
+  // Clear any saved unlock that doesn't match the password (e.g. left by an older version).
+  const sp=localStorage.getItem('gf_admin_pw');
+  if(sp){ try{ if(await sha256Hex(sp)!==CONFIG.adminHash) localStorage.removeItem('gf_admin_pw'); }catch(e){} }
   localStorage.removeItem('gf_admin_pass');
   applyAdmin();
   if(new URLSearchParams(location.search).get('admin')==='true'){
