@@ -42,6 +42,8 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
 .chip.mixed.active{border-style:solid}
 
 .controls{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;margin-bottom:1rem;font-size:13px}
+.controls.spread{justify-content:space-between}
+.ctrl-group{display:flex;align-items:center;gap:8px;min-width:0}
 .controls .lbl{color:var(--ink-faint)}
 .seg{display:inline-flex;background:var(--surface);border-radius:9px;padding:3px;border:1px solid var(--line)}
 .seg button{border:none;background:transparent;color:var(--ink-soft);padding:5px 10px;border-radius:7px;font-family:inherit;font-size:13px;cursor:pointer;transition:all .15s}
@@ -138,7 +140,14 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
 .hidden{display:none!important}
 .credit{text-align:center;margin-top:2.5rem;font-size:12px;color:var(--ink-faint);letter-spacing:.04em}
 .credit strong{color:var(--ink-soft);font-weight:600}
-@media (max-width:480px){.masthead h1{font-size:34px}.inline-fields{grid-template-columns:1fr}}
+@media (max-width:480px){
+  .masthead h1{font-size:34px}
+  .inline-fields{grid-template-columns:1fr}
+  .controls.spread{flex-direction:column;align-items:stretch;gap:10px}
+  .ctrl-group{width:100%;justify-content:space-between;flex-wrap:wrap}
+  .ctrl-group .seg{flex-wrap:wrap}
+  #poolInfo{align-self:flex-end}
+}
 </style>
 </head>
 <body>
@@ -187,23 +196,29 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
         <button data-f="other" onclick="setFilter('other')">Other</button>
       </div>
     </div>
-    <div class="controls">
-      <span class="lbl">Direction</span>
-      <div class="seg">
-        <button id="dirDE" class="active" onclick="setDir('de-en')">DE → EN</button>
-        <button id="dirEN" onclick="setDir('en-de')">EN → DE</button>
+    <div class="controls spread">
+      <div class="ctrl-group">
+        <span class="lbl">Direction</span>
+        <div class="seg">
+          <button id="dirDE" class="active" onclick="setDir('de-en')">DE → EN</button>
+          <button id="dirEN" onclick="setDir('en-de')">EN → DE</button>
+        </div>
       </div>
-      <span class="lbl" style="margin-left:auto">Mode</span>
-      <div class="seg">
-        <button id="mFlip" class="active" onclick="setMode('flip')">Flip</button>
-        <button id="mQuiz" onclick="setMode('quiz')">Quiz</button>
-        <button id="mArt" onclick="setMode('article')">der/die/das</button>
+      <div class="ctrl-group">
+        <span class="lbl">Mode</span>
+        <div class="seg">
+          <button id="mFlip" class="active" onclick="setMode('flip')">Flip</button>
+          <button id="mQuiz" onclick="setMode('quiz')">Quiz</button>
+          <button id="mArt" onclick="setMode('article')">der/die/das</button>
+        </div>
       </div>
     </div>
-    <div class="controls">
-      <span class="lbl">Round length</span>
-      <select id="roundSel" onchange="setRound(this.value)"></select>
-      <span class="lbl" id="poolInfo" style="margin-left:auto"></span>
+    <div class="controls spread">
+      <div class="ctrl-group">
+        <span class="lbl">Round length</span>
+        <select id="roundSel" onchange="setRound(this.value)"></select>
+      </div>
+      <span class="lbl" id="poolInfo"></span>
     </div>
 
     <div class="stats">
