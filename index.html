@@ -667,9 +667,10 @@ function delLocal(t){let local=[];try{local=JSON.parse(localStorage.getItem(LS.l
 
 // ----- boot -----
 async function boot(){
-  // Seed baked-in defaults so a fresh device connects with no pasting.
-  if(!localStorage.getItem(LS.sheet) && CONFIG.sheetId) localStorage.setItem(LS.sheet, CONFIG.sheetId);
-  if(!localStorage.getItem(LS.writeUrl) && CONFIG.writeUrl) localStorage.setItem(LS.writeUrl, CONFIG.writeUrl);
+  // The baked-in links are the source of truth. Always reset to them so a stale
+  // value saved on the device can never override the correct current links.
+  if(CONFIG.sheetId)  localStorage.setItem(LS.sheet, CONFIG.sheetId);
+  if(CONFIG.writeUrl) localStorage.setItem(LS.writeUrl, CONFIG.writeUrl);
   populateRoundOptions();
   const id=localStorage.getItem(LS.sheet); const cache=localStorage.getItem(LS.cache);
   if(id){
@@ -683,8 +684,8 @@ async function boot(){
   }
   toggleArticleField();
   // Prefill the (admin-only) setup fields with the current links.
-  const su=document.getElementById('sheetUrl'); if(su) su.value='https://docs.google.com/spreadsheets/d/'+(localStorage.getItem(LS.sheet)||CONFIG.sheetId);
-  const wu=document.getElementById('writeUrl'); if(wu) wu.value=localStorage.getItem(LS.writeUrl)||CONFIG.writeUrl;
+  const su=document.getElementById('sheetUrl'); if(su) su.value='https://docs.google.com/spreadsheets/d/'+CONFIG.sheetId;
+  const wu=document.getElementById('writeUrl'); if(wu) wu.value=CONFIG.writeUrl;
   // Clear any saved unlock that doesn't match the password (e.g. left by an older version).
   const sp=localStorage.getItem('gf_admin_pw');
   if(sp){ try{ if(await sha256Hex(sp)!==CONFIG.adminHash) localStorage.removeItem('gf_admin_pw'); }catch(e){} }
