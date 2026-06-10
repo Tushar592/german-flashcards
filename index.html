@@ -156,7 +156,7 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
     </div>
     <div id="adminUnlocked" class="hidden">
       <div class="am-title">Admin mode active ✓</div>
-      <p>You can add words and change setup. If the password is wrong, words simply won't save. Lock again before sharing the link.</p>
+      <p>You can add words and change setup. Lock again before sharing the link with others.</p>
       <button class="am-btn lock" onclick="lockAdmin()">Lock (view only)</button>
     </div>
   </div>
@@ -284,7 +284,7 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
       </div>
       <div class="field"><label>Hint (optional)</label><input id="inHint" placeholder="optional note"></div>
       <button class="btn primary" onclick="addWord()">Add word</button>
-      <div class="io-note"><strong>Where does it save?</strong> New words are written <strong>straight into your Google Sheet</strong> (so they appear on every device), but only if your admin password is correct — the password is checked by the sheet's script, not stored in this page. You'll get a warning if the word already exists, and a heads-up if it didn't save.</div>
+      <div class="io-note"><strong>Where does it save?</strong> Because you're in admin mode, new words are written <strong>straight into your Google Sheet</strong> and appear on every device. You'll get a warning if the word already exists, and a heads-up if it didn't save.</div>
     </div>
 
     <div class="panel">
@@ -305,13 +305,26 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
   <!-- ===== SETUP ===== -->
   <div id="setupView" class="hidden">
     <div class="panel">
-      <h3>Your word source</h3>
-      <div id="setupStatus" class="status info">Connected to your Google Sheet ✓</div>
-      <div class="io-row"><button class="btn primary" onclick="reloadSheet()">↻ Reload words</button></div>
-      <div class="io-note">
-        Words come live from your Google Sheet. To add words, use the <strong>Words</strong> tab; to edit or delete, change the sheet directly.
-        The sheet and script links are fixed in the app — they can't be changed here, so nothing important can be altered by accident.
+      <h3>Google Sheet (your words)</h3>
+      <div class="field"><label>Google Sheet link or ID</label>
+        <input id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/…">
       </div>
+      <div class="io-row">
+        <button class="btn primary" onclick="connectSheet()">Connect &amp; load</button>
+        <button class="btn" onclick="reloadSheet()">↻ Reload words</button>
+      </div>
+      <div id="setupStatus" class="status info">Connected to your Google Sheet ✓</div>
+      <div class="io-note">The sheet must be shared as “Anyone with the link → Viewer.” Columns: <code>Deck</code> <code>German</code> <code>Article</code> <code>English</code> <code>Type</code> <code>Hint</code>.</div>
+    </div>
+
+    <div class="panel">
+      <h3>App Script link (for adding words)</h3>
+      <div class="field"><label>Apps Script web-app URL (ends in /exec)</label>
+        <input id="writeUrl" placeholder="https://script.google.com/macros/s/…/exec">
+      </div>
+      <div class="io-row"><button class="btn primary" onclick="saveWriteUrl()">Save</button></div>
+      <div id="writeStatus" class="status info">Using the built-in link.</div>
+      <div class="io-note">This is the script that holds your admin password and saves new words to the sheet.</div>
     </div>
 
     <div class="panel">
@@ -337,10 +350,8 @@ const ALL = '__ALL__';
 // Apps Script (server-side). You type it once per device to enable adding words.
 const CONFIG = {
   sheetId: '1rTIN4Kwz7Jzx3gWXULMniIaKAtEQ_jNpKlYEWOfyPJE',
-  writeUrl: 'https://script.google.com/macros/s/AKfycbyJc3zFijSuu6la5lHfzQ8AUIOHKCEqCziLLTymdUK4wZww5ZNRhv7wp-ozBWKU6-1K/exec',
-  // SHA-256 hash of the admin password (not the password itself), so the page can
-  // reject a wrong password without the real password ever being readable in the code.
-  adminHash: 'd84d19b993f1f65a43985a6c6509e9e4671483929f2fa38b9e3083a1885526a5'
+  writeUrl: 'https://script.google.com/macros/s/AKfycbyJc3zFijSuu6la5lHfzQ8AUIOHKCEqCziLLTymdUK4wZww5ZNRhv7wp-ozBWKU6-1K/exec'
+  // The admin password is NOT here. It lives only in your Apps Script.
 };
 
 let allWords=[], decksOrder=[], currentDeck=null;
@@ -350,7 +361,7 @@ let correct=0, wrong=0, streak=0, missed=[];
 let isAdmin=false;
 
 function applyAdmin(){
-  isAdmin = !!localStorage.getItem('gf_admin_pass');
+  isAdmin = !!localStorage.getItem('gf_admin_pw');
   document.getElementById('navManage').style.display = isAdmin?'':'none';
   document.getElementById('navSetup').style.display = isAdmin?'':'none';
   document.getElementById('adminIcon').classList.toggle('active', isAdmin);
@@ -363,23 +374,38 @@ function toggleAdminMenu(){
   m.classList.toggle('hidden');
   if(!m.classList.contains('hidden') && !isAdmin) setTimeout(()=>document.getElementById('adminPassInput').focus(),0);
 }
-async function sha256Hex(str){
-  const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+// Ask the Apps Script (which holds the real password) whether the typed one is correct.
+// Uses JSONP so it works across origins without any CORS setup.
+function jsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cb='gfcb_'+Date.now()+Math.floor(Math.random()*1000);
+    const s=document.createElement('script');
+    const timer=setTimeout(()=>{cleanup();reject(new Error('timeout'));},10000);
+    function cleanup(){clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);}
+    window[cb]=(data)=>{cleanup();resolve(data);};
+    s.onerror=()=>{cleanup();reject(new Error('network'));};
+    s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
+    document.body.appendChild(s);
+  });
 }
 async function submitAdminPass(){
   const v=document.getElementById('adminPassInput').value.trim();
-  if(!v){ document.getElementById('adminMsg').textContent='Enter your password'; return; }
-  let h='';
-  try{ h=await sha256Hex(v); }catch(e){ document.getElementById('adminMsg').textContent='Cannot verify here (needs https).'; return; }
-  if(h!==CONFIG.adminHash){ document.getElementById('adminMsg').textContent='Wrong password'; return; }
-  localStorage.setItem('gf_admin_pass', v);
-  document.getElementById('adminPassInput').value='';
-  document.getElementById('adminMsg').textContent='';
-  applyAdmin(); toast('Admin unlocked ✓');
+  const msg=document.getElementById('adminMsg');
+  if(!v){ msg.textContent='Enter your password'; return; }
+  msg.style.color='var(--ink-faint)'; msg.textContent='Checking…';
+  const base=localStorage.getItem(LS.writeUrl)||CONFIG.writeUrl;
+  try{
+    const data=await jsonp(base+'?action=check&pw='+encodeURIComponent(v));
+    if(data && data.ok){
+      localStorage.setItem('gf_admin_pw', v);
+      document.getElementById('adminPassInput').value='';
+      msg.textContent='';
+      applyAdmin(); toast('Admin unlocked ✓');
+    } else { msg.style.color='var(--red)'; msg.textContent='Wrong password'; }
+  }catch(e){ msg.style.color='var(--red)'; msg.textContent='Could not verify — check your connection'; }
 }
 function lockAdmin(){
-  localStorage.removeItem('gf_admin_pass'); applyAdmin(); setView('study');
+  localStorage.removeItem('gf_admin_pw'); applyAdmin(); setView('study');
   document.getElementById('adminMenu').classList.add('hidden'); toast('Locked — view only');
 }
 document.addEventListener('click',function(e){
@@ -616,7 +642,7 @@ async function addWord(){
   const hint=norm(document.getElementById('inHint').value);
   const dup=findDuplicate(de);
   if(dup && !confirm(`"${de}" already exists in deck "${dup.deck}" (= ${dup.en}). Add it anyway?`)) return;
-  const pass=localStorage.getItem('gf_admin_pass');
+  const pass=localStorage.getItem('gf_admin_pw');
   if(!pass){ toast('Unlock admin (top-right icon) to add words'); return; }
   const writeUrl=localStorage.getItem(LS.writeUrl)||CONFIG.writeUrl;
   toast('Saving to your Google Sheet…');
@@ -664,10 +690,11 @@ async function boot(){
     rebuild(); document.getElementById('sourceSub').textContent='Loading your words…';
   }
   toggleArticleField();
-  // Revalidate any saved admin unlock against the password hash. This also clears
-  // a stale unlock left by an older version that accepted any password.
-  const sp=localStorage.getItem('gf_admin_pass');
-  if(sp){ try{ if(await sha256Hex(sp)!==CONFIG.adminHash) localStorage.removeItem('gf_admin_pass'); }catch(e){} }
+  // Prefill the (admin-only) setup fields with the current links.
+  const su=document.getElementById('sheetUrl'); if(su) su.value='https://docs.google.com/spreadsheets/d/'+(localStorage.getItem(LS.sheet)||CONFIG.sheetId);
+  const wu=document.getElementById('writeUrl'); if(wu) wu.value=localStorage.getItem(LS.writeUrl)||CONFIG.writeUrl;
+  // Drop any admin unlock from the previous version (which used a different check).
+  localStorage.removeItem('gf_admin_pass');
   applyAdmin();
   if(new URLSearchParams(location.search).get('admin')==='true'){
     document.getElementById('adminMenu').classList.remove('hidden');
