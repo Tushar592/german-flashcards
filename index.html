@@ -174,7 +174,6 @@ body{min-height:100vh;padding:2rem 1rem 4rem;
   <div class="masthead">
     <div class="kicker">Vokabeltrainer</div>
     <h1>Deutsch Flashcards</h1>
-    <div class="sub" id="sourceSub">Loading…</div>
   </div>
 
   <div class="topnav">
@@ -365,7 +364,7 @@ const ALL = '__ALL__';
 // Apps Script (server-side). You type it once per device to enable adding words.
 const CONFIG = {
   sheetId: '1rTIN4Kwz7Jzx3gWXULMniIaKAtEQ_jNpKlYEWOfyPJE',
-  writeUrl: 'https://script.google.com/macros/s/AKfycbwub0Pd9iiy8QrlOYqtnW3L85S_XEt2UT-4TCGIQQrWGPirqMGhZgx19e5PLADkeq62/exec',
+  writeUrl: 'https://script.google.com/macros/s/AKfycbzQhl2euru3n1Vk0FQI8VJVJIF6qXp2EN0N1r-Lz-WENUXbEcGfyB4MxsF4dIUJnCQA/exec',
   // One-way fingerprint (SHA-256) of the admin password — used only to check the
   // password you type. It is NOT the password and cannot be reversed.
   adminHash: '7101ccd96c6251273685b159b5de38c9c11f6db6890a9202128ba41981665955'
@@ -421,6 +420,7 @@ document.addEventListener('click',function(e){
 });
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+function setSource(t){const el=document.getElementById('sourceSub');if(el)el.textContent=t;}
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function norm(s){return (s||'').toString().trim();}
 function lc(s){return norm(s).toLowerCase();}
@@ -466,7 +466,7 @@ async function connectSheet(){
     localStorage.setItem(LS.sheet,id); localStorage.setItem(LS.cache,text);
     allWords=words; rebuild();
     setStatus('ok',`Connected ✓ Loaded ${words.length} words across ${decksOrder.length} deck(s).`);
-    document.getElementById('sourceSub').textContent='Live from your Google Sheet';
+    setSource('Live from your Google Sheet');
     toast('Sheet connected ✓');
   }catch(e){
     if(e.message==='not-shared') setStatus('err','Reached the page but it isn’t public. Set sharing to “Anyone with the link → Viewer” and retry.');
@@ -492,7 +492,7 @@ function importFile(ev){
       else{const wb=XLSX.read(e.target.result,{type:'binary'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});words=rowsToWords(rows);}
       if(!words.length){toast('No rows found in that file');return;}
       localStorage.setItem(LS.cache,JSON.stringify({_imported:words})); localStorage.removeItem(LS.sheet);
-      allWords=words; rebuild(); document.getElementById('sourceSub').textContent='Imported / cached words';
+      allWords=words; rebuild(); setSource('Imported / cached words');
       toast('Imported '+words.length+' words ✓'); setView('study');
     }catch(err){toast('Could not read that file');}
   };
@@ -531,7 +531,7 @@ function setDir(d){dir=d;document.getElementById('dirDE').classList.toggle('acti
 function setFilter(f){filter=f;document.querySelectorAll('#filterSeg button').forEach(b=>b.classList.toggle('active',b.dataset.f===f));if(mode==='article'&&f!=='noun'&&f!=='all'){setMode('flip');}else restart();updateArticleModeAvail();}
 function setMode(m){mode=m;document.getElementById('mFlip').classList.toggle('active',m==='flip');document.getElementById('mQuiz').classList.toggle('active',m==='quiz');document.getElementById('mArt').classList.toggle('active',m==='article');restart();}
 function setRound(v){roundSize=parseInt(v,10)||0;restart();}
-function updateArticleModeAvail(){const has=basePool().some(w=>w.type==='noun'&&['der','die','das'].includes(w.article));document.getElementById('mArt').disabled=!has;if(!has&&mode==='article')setMode('flip');}
+function updateArticleModeAvail(){const has=basePool().some(w=>w.type==='noun'&&['der','die','das'].includes(w.article));document.getElementById('mArt').style.display=has?'':'none';if(!has&&mode==='article')setMode('flip');}
 
 function basePool(){
   let w=currentDeck===ALL?allWords.slice():allWords.filter(x=>x.deck===currentDeck);
@@ -689,13 +689,13 @@ async function boot(){
   populateRoundOptions();
   const id=localStorage.getItem(LS.sheet); const cache=localStorage.getItem(LS.cache);
   if(id){
-    if(cache){allWords=buildFromCsvText(cache,false);rebuild();document.getElementById('sourceSub').textContent='Live from your Google Sheet';setStatus('info','Using cached words — tap Reload for the latest.');}
+    if(cache){allWords=buildFromCsvText(cache,false);rebuild();setSource('Live from your Google Sheet');setStatus('info','Using cached words — tap Reload for the latest.');}
     reloadSheet();
   } else if(cache){
     try{const obj=JSON.parse(cache);if(obj._imported)allWords=obj._imported;}catch(e){allWords=buildFromCsvText(cache,false);}
-    rebuild(); document.getElementById('sourceSub').textContent='Imported / cached words';
+    rebuild(); setSource('Imported / cached words');
   } else {
-    rebuild(); document.getElementById('sourceSub').textContent='Loading your words…';
+    rebuild(); setSource('Loading your words…');
   }
   toggleArticleField();
   // Prefill the (admin-only) setup fields with the current links.
