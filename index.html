@@ -368,7 +368,7 @@ body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Hanken 
 <div class="toast" id="toast"></div>
 
 <script>
-const LS = { sheet:'gf_sheet_id', cache:'gf_cache', local:'gf_local', writeUrl:'gf_write_url' };
+const LS = { sheet:'gf_sheet_id', sheetGid:'gf_sheet_gid', cache:'gf_cache', local:'gf_local', writeUrl:'gf_write_url' };
 const ALL = '__ALL__';
 
 // Baked-in defaults so any device auto-connects on first open.
@@ -376,6 +376,7 @@ const ALL = '__ALL__';
 // Apps Script (server-side). You type it once per device to enable adding words.
 const CONFIG = {
   sheetId: '19SQp3vXTJvNeGRIcsPtPpHtBQ7HUu_FUgJmnNHIKPtE',
+  sheetGid: '183290793',
   writeUrl: 'https://script.google.com/macros/s/AKfycbzQhl2euru3n1Vk0FQI8VJVJIF6qXp2EN0N1r-Lz-WENUXbEcGfyB4MxsF4dIUJnCQA/exec',
   // One-way fingerprint (SHA-256) of the admin password — used only to check the
   // password you type. It is NOT the password and cannot be reversed.
@@ -436,7 +437,18 @@ function setSource(t){const el=document.getElementById('sourceSub');if(el)el.tex
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function norm(s){return (s||'').toString().trim();}
 function lc(s){return norm(s).toLowerCase();}
-function extractSheetId(input){input=norm(input);const m=input.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);if(m)return m[1];if(/^[a-zA-Z0-9-_]{20,}$/.test(input))return input;return null;}
+function extractSheetInfo(input){
+  input=norm(input);
+  const idMatch=input.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  let id=null;
+  if(idMatch) id=idMatch[1];
+  else if(/^[a-zA-Z0-9-_]{20,}$/.test(input)) id=input;
+  if(!id) return null;
+
+  const gidMatch=input.match(/[?#&]gid=(\d+)/);
+  const gid=gidMatch?gidMatch[1]:null;
+  return {id,gid};
+}
 
 function rowsToWords(rows){
   const out=[];
@@ -462,34 +474,41 @@ function rebuild(){
   if(view==='study') restart(); else if(view==='manage') renderManage();
 }
 
-async function fetchSheet(id){
-  const url=`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
+async function fetchSheet(id,gid){
+  let url=`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
+  if(gid) url+=`&gid=${encodeURIComponent(gid)}`;
   const res=await fetch(url); if(!res.ok) throw new Error('HTTP '+res.status);
   const text=await res.text(); if(text.trim().startsWith('<')) throw new Error('not-shared');
   return text;
 }
 async function connectSheet(){
-  const id=extractSheetId(document.getElementById('sheetUrl').value);
-  if(!id){setStatus('err','That doesn’t look like a valid Google Sheet link or ID.');return;}
+  const info=extractSheetInfo(document.getElementById('sheetUrl').value);
+  if(!info){setStatus('err','That doesn’t look like a valid Google Sheet link or ID.');return;}
+  const id=info.id;
+  const gid=info.gid||CONFIG.sheetGid||null;
   setStatus('info','Connecting…');
   try{
-    const text=await fetchSheet(id); const words=buildFromCsvText(text,false);
+    const text=await fetchSheet(id,gid); const words=buildFromCsvText(text,false);
     if(!words.length) throw new Error('empty');
-    localStorage.setItem(LS.sheet,id); localStorage.setItem(LS.cache,text);
+    localStorage.setItem(LS.sheet,id);
+    if(gid) localStorage.setItem(LS.sheetGid,gid); else localStorage.removeItem(LS.sheetGid);
+    localStorage.setItem(LS.cache,text);
     allWords=words; rebuild();
     setStatus('ok',`Connected ✓ Loaded ${words.length} words across ${decksOrder.length} deck(s).`);
     setSource('Live from your Google Sheet');
     toast('Sheet connected ✓');
   }catch(e){
     if(e.message==='not-shared') setStatus('err','Reached the page but it isn’t public. Set sharing to “Anyone with the link → Viewer” and retry.');
-    else if(e.message==='empty') setStatus('err','Connected but found no rows. Check headers: Deck, German, Article, English, Type, Hint.');
+    else if(e.message==='empty') setStatus('err','Connected but found no rows in the selected sheet tab. Check the tab link (gid) and headers: Deck, German, Article, English, Type, Hint.');
     else setStatus('err','Couldn’t reach the sheet. Check the link and sharing, then retry.');
   }
 }
 async function reloadSheet(){
-  const id=localStorage.getItem(LS.sheet); if(!id){setStatus('info','No sheet connected yet.');return;}
+  const id=localStorage.getItem(LS.sheet);
+  const gid=localStorage.getItem(LS.sheetGid)||CONFIG.sheetGid||null;
+  if(!id){setStatus('info','No sheet connected yet.');return;}
   setStatus('info','Reloading…');
-  try{const text=await fetchSheet(id);localStorage.setItem(LS.cache,text);allWords=buildFromCsvText(text,false);rebuild();
+  try{const text=await fetchSheet(id,gid);localStorage.setItem(LS.cache,text);allWords=buildFromCsvText(text,false);rebuild();
     setStatus('ok','Reloaded ✓ '+allWords.filter(w=>!w._local).length+' words from the sheet.');toast('Words reloaded ✓');
   }catch(e){setStatus('err','Reload failed — using last cached copy.');}
 }
@@ -698,6 +717,7 @@ async function boot(){
   // value saved on the device can never override the correct current links.
   // Sheet link: use your saved one if you've connected a different sheet, else the default.
   if(CONFIG.sheetId && !localStorage.getItem(LS.sheet)) localStorage.setItem(LS.sheet, CONFIG.sheetId);
+  if(CONFIG.sheetGid && !localStorage.getItem(LS.sheetGid)) localStorage.setItem(LS.sheetGid, CONFIG.sheetGid);
   if(CONFIG.writeUrl) localStorage.setItem(LS.writeUrl, CONFIG.writeUrl);
   populateRoundOptions();
   const id=localStorage.getItem(LS.sheet); const cache=localStorage.getItem(LS.cache);
@@ -712,7 +732,12 @@ async function boot(){
   }
   toggleArticleField();
   // Prefill the (admin-only) setup fields with the current links.
-  const su=document.getElementById('sheetUrl'); if(su) su.value='https://docs.google.com/spreadsheets/d/'+(localStorage.getItem(LS.sheet)||CONFIG.sheetId);
+  const su=document.getElementById('sheetUrl');
+  if(su){
+    const savedId=localStorage.getItem(LS.sheet)||CONFIG.sheetId;
+    const savedGid=localStorage.getItem(LS.sheetGid)||CONFIG.sheetGid||'';
+    su.value='https://docs.google.com/spreadsheets/d/'+savedId+'/edit'+(savedGid?'?gid='+savedGid+'#gid='+savedGid:'');
+  }
   const wu=document.getElementById('writeUrl'); if(wu) wu.value=CONFIG.writeUrl;
   // Clear any saved unlock that doesn't match the password (e.g. left by an older version).
   const sp=localStorage.getItem('gf_admin_pw');
