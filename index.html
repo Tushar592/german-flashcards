@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -475,10 +476,19 @@ function rebuild(){
 }
 
 async function fetchSheet(id,gid){
-  let url=`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
+  let url=`https://docs.google.com/spreadsheets/d/${id}/export?format=csv`;
   if(gid) url+=`&gid=${encodeURIComponent(gid)}`;
-  const res=await fetch(url); if(!res.ok) throw new Error('HTTP '+res.status);
-  const text=await res.text(); if(text.trim().startsWith('<')) throw new Error('not-shared');
+
+  const res=await fetch(url,{cache:'no-store'});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+
+  const text=await res.text();
+  const trimmed=text.trim();
+
+  if(!trimmed || trimmed.startsWith('<!DOCTYPE html') || trimmed.startsWith('<html')){
+    throw new Error('not-shared');
+  }
+
   return text;
 }
 async function connectSheet(){
@@ -488,8 +498,13 @@ async function connectSheet(){
   const gid=info.gid||CONFIG.sheetGid||null;
   setStatus('info','Connecting…');
   try{
-    const text=await fetchSheet(id,gid); const words=buildFromCsvText(text,false);
-    if(!words.length) throw new Error('empty');
+    const text=await fetchSheet(id,gid);
+    const parsed=Papa.parse(text.trim(),{header:true,skipEmptyLines:true});
+    const words=rowsToWords(parsed.data);
+    if(!words.length){
+      const headers=(parsed.meta&&parsed.meta.fields)?parsed.meta.fields.join(', '):'none detected';
+      throw new Error('empty|'+headers);
+    }
     localStorage.setItem(LS.sheet,id);
     if(gid) localStorage.setItem(LS.sheetGid,gid); else localStorage.removeItem(LS.sheetGid);
     localStorage.setItem(LS.cache,text);
@@ -499,7 +514,7 @@ async function connectSheet(){
     toast('Sheet connected ✓');
   }catch(e){
     if(e.message==='not-shared') setStatus('err','Reached the page but it isn’t public. Set sharing to “Anyone with the link → Viewer” and retry.');
-    else if(e.message==='empty') setStatus('err','Connected but found no rows in the selected sheet tab. Check the tab link (gid) and headers: Deck, German, Article, English, Type, Hint.');
+    else if(e.message.startsWith('empty|')) setStatus('err','Connected to the selected tab, but no vocabulary rows were parsed. Detected headers: '+e.message.split('|').slice(1).join('|'));
     else setStatus('err','Couldn’t reach the sheet. Check the link and sharing, then retry.');
   }
 }
