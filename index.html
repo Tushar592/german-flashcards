@@ -68,6 +68,7 @@ body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Hanken 
 
 .card-area{perspective:1600px;margin-bottom:16px;cursor:pointer}
 .card-inner{position:relative;min-height:252px;transition:transform .5s cubic-bezier(.4,.1,.2,1);transform-style:preserve-3d}
+.card-inner.no-transition{transition:none!important}
 .card-inner.flipped{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;min-height:252px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:34px 22px}
 .face.front{background:var(--surface);border:1px solid var(--line);box-shadow:var(--sh-md)}
@@ -157,6 +158,8 @@ body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Hanken 
   .mobile-deck-select{display:block}
 }
 @media(min-width:600px){
+  .decks{display:none}
+  .mobile-deck-select{display:block}
   .masthead h1{font-size:50px}
   .inline-fields{grid-template-columns:1fr 1fr}
   .controls{flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px 16px}
@@ -644,8 +647,15 @@ function artClass(a){return a==='der'?'art-der':a==='die'?'art-die':'art-das';}
 
 function showCard(){
   if(idx>=deck.length) return showResult();
+
+  // Reset the previous flipped card instantly BEFORE loading the next card's text.
+  // Without this, the next card's meaning can briefly appear during the flip-back animation.
+  const cardInner=document.getElementById('cardInner');
+  cardInner.classList.add('no-transition');
+  cardInner.classList.remove('flipped');
+  void cardInner.offsetWidth;
+
   const c=deck[idx]; flipped=false; quizAnswered=false;
-  document.getElementById('cardInner').classList.remove('flipped');
   document.getElementById('fBadge').textContent=c.type&&c.type!=='other'?c.type:'';
   const isNoun=c.type==='noun'&&['der','die','das'].includes(c.article);
   const deWithArt=isNoun?`<span class="article-tag ${artClass(c.article)}">${c.article}</span>${c.de}`:c.de;
@@ -686,6 +696,10 @@ function showCard(){
   }
   document.getElementById('progFill').style.width=Math.round(idx/deck.length*100)+'%';
   document.getElementById('progTxt').textContent=`Card ${idx+1} of ${deck.length}`;
+
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>cardInner.classList.remove('no-transition'));
+  });
 }
 function flip(){if(mode!=='flip')return;flipped=!flipped;document.getElementById('cardInner').classList.toggle('flipped',flipped);document.getElementById('flipActions').style.display=flipped?'flex':'none';document.getElementById('tapHint').style.display=flipped?'none':'block';}
 function mark(ok){if(ok){correct++;streak++;}else{wrong++;streak=0;missed.push(deck[idx]);}updateStats();idx++;showCard();}
