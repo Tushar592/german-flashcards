@@ -574,7 +574,7 @@ function renderDecks(){
     if(sel){
       const o=document.createElement('option');
       o.value=ALL;
-      o.textContent=`✦ All decks (mixed) — ${allWords.length}`;
+      o.textContent='✦ All decks (mixed)';
       sel.appendChild(o);
     }
   }
@@ -590,7 +590,7 @@ function renderDecks(){
     if(sel){
       const o=document.createElement('option');
       o.value=d;
-      o.textContent=`${d} — ${n} words`;
+      o.textContent=d;
       sel.appendChild(o);
     }
   });
