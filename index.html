@@ -1,825 +1,157 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deutsch Flashcards</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<style>
-:root{
-  --bg:#f1f0ec; --surface:#ffffff; --surface-2:#eae8e1; --ink:#17181c; --ink-soft:#5a5b61; --ink-faint:#9a9a9f;
-  --line:#e3e1d9; --accent:#0d7d63; --accent-2:#0a6250; --accent-ink:#ffffff; --accent-soft:#dbeee8;
-  --green:#0d7d63; --green-bg:#dbeee8; --red:#d64532; --red-bg:#fbe8e5; --gold:#c07f0a;
-  --der:#2563eb; --der-bg:#e6eefe; --die:#db2777; --die-bg:#fce7f1; --das:#c2740a; --das-bg:#f7ecd6;
-  --ink-dark:#17181c;
-  --sh-sm:0 1px 2px rgba(23,24,28,.06); --sh-md:0 8px 24px rgba(23,24,28,.09); --sh-lg:0 24px 50px rgba(23,24,28,.18);
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{-webkit-text-size-adjust:100%}
-body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Hanken Grotesk',sans-serif;-webkit-font-smoothing:antialiased;
-  padding:20px 16px calc(48px + env(safe-area-inset-bottom));
-  background-image:radial-gradient(600px 380px at 100% -10%, rgba(13,125,99,.08), transparent 62%);}
-.wrap{max-width:600px;margin:0 auto}
+  <meta charset="utf-8">
 
-.masthead{text-align:center;margin:6px 0 22px}
-.masthead .kicker{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
-.masthead h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:42px;line-height:.98;letter-spacing:-.035em;color:var(--ink)}
-.masthead .sub{color:var(--ink-faint);font-size:13px;margin-top:6px}
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
 
-.topnav{display:flex;gap:4px;background:var(--surface);padding:5px;border-radius:14px;margin-bottom:16px;border:1px solid var(--line);box-shadow:var(--sh-sm)}
-.topnav button{flex:1;min-height:44px;border:none;background:transparent;color:var(--ink-soft);font-family:inherit;font-size:15px;font-weight:600;border-radius:10px;cursor:pointer;transition:all .16s}
-.topnav button.active{background:var(--accent);color:var(--accent-ink)}
+  <meta
+    name="robots"
+    content="noindex"
+  >
 
-.decks{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.mobile-deck-select{display:none;margin-bottom:16px}
-.mobile-deck-select label{display:block;color:var(--ink-faint);font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:700;margin-bottom:7px}
-.mobile-deck-select select{width:100%;min-height:46px;background:var(--surface);border:1px solid var(--line);border-radius:12px;color:var(--ink);font-family:inherit;font-size:15px;font-weight:600;padding:0 14px;box-shadow:var(--sh-sm)}
-.mobile-deck-select select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.chip{min-height:38px;padding:0 15px;display:inline-flex;align-items:center;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .16s;white-space:nowrap;box-shadow:var(--sh-sm)}
-.chip .count{opacity:.5;font-size:12px;margin-left:5px}
-.chip.active{background:var(--accent);border-color:transparent;color:var(--accent-ink);font-weight:600}
-.chip:active{transform:scale(.97)}
-.chip.mixed{border-style:dashed}
-.chip.mixed.active{border-style:solid}
+  <title>
+    Deutsche Vokabeltrainer
+  </title>
 
-.controls{display:flex;flex-direction:column;align-items:stretch;gap:14px;margin-bottom:16px}
-.ctrl-group{display:flex;flex-direction:column;align-items:stretch;gap:7px;min-width:0}
-.lbl{color:var(--ink-faint);font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:700}
-.seg{display:flex;width:100%;background:var(--surface-2);border-radius:12px;padding:4px;gap:4px}
-.seg button{flex:1;min-height:42px;border:none;background:transparent;color:var(--ink-soft);border-radius:9px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
-.seg button.active{background:var(--surface);color:var(--accent);box-shadow:var(--sh-sm)}
-.seg button:disabled{opacity:.35;cursor:not-allowed}
-.controls select{width:100%;min-height:44px;background:var(--surface);border:1px solid var(--line);border-radius:12px;color:var(--ink);font-family:inherit;font-size:15px;font-weight:500;padding:0 14px;box-shadow:var(--sh-sm)}
-#poolInfo{font-size:12px;color:var(--ink-faint);text-transform:none;letter-spacing:normal;font-weight:500}
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
 
-.stats{display:flex;gap:10px;margin-bottom:18px}
-.stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center;box-shadow:var(--sh-sm)}
-.stat .n{font-family:'Bricolage Grotesque',sans-serif;font-size:30px;font-weight:700;line-height:1;letter-spacing:-.02em}
-.stat .n.g{color:var(--accent)}.stat .n.r{color:var(--red)}.stat .n.s{color:var(--gold)}
-.stat .l{font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.11em;margin-top:6px;font-weight:700}
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
 
-.prog{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-bottom:8px}
-.prog>div{height:100%;background:var(--accent);border-radius:99px;transition:width .4s ease}
-.prog-txt{font-size:12px;color:var(--ink-faint);text-align:right;margin-bottom:16px}
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
 
-.card-area{perspective:1600px;margin-bottom:16px;cursor:pointer}
-.card-inner{position:relative;min-height:252px;transition:transform .5s cubic-bezier(.4,.1,.2,1);transform-style:preserve-3d}
-.card-inner.no-transition{transition:none!important}
-.card-inner.flipped{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;min-height:252px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:34px 22px}
-.face.front{background:var(--surface);border:1px solid var(--line);box-shadow:var(--sh-md)}
-.face.back{background:var(--ink-dark);box-shadow:var(--sh-lg);transform:rotateY(180deg)}
-.badge{position:absolute;top:16px;left:16px;font-size:10px;letter-spacing:.1em;padding:4px 10px;border-radius:99px;background:var(--surface-2);color:var(--ink-soft);text-transform:uppercase;font-weight:700}
-.back .badge{background:rgba(255,255,255,.1);color:#c9c8c2}
-.lang{font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px;font-weight:700}
-.front .lang{color:var(--ink-faint)}.back .lang{color:#57cbaa}
-.word{font-family:'Bricolage Grotesque',sans-serif;font-size:34px;font-weight:700;text-align:center;line-height:1.15;letter-spacing:-.02em}
-.front .word{color:var(--ink)}.back .word{color:#f4f3ef}
-.article-tag{font-family:'Hanken Grotesk',sans-serif;font-size:18px;font-weight:700;padding:2px 11px;border-radius:9px;margin-right:8px;vertical-align:middle;letter-spacing:0}
-.art-der{color:var(--der);background:var(--der-bg)}.art-die{color:var(--die);background:var(--die-bg)}.art-das{color:var(--das);background:var(--das-bg)}
-.hint{font-size:14px;margin-top:12px;text-align:center;font-weight:500}
-.front .hint{color:var(--ink-soft)}.back .hint{color:#b6b5b0}
-.taphint{position:absolute;bottom:16px;font-size:11px;color:var(--ink-faint);letter-spacing:.04em;font-weight:500}
+  <style>
+    :root {
+      --bg: #f1f0ec;
+      --surface: #ffffff;
+      --ink: #17181c;
+      --ink-soft: #5a5b61;
+      --ink-faint: #9a9a9f;
+      --line: #e3e1d9;
+      --accent: #0d7d63;
+      --accent-2: #0a6250;
+      --sh-md:
+        0 8px 24px rgba(23, 24, 28, 0.09);
+    }
 
-.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.quiz-opts.articles{grid-template-columns:1fr 1fr 1fr}
-.opt{min-height:54px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;text-align:left;transition:all .14s;box-shadow:var(--sh-sm)}
-.quiz-opts.articles .opt{text-align:center;font-size:19px;font-weight:700}
-.opt:active{transform:scale(.98)}
-.opt:hover:not(:disabled){border-color:var(--accent)}
-.opt.correct{background:var(--green-bg);border-color:var(--accent);color:var(--accent);font-weight:700}
-.opt.wrong{background:var(--red-bg);border-color:var(--red);color:var(--red);font-weight:700}
-.opt:disabled{cursor:default}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-.actions{display:flex;gap:10px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
-.btn{min-height:48px;padding:0 22px;border-radius:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .14s;box-shadow:var(--sh-sm)}
-.btn:active{transform:scale(.98)}
-.btn:hover{border-color:var(--accent)}
-.btn.primary{background:var(--accent);border-color:transparent;color:var(--accent-ink);box-shadow:var(--sh-md)}
-.btn.primary:hover{background:var(--accent-2)}
-.btn.danger{color:var(--red);border-color:var(--red-bg)}
-.btn.danger:hover{background:var(--red-bg);border-color:var(--red)}
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--ink);
+      font-family:
+        'Hanken Grotesk',
+        sans-serif;
+      padding: 20px;
+      background-image:
+        radial-gradient(
+          600px 380px at 100% -10%,
+          rgba(13, 125, 99, 0.08),
+          transparent 62%
+        );
+    }
 
-.result{text-align:center;padding:20px 0}
-.result .big{font-family:'Bricolage Grotesque',sans-serif;font-size:68px;font-weight:800;line-height:1;letter-spacing:-.03em;color:var(--accent)}
-.result .rlabel{color:var(--ink-faint);font-size:15px;margin:8px 0 14px}
-.result .rmsg{font-size:16px;margin-bottom:20px}
+    main {
+      width: min(600px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 34px 24px;
+      box-shadow: var(--sh-md);
+      text-align: center;
+    }
 
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:var(--sh-sm)}
-.panel h3{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:19px;margin-bottom:14px;display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
-.field label{font-size:12px;color:var(--ink-faint);letter-spacing:.02em;font-weight:600}
-.field input,.field select{min-height:46px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:0 14px;color:var(--ink);font-family:inherit;font-size:15px}
-.field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.inline-fields{display:grid;grid-template-columns:1fr;gap:10px}
-.io-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.io-note{font-size:12.5px;color:var(--ink-faint);margin-top:10px;line-height:1.6}
-.io-note code{background:var(--surface-2);padding:2px 7px;border-radius:6px;color:var(--ink-soft);font-size:11.5px}
-.status{font-size:12.5px;margin-top:10px;padding:10px 12px;border-radius:10px;line-height:1.5}
-.status.ok{background:var(--green-bg);color:var(--accent)}
-.status.err{background:var(--red-bg);color:var(--red)}
-.status.info{background:var(--surface-2);color:var(--ink-soft)}
+    h1 {
+      font-family:
+        'Bricolage Grotesque',
+        sans-serif;
+      font-size:
+        clamp(
+          2.35rem,
+          8vw,
+          3.6rem
+        );
+      font-weight: 800;
+      line-height: 0.96;
+      letter-spacing: -0.035em;
+    }
 
-.wordlist{display:flex;flex-direction:column;gap:7px;max-height:360px;overflow-y:auto;margin-top:6px}
-.row{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-radius:12px}
-.row .de{font-weight:700;flex:1;font-size:15px}.row .en{color:var(--ink-soft);flex:1;font-size:14px}
-.row .ico-btn{background:transparent;border:none;color:var(--ink-faint);cursor:pointer;font-size:17px;padding:6px;border-radius:8px;min-width:34px;min-height:34px}
-.row .ico-btn:hover{color:var(--accent);background:var(--surface-2)}
-.row .ico-btn.del:hover{color:var(--red)}
-.empty{color:var(--ink-faint);font-size:14px;text-align:center;padding:24px;line-height:1.6}
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink-dark);color:#fff;padding:13px 24px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s;z-index:300;box-shadow:var(--sh-lg);max-width:calc(100vw - 32px)}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    p {
+      color: var(--ink-soft);
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 14px auto 20px;
+      max-width: 470px;
+    }
 
-.admin-wrap{position:fixed;top:calc(12px + env(safe-area-inset-top));right:14px;z-index:250}
-.admin-icon{width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:var(--sh-md)}
-.admin-icon:hover{color:var(--ink)}
-.admin-icon.active{border-color:transparent;color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),var(--sh-md)}
-.admin-icon svg{width:21px;height:21px}
-.admin-menu{position:absolute;top:52px;right:0;width:260px;max-width:calc(100vw - 28px);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--sh-lg)}
-.admin-menu .am-title{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;margin-bottom:10px;color:var(--ink)}
-.admin-menu input{width:100%;min-height:44px;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:0 12px;color:var(--ink);font-family:inherit;font-size:15px;margin-bottom:10px}
-.admin-menu input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.admin-menu .am-btn{width:100%;min-height:44px;background:var(--accent);color:var(--accent-ink);border:none;border-radius:11px;font-family:inherit;font-weight:600;font-size:15px;cursor:pointer}
-.admin-menu .am-btn:hover{background:var(--accent-2)}
-.admin-menu .am-btn.lock{background:var(--surface-2);color:var(--ink)}
-.admin-menu p{font-size:12.5px;color:var(--ink-soft);margin:0 0 12px;line-height:1.55}
-.admin-menu .am-msg{font-size:12.5px;color:var(--red);min-height:14px;margin-top:6px}
+    a {
+      min-height: 48px;
+      padding: 0 22px;
+      border-radius: 13px;
+      background: var(--accent);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--sh-md);
+      transition: 0.14s;
+    }
 
-.hidden{display:none!important}
-.credit{text-align:center;margin-top:32px;font-size:12px;color:var(--ink-faint);letter-spacing:.03em}
-.credit strong{color:var(--ink-soft);font-weight:700}
+    a:hover {
+      background: var(--accent-2);
+    }
 
-@media(max-width:599px){
-  .decks{display:none}
-  .mobile-deck-select{display:block}
-}
-@media(min-width:600px){
-  .decks{display:none}
-  .mobile-deck-select{display:block}
-  .masthead h1{font-size:50px}
-  .inline-fields{grid-template-columns:1fr 1fr}
-  .controls{flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px 16px}
-  .controls.spread{justify-content:space-between}
-  .ctrl-group{flex-direction:row;align-items:center;gap:10px}
-  .lbl{text-transform:none;letter-spacing:normal;font-size:13px;font-weight:500}
-  .seg{width:auto}
-  .seg button{flex:0 0 auto;min-height:36px;padding:0 14px}
-  .controls select{width:auto;min-height:38px}
-  .actions{flex-wrap:nowrap}
-}
-</style>
+    .note {
+      display: block;
+      margin-top: 15px;
+      color: var(--ink-faint);
+      font-size: 11px;
+    }
+  </style>
 </head>
+
 <body>
-<div class="admin-wrap" id="adminWrap">
-  <button class="admin-icon" id="adminIcon" onclick="toggleAdminMenu()" aria-label="Admin">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg>
-  </button>
-  <div class="admin-menu hidden" id="adminMenu">
-    <div id="adminLocked">
-      <div class="am-title">Admin access</div>
-      <p>Enter your password to add words and open Setup. It's checked by your sheet's script, not stored in the page.</p>
-      <input type="password" id="adminPassInput" placeholder="Password" onkeydown="if(event.key==='Enter')submitAdminPass()">
-      <button class="am-btn" onclick="submitAdminPass()">Unlock</button>
-      <div class="am-msg" id="adminMsg"></div>
-    </div>
-    <div id="adminUnlocked" class="hidden">
-      <div class="am-title">Admin mode active ✓</div>
-      <p>You can add words and change setup. Lock again before sharing the link with others.</p>
-      <button class="am-btn lock" onclick="lockAdmin()">Lock (view only)</button>
-    </div>
-  </div>
-</div>
-<div class="wrap">
-  <div class="masthead">
-    <div class="kicker">Vokabeltrainer</div>
-    <h1>Deutsch Flashcards</h1>
-  </div>
+  <main>
+    <h1>
+      Deutsche<br>
+      Vokabeltrainer
+    </h1>
 
-  <div class="topnav">
-    <button id="navStudy" class="active" onclick="setView('study')">Study</button>
-    <button id="navManage" onclick="setView('manage')">Words</button>
-    <button id="navSetup" onclick="setView('setup')">Setup</button>
-  </div>
+    <!--
+      Replace only PUBLIC_LEARNER_WEB_APP_URL
+      with the public learner Apps Script /exec URL.
 
-  <div class="decks" id="decks"></div>
-  <div class="mobile-deck-select" id="mobileDeckWrap">
-    <label for="mobileDeckSelect">Deck</label>
-    <select id="mobileDeckSelect" onchange="selectDeckFromMobile(this.value)"></select>
-  </div>
+      Never put the private admin URL here.
+    -->
+    <a href="https://script.google.com/macros/s/AKfycbz0BfqQstR05vMBt6Jy8KarVP-Fk50UkFTr2bqjEEKKMwUZ3XBfpt6TjlhekQ1B7t4aKg/exec">
+      Open the secure app
+    </a>
 
-  <!-- ===== STUDY ===== -->
-  <div id="studyView">
-    <div class="controls">
-      <span class="lbl">Show</span>
-      <div class="seg" id="filterSeg">
-        <button class="active" data-f="all" onclick="setFilter('all')">All</button>
-        <button data-f="noun" onclick="setFilter('noun')">Nouns</button>
-        <button data-f="verb" onclick="setFilter('verb')">Verbs</button>
-        <button data-f="other" onclick="setFilter('other')">Other</button>
-      </div>
-    </div>
-    <div class="controls spread">
-      <div class="ctrl-group">
-        <span class="lbl">Direction</span>
-        <div class="seg">
-          <button id="dirDE" class="active" onclick="setDir('de-en')">DE → EN</button>
-          <button id="dirEN" onclick="setDir('en-de')">EN → DE</button>
-        </div>
-      </div>
-      <div class="ctrl-group">
-        <span class="lbl">Mode</span>
-        <div class="seg">
-          <button id="mFlip" class="active" onclick="setMode('flip')">Flip</button>
-          <button id="mQuiz" onclick="setMode('quiz')">Quiz</button>
-          <button id="mArt" onclick="setMode('article')">der/die/das</button>
-        </div>
-      </div>
-    </div>
-    <div class="controls spread">
-      <div class="ctrl-group">
-        <span class="lbl">Round length</span>
-        <select id="roundSel" onchange="setRound(this.value)"></select>
-      </div>
-      <span class="lbl" id="poolInfo"></span>
-    </div>
-
-    <div class="stats">
-      <div class="stat"><div class="n g" id="sCorrect">0</div><div class="l">Correct</div></div>
-      <div class="stat"><div class="n r" id="sWrong">0</div><div class="l">Wrong</div></div>
-      <div class="stat"><div class="n s" id="sStreak">0</div><div class="l">Streak</div></div>
-    </div>
-
-    <div id="game">
-      <div class="prog"><div id="progFill" style="width:0%"></div></div>
-      <div class="prog-txt" id="progTxt">Card 0 of 0</div>
-
-      <div class="card-area" id="cardArea" onclick="flip()">
-        <div class="card-inner" id="cardInner">
-          <div class="face front">
-            <div class="badge" id="fBadge"></div>
-            <div class="lang" id="fLang">Deutsch</div>
-            <div class="word" id="fWord">—</div>
-            <div class="hint" id="fHint"></div>
-            <div class="taphint" id="tapHint">tap to reveal</div>
-          </div>
-          <div class="face back">
-            <div class="lang" id="bLang">English</div>
-            <div class="word" id="bWord"></div>
-            <div class="hint" id="bHint"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="quiz-opts hidden" id="quizOpts"></div>
-
-      <div class="actions" id="flipActions" style="display:none">
-        <button class="btn danger" onclick="mark(false)">✗ Missed it</button>
-        <button class="btn primary" onclick="mark(true)">✓ Got it</button>
-      </div>
-      <div class="actions" id="nextAction" style="display:none">
-        <button class="btn primary" onclick="next()">Next card →</button>
-      </div>
-    </div>
-
-    <div id="result" class="result hidden">
-      <div class="big" id="rScore">0%</div>
-      <div class="rlabel">Round complete</div>
-      <div class="rmsg" id="rMsg"></div>
-      <div class="actions">
-        <button class="btn primary" onclick="restart()">↻ Play again</button>
-        <button class="btn" onclick="reviewMissed()">⊙ Review missed</button>
-      </div>
-    </div>
-
-    <div id="emptyDeck" class="empty hidden">No words to study yet. Go to the <strong>Setup</strong> tab and connect your Google Sheet, or add a word in the <strong>Words</strong> tab.</div>
-  </div>
-
-  <!-- ===== MANAGE ===== -->
-  <div id="manageView" class="hidden">
-    <div class="panel">
-      <h3>+ Add a word (this device)</h3>
-      <div class="inline-fields">
-        <div class="field"><label>German (noun: just the word, no article)</label><input id="inDE" placeholder="e.g. Tisch"></div>
-        <div class="field"><label>English meaning</label><input id="inEN" placeholder="e.g. table"></div>
-      </div>
-      <div class="inline-fields">
-        <div class="field"><label>Deck</label>
-          <select id="inDeck" onchange="toggleNewDeck()"></select>
-        </div>
-        <div class="field" id="newDeckField" style="display:none"><label>New deck name</label><input id="inNewDeck" placeholder="e.g. Travel"></div>
-      </div>
-      <div class="inline-fields">
-        <div class="field"><label>Type</label>
-          <select id="inType" onchange="toggleArticleField()">
-            <option value="noun">noun</option><option value="verb">verb</option>
-            <option value="adjective">adjective</option><option value="other">other</option>
-          </select>
-        </div>
-        <div class="field" id="articleField"><label>Article</label>
-          <select id="inArticle"><option value="der">der</option><option value="die">die</option><option value="das">das</option></select>
-        </div>
-      </div>
-      <div class="field"><label>Hint (optional)</label><input id="inHint" placeholder="optional note"></div>
-      <button class="btn primary" onclick="addWord()">Add word</button>
-      <div class="io-note"><strong>Where does it save?</strong> Because you're in admin mode, new words are written <strong>straight into your Google Sheet</strong> and appear on every device. You'll get a warning if the word already exists, and a heads-up if it didn't save.</div>
-    </div>
-
-    <div class="panel">
-      <h3 id="listTitle">Words in this deck</h3>
-      <div class="wordlist" id="wordlist"></div>
-    </div>
-
-    <div class="panel">
-      <h3>⤓ Export</h3>
-      <div class="io-row">
-        <button class="btn" onclick="exportXlsx()">Export all to Excel (.xlsx)</button>
-        <button class="btn" onclick="exportCsv()">Export to CSV</button>
-      </div>
-      <div class="io-note">Downloads everything currently loaded (sheet words + your device words) in your sheet's exact column format, so you can paste rows straight back into the sheet.</div>
-    </div>
-  </div>
-
-  <!-- ===== SETUP ===== -->
-  <div id="setupView" class="hidden">
-    <div class="panel">
-      <h3>Google Sheet (your words)</h3>
-      <div class="field"><label>Google Sheet link or ID</label>
-        <input id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/…">
-      </div>
-      <div class="io-row">
-        <button class="btn primary" onclick="connectSheet()">Connect &amp; load</button>
-        <button class="btn" onclick="reloadSheet()">↻ Reload words</button>
-      </div>
-      <div id="setupStatus" class="status info">Connected to your Google Sheet ✓</div>
-      <div class="io-note">The sheet must be shared as “Anyone with the link → Viewer.” Columns: <code>Deck</code> <code>German</code> <code>Article</code> <code>English</code> <code>Type</code> <code>Hint</code>.</div>
-    </div>
-
-    <div class="panel">
-      <h3>App Script link (for adding words)</h3>
-      <div class="field"><label>Apps Script web-app URL (ends in /exec)</label>
-        <input id="writeUrl" placeholder="https://script.google.com/macros/s/…/exec">
-      </div>
-      <div class="io-row"><button class="btn primary" onclick="saveWriteUrl()">Save</button></div>
-      <div id="writeStatus" class="status info">Using the built-in link.</div>
-      <div class="io-note">This is the script that holds your admin password and saves new words to the sheet.</div>
-    </div>
-
-    <div class="panel">
-      <h3>Export a backup</h3>
-      <div class="io-row">
-        <button class="btn" onclick="exportXlsx()">Export to Excel (.xlsx)</button>
-        <button class="btn" onclick="exportCsv()">Export to CSV</button>
-      </div>
-      <div class="io-note">Downloads everything currently loaded, in your sheet's column format.</div>
-    </div>
-  </div>
-  <div class="credit">Created by <strong>Tushar Jejurkar</strong></div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-const LS = { sheet:'gf_sheet_id', sheetGid:'gf_sheet_gid', cache:'gf_cache', local:'gf_local', writeUrl:'gf_write_url' };
-const ALL = '__ALL__';
-
-// Baked-in defaults so any device auto-connects on first open.
-// NOTE: the admin password is NOT here on purpose — it lives only inside your
-// Apps Script (server-side). You type it once per device to enable adding words.
-const CONFIG = {
-  sheetId: '19SQp3vXTJvNeGRIcsPtPpHtBQ7HUu_FUgJmnNHIKPtE',
-  sheetGid: '183290793',
-  writeUrl: 'https://script.google.com/macros/s/AKfycbzQhl2euru3n1Vk0FQI8VJVJIF6qXp2EN0N1r-Lz-WENUXbEcGfyB4MxsF4dIUJnCQA/exec',
-  // One-way fingerprint (SHA-256) of the admin password — used only to check the
-  // password you type. It is NOT the password and cannot be reversed.
-  adminHash: '7101ccd96c6251273685b159b5de38c9c11f6db6890a9202128ba41981665955'
-};
-
-let allWords=[], decksOrder=[], currentDeck=null;
-let view='study', dir='de-en', mode='flip', filter='all', roundSize=0;
-let deck=[], idx=0, flipped=false, quizAnswered=false;
-let correct=0, wrong=0, streak=0, missed=[];
-let isAdmin=false;
-
-function applyAdmin(){
-  isAdmin = !!localStorage.getItem('gf_admin_pw');
-  document.getElementById('navManage').style.display = isAdmin?'':'none';
-  document.getElementById('navSetup').style.display = isAdmin?'':'none';
-  document.getElementById('adminIcon').classList.toggle('active', isAdmin);
-  document.getElementById('adminLocked').classList.toggle('hidden', isAdmin);
-  document.getElementById('adminUnlocked').classList.toggle('hidden', !isAdmin);
-  if(!isAdmin && (view==='manage'||view==='setup')) setView('study');
-}
-function toggleAdminMenu(){
-  const m=document.getElementById('adminMenu');
-  m.classList.toggle('hidden');
-  if(!m.classList.contains('hidden') && !isAdmin) setTimeout(()=>document.getElementById('adminPassInput').focus(),0);
-}
-// Verify the typed password against a one-way fingerprint (SHA-256 hash).
-// The hash is NOT the password and can't be reversed, so the password stays
-// unreadable in the code — while the check works instantly and offline.
-async function sha256Hex(str){
-  const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-async function submitAdminPass(){
-  const v=document.getElementById('adminPassInput').value.trim();
-  const msg=document.getElementById('adminMsg');
-  if(!v){ msg.style.color='var(--red)'; msg.textContent='Enter your password'; return; }
-  let h='';
-  try{ h=await sha256Hex(v); }
-  catch(e){ msg.style.color='var(--red)'; msg.textContent='Cannot verify here (the site must be https).'; return; }
-  if(h!==CONFIG.adminHash){ msg.style.color='var(--red)'; msg.textContent='Wrong password'; return; }
-  localStorage.setItem('gf_admin_pw', v);
-  document.getElementById('adminPassInput').value='';
-  msg.textContent='';
-  applyAdmin(); toast('Admin unlocked ✓');
-}
-function lockAdmin(){
-  localStorage.removeItem('gf_admin_pw'); applyAdmin(); setView('study');
-  document.getElementById('adminMenu').classList.add('hidden'); toast('Locked — view only');
-}
-document.addEventListener('click',function(e){
-  const w=document.getElementById('adminWrap');
-  if(w && !w.contains(e.target)) document.getElementById('adminMenu').classList.add('hidden');
-});
-
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
-function setSource(t){const el=document.getElementById('sourceSub');if(el)el.textContent=t;}
-function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function norm(s){return (s||'').toString().trim();}
-function lc(s){return norm(s).toLowerCase();}
-function extractSheetInfo(input){
-  input=norm(input);
-  const idMatch=input.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  let id=null;
-  if(idMatch) id=idMatch[1];
-  else if(/^[a-zA-Z0-9-_]{20,}$/.test(input)) id=input;
-  if(!id) return null;
-
-  const gidMatch=input.match(/[?#&]gid=(\d+)/);
-  const gid=gidMatch?gidMatch[1]:null;
-  return {id,gid};
-}
-
-function rowsToWords(rows){
-  const out=[];
-  rows.forEach(r=>{
-    const get=(...keys)=>{for(const k of Object.keys(r)){if(keys.includes(lc(k)))return norm(r[k]);}return '';};
-    const de=get('german','deutsch','de','word'); const en=get('english','meaning','en');
-    if(!de&&!en) return;
-    let type=lc(get('type','category'))||''; let article=lc(get('article','artikel','gender'));
-    if(article&&!['der','die','das'].includes(article)) article='';
-    if(article&&!type) type='noun';
-    out.push({deck:get('deck','set','topic')||'My Words',de,en,article,type:type||'other',hint:get('hint','note')});
-  });
-  return out;
-}
-function buildFromCsvText(text,markLocal){let w=rowsToWords(Papa.parse(text.trim(),{header:true,skipEmptyLines:true}).data);if(markLocal)w=w.map(x=>({...x,_local:true}));return w;}
-
-function rebuild(){
-  let local=[]; try{local=JSON.parse(localStorage.getItem(LS.local)||'[]');}catch(e){}
-  allWords=[...allWords.filter(w=>!w._local),...local];
-  decksOrder=[...new Set(allWords.map(w=>w.deck))];
-  if(currentDeck!==ALL && !decksOrder.includes(currentDeck)) currentDeck=decksOrder[0]||null;
-  renderDecks();
-  if(view==='study') restart(); else if(view==='manage') renderManage();
-}
-
-async function fetchSheet(id,gid){
-  let url=`https://docs.google.com/spreadsheets/d/${id}/export?format=csv`;
-  if(gid) url+=`&gid=${encodeURIComponent(gid)}`;
-
-  const res=await fetch(url,{cache:'no-store'});
-  if(!res.ok) throw new Error('HTTP '+res.status);
-
-  const text=await res.text();
-  const trimmed=text.trim();
-
-  if(!trimmed || trimmed.startsWith('<!DOCTYPE html') || trimmed.startsWith('<html')){
-    throw new Error('not-shared');
-  }
-
-  return text;
-}
-async function connectSheet(){
-  const info=extractSheetInfo(document.getElementById('sheetUrl').value);
-  if(!info){setStatus('err','That doesn’t look like a valid Google Sheet link or ID.');return;}
-  const id=info.id;
-  const gid=info.gid||CONFIG.sheetGid||null;
-  setStatus('info','Connecting…');
-  try{
-    const text=await fetchSheet(id,gid);
-    const parsed=Papa.parse(text.trim(),{header:true,skipEmptyLines:true});
-    const words=rowsToWords(parsed.data);
-    if(!words.length){
-      const headers=(parsed.meta&&parsed.meta.fields)?parsed.meta.fields.join(', '):'none detected';
-      throw new Error('empty|'+headers);
-    }
-    localStorage.setItem(LS.sheet,id);
-    if(gid) localStorage.setItem(LS.sheetGid,gid); else localStorage.removeItem(LS.sheetGid);
-    localStorage.setItem(LS.cache,text);
-    allWords=words; rebuild();
-    setStatus('ok',`Connected ✓ Loaded ${words.length} words across ${decksOrder.length} deck(s).`);
-    setSource('Live from your Google Sheet');
-    toast('Sheet connected ✓');
-  }catch(e){
-    if(e.message==='not-shared') setStatus('err','Reached the page but it isn’t public. Set sharing to “Anyone with the link → Viewer” and retry.');
-    else if(e.message.startsWith('empty|')) setStatus('err','Connected to the selected tab, but no vocabulary rows were parsed. Detected headers: '+e.message.split('|').slice(1).join('|'));
-    else setStatus('err','Couldn’t reach the sheet. Check the link and sharing, then retry.');
-  }
-}
-async function reloadSheet(){
-  const id=localStorage.getItem(LS.sheet);
-  const gid=localStorage.getItem(LS.sheetGid)||CONFIG.sheetGid||null;
-  if(!id){setStatus('info','No sheet connected yet.');return;}
-  setStatus('info','Reloading…');
-  try{const text=await fetchSheet(id,gid);localStorage.setItem(LS.cache,text);allWords=buildFromCsvText(text,false);rebuild();
-    setStatus('ok','Reloaded ✓ '+allWords.filter(w=>!w._local).length+' words from the sheet.');toast('Words reloaded ✓');
-  }catch(e){setStatus('err','Reload failed — using last cached copy.');}
-}
-function setStatus(k,m){const el=document.getElementById('setupStatus');el.className='status '+k;el.textContent=m;}
-
-function importFile(ev){
-  const file=ev.target.files[0]; if(!file) return; const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      let words;
-      if(file.name.toLowerCase().endsWith('.csv')) words=buildFromCsvText(e.target.result,false);
-      else{const wb=XLSX.read(e.target.result,{type:'binary'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});words=rowsToWords(rows);}
-      if(!words.length){toast('No rows found in that file');return;}
-      localStorage.setItem(LS.cache,JSON.stringify({_imported:words})); localStorage.removeItem(LS.sheet);
-      allWords=words; rebuild(); setSource('Imported / cached words');
-      toast('Imported '+words.length+' words ✓'); setView('study');
-    }catch(err){toast('Could not read that file');}
-  };
-  if(file.name.toLowerCase().endsWith('.csv')) reader.readAsText(file); else reader.readAsBinaryString(file);
-  ev.target.value='';
-}
-
-function currentExportRows(){return allWords.map(w=>({Deck:w.deck,German:w.de,Article:w.article||'',English:w.en,Type:w.type||'',Hint:w.hint||''}));}
-function exportXlsx(){const ws=XLSX.utils.json_to_sheet(currentExportRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Vocab');XLSX.writeFile(wb,'deutsch-vocab.xlsx');toast('Excel exported ✓');}
-function exportCsv(){const csv=Papa.unparse(currentExportRows());const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='deutsch-vocab.csv';a.click();URL.revokeObjectURL(url);toast('CSV exported ✓');}
-
-function renderDecks(){
-  const c=document.getElementById('decks'); c.innerHTML='';
-  const sel=document.getElementById('mobileDeckSelect');
-  if(sel) sel.innerHTML='';
-
-  if(decksOrder.length>1){
-    const b=document.createElement('button'); b.className='chip mixed'+(currentDeck===ALL?' active':'');
-    b.innerHTML=`✦ All decks (mixed)<span class="count">${allWords.length}</span>`;
-    b.onclick=()=>{currentDeck=ALL;renderDecks();view==='study'?restart():renderManage();}; c.appendChild(b);
-
-    if(sel){
-      const o=document.createElement('option');
-      o.value=ALL;
-      o.textContent='✦ All decks (mixed)';
-      sel.appendChild(o);
-    }
-  }
-
-  decksOrder.forEach(d=>{
-    const n=allWords.filter(w=>w.deck===d).length;
-    const b=document.createElement('button');
-    b.className='chip'+(d===currentDeck?' active':'');
-    b.innerHTML=`${d}<span class="count">${n}</span>`;
-    b.onclick=()=>{currentDeck=d;renderDecks();view==='study'?restart():renderManage();};
-    c.appendChild(b);
-
-    if(sel){
-      const o=document.createElement('option');
-      o.value=d;
-      o.textContent=d;
-      sel.appendChild(o);
-    }
-  });
-
-  if(sel && currentDeck!==null) sel.value=currentDeck;
-}
-
-function selectDeckFromMobile(deckName){
-  currentDeck=deckName;
-  renderDecks();
-  view==='study'?restart():renderManage();
-}
-function setView(v){
-  if((v==='manage'||v==='setup') && !isAdmin){ v='study'; }
-  view=v;
-  ['Study','Manage','Setup'].forEach(x=>document.getElementById('nav'+x).classList.toggle('active',v===x.toLowerCase()));
-  document.getElementById('studyView').classList.toggle('hidden',v!=='study');
-  document.getElementById('manageView').classList.toggle('hidden',v!=='manage');
-  document.getElementById('setupView').classList.toggle('hidden',v!=='setup');
-  document.getElementById('decks').classList.toggle('hidden',v==='setup');
-  document.getElementById('mobileDeckWrap').classList.toggle('hidden',v==='setup');
-  if(v==='study') restart(); else if(v==='manage') renderManage();
-}
-function setDir(d){dir=d;document.getElementById('dirDE').classList.toggle('active',d==='de-en');document.getElementById('dirEN').classList.toggle('active',d==='en-de');restart();}
-function setFilter(f){filter=f;document.querySelectorAll('#filterSeg button').forEach(b=>b.classList.toggle('active',b.dataset.f===f));if(mode==='article'&&f!=='noun'&&f!=='all'){setMode('flip');}else restart();updateArticleModeAvail();}
-function setMode(m){mode=m;document.getElementById('mFlip').classList.toggle('active',m==='flip');document.getElementById('mQuiz').classList.toggle('active',m==='quiz');document.getElementById('mArt').classList.toggle('active',m==='article');restart();}
-function setRound(v){roundSize=parseInt(v,10)||0;restart();}
-function updateArticleModeAvail(){const has=basePool().some(w=>w.type==='noun'&&['der','die','das'].includes(w.article));document.getElementById('mArt').style.display=has?'':'none';if(!has&&mode==='article')setMode('flip');}
-
-function basePool(){
-  let w=currentDeck===ALL?allWords.slice():allWords.filter(x=>x.deck===currentDeck);
-  if(filter==='noun') w=w.filter(x=>x.type==='noun');
-  else if(filter==='verb') w=w.filter(x=>x.type==='verb');
-  else if(filter==='other') w=w.filter(x=>x.type!=='noun'&&x.type!=='verb');
-  if(mode==='article') w=w.filter(x=>x.type==='noun'&&['der','die','das'].includes(x.article));
-  return w;
-}
-function restart(){
-  updateArticleModeAvail();
-  const pool=basePool();
-  document.getElementById('result').classList.add('hidden');
-  const info=document.getElementById('poolInfo');
-  if(!pool.length){document.getElementById('game').classList.add('hidden');document.getElementById('emptyDeck').classList.remove('hidden');info.textContent='';return;}
-  document.getElementById('game').classList.remove('hidden'); document.getElementById('emptyDeck').classList.add('hidden');
-  deck=shuffle(pool); if(roundSize>0) deck=deck.slice(0,roundSize);
-  info.textContent=`${deck.length} of ${pool.length} available`;
-  idx=0;correct=0;wrong=0;streak=0;missed=[]; updateStats(); showCard();
-}
-function reviewMissed(){if(!missed.length){restart();return;}document.getElementById('result').classList.add('hidden');document.getElementById('game').classList.remove('hidden');deck=shuffle(missed);idx=0;correct=0;wrong=0;streak=0;missed=[];updateStats();showCard();}
-function artClass(a){return a==='der'?'art-der':a==='die'?'art-die':'art-das';}
-
-function showCard(){
-  if(idx>=deck.length) return showResult();
-
-  // Reset the previous flipped card instantly BEFORE loading the next card's text.
-  // Without this, the next card's meaning can briefly appear during the flip-back animation.
-  const cardInner=document.getElementById('cardInner');
-  cardInner.classList.add('no-transition');
-  cardInner.classList.remove('flipped');
-  void cardInner.offsetWidth;
-
-  const c=deck[idx]; flipped=false; quizAnswered=false;
-  document.getElementById('fBadge').textContent=c.type&&c.type!=='other'?c.type:'';
-  const isNoun=c.type==='noun'&&['der','die','das'].includes(c.article);
-  const deWithArt=isNoun?`<span class="article-tag ${artClass(c.article)}">${c.article}</span>${c.de}`:c.de;
-  const tap=document.getElementById('tapHint');
-  if(mode==='article'){
-    document.getElementById('cardArea').style.pointerEvents='none';
-    document.getElementById('fLang').textContent='Welcher Artikel?';
-    document.getElementById('fWord').textContent=c.de;
-    document.getElementById('fHint').textContent=c.en?('= '+c.en):'';
-    document.getElementById('bLang').textContent='Antwort';
-    document.getElementById('bWord').innerHTML=deWithArt;
-    document.getElementById('bHint').textContent=c.en||'';
-    tap.style.display='none'; buildArticleQuiz(c);
-    const q=document.getElementById('quizOpts'); q.className='quiz-opts articles'; q.classList.remove('hidden');
-    document.getElementById('flipActions').style.display='none'; document.getElementById('nextAction').style.display='none';
-  } else if(mode==='quiz'){
-    document.getElementById('cardArea').style.pointerEvents='none';
-    document.getElementById('fLang').textContent=dir==='de-en'?'Deutsch':'English';
-    document.getElementById('fWord').innerHTML=dir==='de-en'?(isNoun?deWithArt:c.de):c.en;
-    document.getElementById('fHint').textContent=c.hint?('('+c.hint+')'):'';
-    document.getElementById('bLang').textContent=dir==='de-en'?'English':'Deutsch';
-    document.getElementById('bWord').innerHTML=dir==='de-en'?c.en:deWithArt;
-    document.getElementById('bHint').textContent='';
-    tap.style.display='none'; buildQuiz(c);
-    const q=document.getElementById('quizOpts'); q.className='quiz-opts'; q.classList.remove('hidden');
-    document.getElementById('flipActions').style.display='none'; document.getElementById('nextAction').style.display='none';
-  } else {
-    document.getElementById('cardArea').style.pointerEvents='';
-    document.getElementById('quizOpts').classList.add('hidden');
-    document.getElementById('fLang').textContent=dir==='de-en'?'Deutsch':'English';
-    document.getElementById('fWord').textContent=dir==='de-en'?c.de:c.en;
-    document.getElementById('fHint').textContent=c.hint?('('+c.hint+')'):'';
-    document.getElementById('bLang').textContent=dir==='de-en'?'English':'Deutsch';
-    document.getElementById('bWord').innerHTML=dir==='de-en'?c.en:deWithArt;
-    document.getElementById('bHint').innerHTML=dir==='de-en'&&isNoun?deWithArt:'';
-    tap.style.display='block';
-    document.getElementById('flipActions').style.display='none'; document.getElementById('nextAction').style.display='none';
-  }
-  document.getElementById('progFill').style.width=Math.round(idx/deck.length*100)+'%';
-  document.getElementById('progTxt').textContent=`Card ${idx+1} of ${deck.length}`;
-
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>cardInner.classList.remove('no-transition'));
-  });
-}
-function flip(){if(mode!=='flip')return;flipped=!flipped;document.getElementById('cardInner').classList.toggle('flipped',flipped);document.getElementById('flipActions').style.display=flipped?'flex':'none';document.getElementById('tapHint').style.display=flipped?'none':'block';}
-function mark(ok){if(ok){correct++;streak++;}else{wrong++;streak=0;missed.push(deck[idx]);}updateStats();idx++;showCard();}
-function buildQuiz(c){const right=dir==='de-en'?c.en:c.de;const pool=basePool().filter(w=>w!==c);const d=shuffle(pool).slice(0,3).map(w=>dir==='de-en'?w.en:w.de);renderOpts(shuffle([right,...d]),right);}
-function buildArticleQuiz(c){renderOpts(['der','die','das'],c.article);}
-function renderOpts(opts,right){const cc=document.getElementById('quizOpts');cc.innerHTML='';opts.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o;b.onclick=()=>answer(b,o,right);cc.appendChild(b);});}
-function answer(btn,chosen,right){if(quizAnswered)return;quizAnswered=true;document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===right)b.classList.add('correct');});if(chosen===right){btn.classList.add('correct');correct++;streak++;}else{btn.classList.add('wrong');wrong++;streak=0;missed.push(deck[idx]);}updateStats();document.getElementById('cardInner').classList.add('flipped');document.getElementById('nextAction').style.display='flex';}
-function next(){idx++;showCard();}
-function updateStats(){document.getElementById('sCorrect').textContent=correct;document.getElementById('sWrong').textContent=wrong;document.getElementById('sStreak').textContent=streak;}
-function showResult(){document.getElementById('game').classList.add('hidden');document.getElementById('result').classList.remove('hidden');const tot=correct+wrong,pct=tot?Math.round(correct/tot*100):0;document.getElementById('rScore').textContent=pct+'%';let m;if(pct>=90)m='Ausgezeichnet! Outstanding.';else if(pct>=70)m='Gut gemacht! Keep it up.';else if(pct>=50)m='Nicht schlecht — review the missed ones.';else m='Weiter üben! You’ll get there.';document.getElementById('rMsg').textContent=m;}
-
-// ----- manage -----
-function fillDeckSelect(){
-  const sel=document.getElementById('inDeck'); const prev=sel.value; sel.innerHTML='';
-  decksOrder.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
-  const o=document.createElement('option');o.value='__new__';o.textContent='＋ New deck…';sel.appendChild(o);
-  if(currentDeck&&currentDeck!==ALL&&decksOrder.includes(currentDeck)) sel.value=currentDeck;
-  else if(decksOrder.includes(prev)) sel.value=prev;
-  toggleNewDeck();
-}
-function toggleNewDeck(){document.getElementById('newDeckField').style.display=document.getElementById('inDeck').value==='__new__'?'flex':'none';}
-function toggleArticleField(){document.getElementById('articleField').style.display=document.getElementById('inType').value==='noun'?'flex':'none';}
-function renderManage(){
-  fillDeckSelect();
-  const mixed=currentDeck===ALL;
-  const words=mixed?allWords.slice():allWords.filter(w=>w.deck===currentDeck);
-  document.getElementById('listTitle').textContent=mixed?`All decks — ${words.length} words`:`Words in “${currentDeck||''}” (${words.length})`;
-  const list=document.getElementById('wordlist'); list.innerHTML='';
-  if(!words.length){list.innerHTML='<div class="empty">No words yet.</div>';return;}
-  words.forEach(w=>{
-    const row=document.createElement('div');row.className='row';const art=w.article?w.article+' ':'';
-    row.innerHTML=`<span class="de"></span><span class="en"></span>`;
-    row.querySelector('.de').textContent=art+w.de; row.querySelector('.en').textContent=mixed?(w.en+'  ·  '+w.deck):w.en;
-    if(w._local){const del=document.createElement('button');del.className='ico-btn del';del.textContent='🗑';del.title='Delete (this device)';del.onclick=()=>delLocal(w);row.appendChild(del);}
-    list.appendChild(row);
-  });
-}
-function findDuplicate(de){const n=lc(de);return allWords.find(w=>lc(w.de)===n);}
-function clearAddInputs(){document.getElementById('inDE').value='';document.getElementById('inEN').value='';document.getElementById('inHint').value='';document.getElementById('inNewDeck').value='';}
-function addLocal(obj){let local=[];try{local=JSON.parse(localStorage.getItem(LS.local)||'[]');}catch(e){}local.push({...obj,_local:true});localStorage.setItem(LS.local,JSON.stringify(local));currentDeck=obj.deck;rebuild();renderManage();toast('Added ✓ (this device)');}
-async function addWord(){
-  const de=norm(document.getElementById('inDE').value), en=norm(document.getElementById('inEN').value);
-  if(!de||!en){toast('Fill in German and English');return;}
-  let target=document.getElementById('inDeck').value;
-  if(target==='__new__'){target=norm(document.getElementById('inNewDeck').value);if(!target){toast('Type a name for the new deck');return;}}
-  const type=document.getElementById('inType').value;
-  const article=type==='noun'?document.getElementById('inArticle').value:'';
-  const hint=norm(document.getElementById('inHint').value);
-  const dup=findDuplicate(de);
-  if(dup && !confirm(`"${de}" already exists in deck "${dup.deck}" (= ${dup.en}). Add it anyway?`)) return;
-  const pass=localStorage.getItem('gf_admin_pw');
-  if(!pass){ toast('Unlock admin (top-right icon) to add words'); return; }
-  const writeUrl=localStorage.getItem(LS.writeUrl)||CONFIG.writeUrl;
-  toast('Saving to your Google Sheet…');
-  try{
-    await fetch(writeUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({secret:pass,deck:target,german:de,article,english:en,type,hint})});
-    clearAddInputs(); currentDeck=target; document.getElementById('inDE').focus();
-    toast('Sent — checking the sheet…');
-    setTimeout(async ()=>{
-      await reloadSheet();
-      const ok=allWords.some(w=>!w._local && lc(w.de)===lc(de) && w.deck===target);
-      toast(ok ? 'Added to sheet ✓' : 'Not saved — check your admin password');
-    },1800);
-  }catch(e){ toast('Couldn’t reach the script — check your connection'); }
-}
-function saveWriteUrl(){
-  const u=norm(document.getElementById('writeUrl').value);
-  const st=document.getElementById('writeStatus');
-  if(!u){localStorage.removeItem(LS.writeUrl);st.className='status info';st.textContent='Cleared — words added in the app stay on this device.';return;}
-  if(!/script\.google\.com\/macros\/.*\/exec/.test(u)){st.className='status err';st.textContent='That doesn’t look like an Apps Script web-app URL (it should end in /exec).';return;}
-  localStorage.setItem(LS.writeUrl,u); st.className='status ok'; st.textContent='Saved ✓ New words will be written straight to your sheet.'; toast('Write-back enabled ✓');
-}
-function populateRoundOptions(){
-  const sel=document.getElementById('roundSel'); sel.innerHTML='';
-  const all=document.createElement('option'); all.value='0'; all.textContent='All words'; sel.appendChild(all);
-  for(let n=10;n<=500;n+=10){const o=document.createElement('option');o.value=String(n);o.textContent=n+' words';sel.appendChild(o);}
-  sel.value=String(roundSize);
-}
-function delLocal(t){let local=[];try{local=JSON.parse(localStorage.getItem(LS.local)||'[]');}catch(e){}const i=local.findIndex(w=>w.de===t.de&&w.en===t.en&&w.deck===t.deck);if(i>-1){local.splice(i,1);localStorage.setItem(LS.local,JSON.stringify(local));rebuild();renderManage();toast('Deleted');}}
-
-// ----- boot -----
-async function boot(){
-  // The baked-in links are the source of truth. Always reset to them so a stale
-  // value saved on the device can never override the correct current links.
-  // Sheet link: use your saved one if you've connected a different sheet, else the default.
-  if(CONFIG.sheetId && !localStorage.getItem(LS.sheet)) localStorage.setItem(LS.sheet, CONFIG.sheetId);
-  if(CONFIG.sheetGid && !localStorage.getItem(LS.sheetGid)) localStorage.setItem(LS.sheetGid, CONFIG.sheetGid);
-  if(CONFIG.writeUrl) localStorage.setItem(LS.writeUrl, CONFIG.writeUrl);
-  populateRoundOptions();
-  const id=localStorage.getItem(LS.sheet); const cache=localStorage.getItem(LS.cache);
-  if(id){
-    if(cache){allWords=buildFromCsvText(cache,false);rebuild();setSource('Live from your Google Sheet');setStatus('info','Using cached words — tap Reload for the latest.');}
-    reloadSheet();
-  } else if(cache){
-    try{const obj=JSON.parse(cache);if(obj._imported)allWords=obj._imported;}catch(e){allWords=buildFromCsvText(cache,false);}
-    rebuild(); setSource('Imported / cached words');
-  } else {
-    rebuild(); setSource('Loading your words…');
-  }
-  toggleArticleField();
-  // Prefill the (admin-only) setup fields with the current links.
-  const su=document.getElementById('sheetUrl');
-  if(su){
-    const savedId=localStorage.getItem(LS.sheet)||CONFIG.sheetId;
-    const savedGid=localStorage.getItem(LS.sheetGid)||CONFIG.sheetGid||'';
-    su.value='https://docs.google.com/spreadsheets/d/'+savedId+'/edit'+(savedGid?'?gid='+savedGid+'#gid='+savedGid:'');
-  }
-  const wu=document.getElementById('writeUrl'); if(wu) wu.value=CONFIG.writeUrl;
-  // Clear any saved unlock that doesn't match the password (e.g. left by an older version).
-  const sp=localStorage.getItem('gf_admin_pw');
-  if(sp){ try{ if(await sha256Hex(sp)!==CONFIG.adminHash) localStorage.removeItem('gf_admin_pw'); }catch(e){} }
-  localStorage.removeItem('gf_admin_pass');
-  applyAdmin();
-  if(new URLSearchParams(location.search).get('admin')==='true'){
-    document.getElementById('adminMenu').classList.remove('hidden');
-    if(!isAdmin) setTimeout(()=>document.getElementById('adminPassInput').focus(),0);
-  }
-}
-boot();
-</script>
+    <span class="note">
+      Created by Tushar Jejurkar
+    </span>
+  </main>
 </body>
 </html>
