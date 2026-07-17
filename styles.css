@@ -2256,3 +2256,171 @@ body {
     padding-right: 2px;
   }
 }
+
+/* V3.3 sidebar alignment and true mobile edge-to-edge layout */
+@media (min-width: 1181px) {
+  .app-shell {
+    grid-template-columns: 340px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding-left: 34px;
+    padding-right: 34px;
+  }
+
+  .brand-block {
+    width: 100%;
+    max-width: 272px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .brand-block h1 {
+    width: 100%;
+    font-size: 35px;
+    line-height: 1;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .brand-block p {
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 821px) {
+  .app-shell {
+    grid-template-columns: 276px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .brand-block {
+    width: 100%;
+    text-align: center;
+  }
+
+  .brand-block h1 {
+    font-size: 29px;
+    line-height: 1;
+  }
+}
+
+@media (max-width: 820px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .app-shell,
+  .main-content,
+  #studyView,
+  #searchView,
+  #contributeView,
+  #guideView,
+  .study-layout,
+  .page-layout,
+  .study-main-column,
+  .study-side-column,
+  .study-main-column > #studyPanel,
+  .page-main,
+  .page-layout > aside {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .mobile-header {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .study-setup,
+  .side-card,
+  .browse-panel,
+  .contribute-intro,
+  .contribution-card,
+  .guide-panel,
+  .contribution-help-top,
+  .flashcard,
+  .writing-panel,
+  .result {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+
+  .stats,
+  .round-toolbar,
+  .card-area,
+  .writing-panel,
+  .quiz-opts,
+  .actions,
+  .result {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .stats {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .stat:first-child {
+    border-left: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .stat:last-child {
+    border-right: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .sidebar {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .sidebar .app-tabs {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    gap: 0;
+  }
+
+  .sidebar .app-tab {
+    border-radius: 0;
+  }
+
+  .sidebar .app-tab:first-child {
+    border-left: 0;
+  }
+
+  .sidebar .app-tab:last-child {
+    border-right: 0;
+  }
+}
