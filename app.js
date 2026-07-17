@@ -67,7 +67,8 @@
     feedbackFormStartedAt: Date.now(),
     availableDecks: [],
     availableLevels: [],
-    suggestionItemCounter: 0
+    suggestionItemCounter: 0,
+    hasStartedRound: false
   };
 
   const el = {};
@@ -234,6 +235,7 @@
       refreshSuggestionItemOptions();
       if (!el.suggestionItems.children.length) addSuggestionItem();
       await Promise.allSettled([updateRoundAvailability(), loadTopContributors()]);
+      el.newRoundButton.textContent = state.hasStartedRound ? 'New round' : 'Start round';
       setMessage('Ready. Choose your settings and start a new round.');
     } catch (error) {
       el.newRoundButton.disabled = false;
@@ -379,6 +381,7 @@
 
     resetCardUi();
     setMessage('Preparing your study round…');
+    el.newRoundButton.textContent = 'Starting…';
     el.newRoundButton.disabled = true;
 
     try {
@@ -394,10 +397,13 @@
       el.newRoundButton.disabled = false;
       state.loadingBatch = false;
       if (!result || !result.ok) {
+        el.newRoundButton.textContent = state.hasStartedRound ? 'New round' : 'Start round';
         setMessage((result && result.message) || 'The round could not be started.', true);
         return;
       }
 
+      state.hasStartedRound = true;
+      el.newRoundButton.textContent = 'New round';
       state.sessionId = result.sessionId;
       const words = annotateWords(result.words || [], state.sessionId);
       state.queue = words.slice();
@@ -411,6 +417,7 @@
       showNextCard();
       prefetchIfNeeded();
     } catch (error) {
+      el.newRoundButton.textContent = state.hasStartedRound ? 'New round' : 'Start round';
       el.newRoundButton.disabled = false;
       state.loadingBatch = false;
       handleServerFailure(error);
@@ -1586,7 +1593,7 @@
     el.publicSearchResults.replaceChildren();
 
     if (query.length < 2) {
-      setPublicSearchMessage('Enter at least two characters.', false);
+      setPublicSearchMessage('', false);
       return;
     }
 
