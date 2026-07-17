@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/><meta content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://deutsche-vokabeltrainer-api.tushar-jejurkar592.workers.dev; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'" http-equiv="Content-Security-Policy"/>
+<meta content="#f1f0ec" name="theme-color"/>
+<meta content="Learn German vocabulary with review, writing, quiz and article practice." name="description"/>
+<title>Deutsche Vokabeltrainer</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+<header class="brand-block">
+<h1>Deutsche<br/>Vokabeltrainer</h1>
+<p>Lerne deutsche Wörter Schritt für Schritt.</p>
+</header>
+<nav aria-label="Main sections" class="app-tabs" role="tablist">
+<button aria-controls="studyView" aria-selected="true" class="app-tab active" id="studyTabButton" role="tab" type="button"><span class="tab-icon">▣</span><span>Study</span></button>
+<button aria-controls="searchView" aria-selected="false" class="app-tab" id="searchTabButton" role="tab" tabindex="-1" type="button"><span class="tab-icon">⌕</span><span>Search</span></button>
+<button aria-controls="contributeView" aria-selected="false" class="app-tab" id="contributeTabButton" role="tab" tabindex="-1" type="button"><span class="tab-icon">＋</span><span>Contribute</span></button>
+<button aria-controls="guideView" aria-selected="false" class="app-tab" id="guideTabButton" role="tab" tabindex="-1" type="button"><span class="tab-icon">?</span><span>Guide</span></button>
+</nav>
+<footer class="sidebar-credit">Created by <strong>Tushar Jejurkar</strong></footer>
+</aside>
+<header class="mobile-header">
+<h1>Deutsche Vokabeltrainer</h1>
+<p>Lerne deutsche Wörter Schritt für Schritt.</p>
+</header>
+<main class="main-content">
+<section aria-labelledby="studyTabButton" id="studyView" role="tabpanel">
+<div class="study-layout">
+<section class="study-main-column"><section aria-live="polite" id="studyPanel">
+<div class="stats">
+<div class="stat">
+<div class="n g" id="correctCount">0</div>
+<div class="l" id="correctLabel">Correct</div>
+</div>
+<div class="stat">
+<div class="n r" id="wrongCount">0</div>
+<div class="l" id="wrongLabel">Wrong</div>
+</div>
+<div class="stat">
+<div class="n s" id="streakCount">0</div>
+<div class="l" id="streakLabel">Streak</div>
+</div>
+</div>
+<div class="round-toolbar">
+<div class="progress-block">
+<div aria-hidden="true" class="prog"><div id="progressBar"></div></div>
+<div class="prog-txt" id="progressText">Card 0 of 0</div>
+</div>
+<button class="text-button hidden" id="restartRoundButton" type="button">Restart round</button>
+</div>
+<div class="card-area">
+<button class="flashcard" disabled="" id="cardButton" type="button">
+<span class="card-language" id="cardLanguage">Ready</span>
+<span class="card-word" id="cardWord">Start a round</span>
+<span class="card-hint" id="cardHint">Choose your settings and start a round.</span>
+<span class="tap-hint">tap to reveal</span>
+</button>
+</div>
+<div class="writing-panel hidden" id="writingPanel">
+<div class="writing-article-wrap hidden" id="writingArticleWrap">
+<label class="lbl" for="writingArticleSelect">Article</label>
+<select id="writingArticleSelect">
+<option value="">Choose article</option>
+<option value="der">der</option>
+<option value="die">die</option>
+<option value="das">das</option>
+</select>
+</div>
+<div class="writing-pattern-wrap"><span class="lbl">Word length</span><div aria-label="Expected word length" class="writing-pattern" id="writingPattern"></div></div><label class="lbl" for="writingInput">German answer</label>
+<div class="writing-row">
+<input autocapitalize="off" autocomplete="off" id="writingInput" maxlength="140" placeholder="Type the German word" spellcheck="false" type="text"/>
+<button class="btn primary compact" id="writingSubmitButton" type="button">Check</button>
+</div>
+<p class="writing-feedback" id="writingFeedback" role="status"></p>
+<p class="writing-attempt" id="writingAttemptText">Attempt 1 of 2</p>
+</div>
+<div class="quiz-opts hidden" id="quizOptions"></div>
+<div class="actions hidden" id="reviewActions">
+<button class="btn danger" id="practiceButton" type="button">Need practice</button>
+<button class="btn primary" id="rememberedButton" type="button">I remembered it</button>
+</div>
+<div class="actions hidden" id="nextActions">
+<button class="btn primary" id="nextButton" type="button">Next card →</button>
+</div>
+<div class="result hidden" id="completePanel">
+<p class="eyebrow">Round complete</p>
+<div class="big" id="completeScore">0 of 0</div>
+<p class="rmsg" id="completeMessage">Good work.</p>
+<div class="completion-actions" id="completeActions">
+<button class="btn primary hidden" id="reviewWritingButton" type="button">Test difficult words in Writing</button>
+<button class="btn hidden" id="reviewQuizButton" type="button">Test difficult words in Quiz</button>
+<button class="btn hidden" id="fullReviewWritingButton" type="button">Test this Review round in Writing</button>
+<button class="btn primary" id="playAgainButton" type="button">New round</button>
+</div>
+</div>
+</section></section>
+<aside class="study-side-column"><section aria-labelledby="study-settings-title" class="study-setup">
+<div class="section-heading">
+<div>
+<p class="eyebrow">Study setup</p>
+<h2 id="study-settings-title">Choose your round</h2>
+</div>
+<button class="btn primary compact" id="newRoundButton" type="button">New round</button>
+</div>
+<div class="controls">
+<div class="ctrl-group">
+<label class="lbl" for="deckSelect">Deck</label>
+<select id="deckSelect"><option>Loading…</option></select>
+</div>
+<div class="ctrl-group">
+<label class="lbl" for="levelSelect">Level</label>
+<select id="levelSelect"><option value="All">All levels</option></select>
+</div>
+<div class="ctrl-group">
+<label class="lbl" for="typeSelect">Show</label>
+<select id="typeSelect">
+<option value="all">All words</option>
+<option value="noun">Nouns</option>
+<option value="verb">Verbs</option>
+<option value="adjective">Adjectives</option>
+<option value="other">Other</option>
+</select>
+</div>
+<div class="ctrl-group">
+<label class="lbl" for="directionSelect">Direction</label>
+<select id="directionSelect">
+<option value="de-en">DE → EN</option>
+<option value="en-de">EN → DE</option>
+</select>
+</div>
+<div class="ctrl-group">
+<label class="lbl" for="modeSelect">Mode</label>
+<select id="modeSelect">
+<option value="review">Review</option>
+<option value="writing">Writing</option>
+<option value="quiz">Quiz</option>
+<option value="article">der / die / das</option>
+</select>
+</div>
+<div class="ctrl-group">
+<label class="lbl" for="roundLengthSelect">Round length</label>
+<select id="roundLengthSelect"><option value="50">50 words</option></select>
+</div>
+</div>
+<p class="status info" id="setupMessage" role="status"></p>
+<div class="connection-actions hidden" id="connectionActions">
+<button class="btn primary compact" id="retryButton" type="button">Retry</button>
+<button class="btn compact" id="reloadButton" type="button">Reload app</button>
+</div>
+</section>
+<section class="side-card leaderboard-card">
+<div class="side-card-heading">
+<div>
+<p class="eyebrow">Community</p>
+<h2>Top Contributors</h2>
+</div>
+</div>
+<ol class="leaderboard-list" data-leaderboard-list="">
+<li class="leaderboard-empty">No approved public contributions yet.</li>
+</ol>
+<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+</section>
+</aside>
+</div>
+</section>
+<section aria-labelledby="searchTabButton search-title" class="hidden" id="searchView" role="tabpanel">
+<div class="page-layout">
+<div class="page-main"><section class="browse-panel">
+<p class="eyebrow">Vocabulary search</p>
+<h2 id="search-title">Check whether a word already exists</h2>
+<p class="browse-copy">Search by German, English, article, deck, type, or CEFR level. Results are intentionally limited.</p>
+<form class="public-search-form" id="publicSearchForm">
+<label class="sr-only" for="publicSearchInput">Search vocabulary</label>
+<input autocomplete="off" id="publicSearchInput" maxlength="80" minlength="2" placeholder="Search German or English" type="search"/>
+<button class="btn primary compact" id="publicSearchButton" type="submit">Search</button>
+</form>
+<p class="status info" id="publicSearchMessage" role="status">Enter at least two characters.</p>
+<div class="public-search-results" id="publicSearchResults"></div>
+</section></div>
+<aside>
+<section class="side-card leaderboard-card">
+<div class="side-card-heading">
+<div>
+<p class="eyebrow">Community</p>
+<h2>Top Contributors</h2>
+</div>
+</div>
+<ol class="leaderboard-list" data-leaderboard-list="">
+<li class="leaderboard-empty">No approved public contributions yet.</li>
+</ol>
+<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+</section>
+</aside>
+</div>
+</section>
+<section aria-labelledby="contributeTabButton contribute-title" class="hidden" id="contributeView" role="tabpanel">
+<section class="contribute-intro">
+<p class="eyebrow">Help improve the app</p>
+<h2 id="contribute-title">Suggest a word or share feedback</h2>
+<p>Word suggestions stay pending until they are reviewed and approved by the admin.</p>
+</section>
+<div class="page-layout contribution-layout">
+<div class="page-main"><div class="contribution-stack">
+<section aria-labelledby="word-suggestion-title" class="contribution-card">
+<p class="eyebrow">Vocabulary contribution</p>
+<h2 id="word-suggestion-title">Suggest one or several German words</h2>
+<p class="contribution-copy">Add up to 20 words in one request. Each word stays pending until it is reviewed by the admin.</p>
+<form class="contribution-form" id="wordSuggestionForm">
+<div class="form-grid contributor-details">
+<div class="form-field">
+<label for="suggestionName">Name</label>
+<input autocomplete="name" id="suggestionName" maxlength="80" name="name" required="" type="text"/>
+</div>
+<div class="form-field">
+<label for="suggestionEmail">Email</label>
+<input autocomplete="email" id="suggestionEmail" maxlength="160" name="email" required="" type="email"/>
+</div>
+</div>
+<div class="leaderboard-consent-card form-wide">
+<label class="consent-row leaderboard-consent-row">
+<input id="leaderboardOptIn" type="checkbox"/>
+<span>Show my approved-word total on the public Top Contributors list.</span>
+</label>
+<div class="form-field hidden" id="publicDisplayNameWrap">
+<label for="publicDisplayName">Public display name</label>
+<input autocomplete="nickname" id="publicDisplayName" maxlength="50" placeholder="Example: Anna S." type="text"/>
+<small>Your email address is never shown publicly.</small>
+</div>
+</div>
+<div class="batch-heading">
+<div>
+<p class="eyebrow">Words in this request</p>
+<p class="muted-inline">Choose an existing deck or request a new deck for review.</p>
+</div>
+<button class="btn compact" id="addSuggestionItemButton" type="button">+ Add another word</button>
+</div>
+<div aria-live="polite" class="suggestion-items" id="suggestionItems"></div>
+<div class="form-field form-wide">
+<label for="suggestionNote">Shared note for the reviewer <span>(optional)</span></label>
+<textarea id="suggestionNote" maxlength="500" name="note" rows="3"></textarea>
+</div>
+<div aria-hidden="true" class="honeypot">
+<label for="suggestionWebsite">Website</label>
+<input autocomplete="off" id="suggestionWebsite" name="website" tabindex="-1" type="text"/>
+</div>
+<label class="consent-row">
+<input id="suggestionConsent" required="" type="checkbox"/>
+<span>I understand that my name and email will be used to review these suggestions and to notify me when an approved word is added.</span>
+</label>
+<div class="form-actions">
+<button class="btn primary" id="submitSuggestionButton" type="submit">Send all suggestions</button>
+</div>
+<p class="status info" id="suggestionMessage" role="status">Add at least one word. You can check each word before submitting.</p>
+<div class="batch-results" id="suggestionBatchResults"></div>
+</form>
+<template id="suggestionItemTemplate">
+<article class="suggestion-item">
+<div class="suggestion-item-heading">
+<h3>Word <span data-role="item-number">1</span></h3>
+<button class="text-button remove-suggestion-item" type="button">Remove</button>
+</div>
+<div class="form-grid">
+<div class="form-field">
+<label>German word</label>
+<input autocomplete="off" data-field="german" maxlength="120" required="" type="text"/>
+</div>
+<div class="form-field">
+<label>English meaning</label>
+<input autocomplete="off" data-field="english" maxlength="180" required="" type="text"/>
+</div>
+<div class="form-field">
+<label>Type</label>
+<select data-field="type">
+<option value="noun">Noun</option>
+<option value="verb">Verb</option>
+<option value="adjective">Adjective</option>
+<option value="other">Other</option>
+</select>
+</div>
+<div class="form-field" data-role="article-field">
+<label>Article</label>
+<select data-field="article">
+<option value="">Choose article</option>
+<option value="der">der</option>
+<option value="die">die</option>
+<option value="das">das</option>
+</select>
+</div>
+<div class="form-field">
+<label>Deck option</label>
+<select data-field="deckSelection">
+<option value="existing">Choose existing deck</option>
+<option value="new">Request a new deck</option>
+</select>
+</div>
+<div class="form-field" data-role="existing-deck-field">
+<label>Existing deck</label>
+<select data-field="deck" required="">
+<option value="">Loading decks…</option>
+</select>
+</div>
+<div class="form-field hidden" data-role="new-deck-field">
+<label>Proposed new deck name</label>
+<input data-field="requestedNewDeck" maxlength="80" placeholder="Example: Travel phrases" type="text"/>
+</div>
+<div class="form-field">
+<label>CEFR level</label>
+<select data-field="level">
+<option value="Unassigned">Unassigned</option>
+</select>
+</div>
+<div class="form-field form-wide">
+<label>Hint or example context <span>(optional)</span></label>
+<textarea data-field="hint" maxlength="300" rows="2"></textarea>
+</div>
+</div>
+<div class="form-actions compact-actions">
+<button class="btn compact check-item-availability" type="button">Check availability</button>
+</div>
+<p class="item-message status info" data-role="item-message">Enter the German word to check it.</p>
+<div class="public-search-results compact-results" data-role="item-matches"></div>
+</article>
+</template>
+</section>
+<section aria-labelledby="feedback-title" class="contribution-card">
+<p class="eyebrow">General feedback</p>
+<h2 id="feedback-title">Share an idea or report a problem</h2>
+<p class="contribution-copy">Tell us what would make the learning experience better.</p>
+<form class="contribution-form" id="feedbackForm">
+<div class="form-grid">
+<div class="form-field">
+<label for="feedbackName">Name</label>
+<input autocomplete="name" id="feedbackName" maxlength="80" name="name" required="" type="text"/>
+</div>
+<div class="form-field">
+<label for="feedbackEmail">Email</label>
+<input autocomplete="email" id="feedbackEmail" maxlength="160" name="email" required="" type="email"/>
+</div>
+<div class="form-field form-wide">
+<label for="feedbackText">Suggestion or feedback</label>
+<textarea id="feedbackText" maxlength="2000" minlength="10" name="feedback" required="" rows="6"></textarea>
+</div>
+</div>
+<div aria-hidden="true" class="honeypot">
+<label for="feedbackWebsite">Website</label>
+<input autocomplete="off" id="feedbackWebsite" name="website" tabindex="-1" type="text"/>
+</div>
+<label class="consent-row">
+<input id="feedbackConsent" required="" type="checkbox"/>
+<span>I understand that my name and email will be used only to review this feedback.</span>
+</label>
+<button class="btn primary" id="submitFeedbackButton" type="submit">Send feedback</button>
+<p class="status info" id="feedbackMessage" role="status">Your message will be stored privately for admin review.</p>
+</form>
+</section>
+</div></div>
+<aside>
+<section class="side-card contribution-help">
+<p class="eyebrow">Before submitting</p>
+<h2>Help us review faster</h2>
+<ul>
+<li>Search for the word first.</li>
+<li>Choose the closest existing deck.</li>
+<li>Request a new deck only when needed.</li>
+<li>Add a short context hint when the meaning is ambiguous.</li>
+</ul>
+</section>
+<section class="side-card leaderboard-card">
+<div class="side-card-heading">
+<div>
+<p class="eyebrow">Community</p>
+<h2>Top Contributors</h2>
+</div>
+</div>
+<ol class="leaderboard-list" data-leaderboard-list="">
+<li class="leaderboard-empty">No approved public contributions yet.</li>
+</ol>
+<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+</section>
+</aside>
+</div>
+</section>
+<section aria-labelledby="guideTabButton guide-title" class="hidden" id="guideView" role="tabpanel">
+<div class="page-layout">
+<div class="page-main"><section class="guide-panel">
+<p class="eyebrow">User guide</p>
+<h2 id="guide-title">How to use Deutsche Vokabeltrainer</h2>
+<p class="guide-intro">Choose a deck and CEFR level, select a learning mode, and start a round. Your study progress remains on your device.</p>
+<div class="guide-grid">
+<article class="guide-card">
+<span class="guide-number">1</span>
+<h3>Choose your study setup</h3>
+<p>Select a deck, A1–B2 level, word type, direction, mode and round length. Unassigned contains words whose CEFR level has not been reviewed yet.</p>
+</article>
+<article class="guide-card">
+<span class="guide-number">2</span>
+<h3>Review mode</h3>
+<p>Think of the answer before revealing the card. Select <strong>I remembered it</strong> or <strong>Need practice</strong>. Review mode is self-assessment and is not presented as a test score.</p>
+</article>
+<article class="guide-card">
+<span class="guide-number">3</span>
+<h3>Writing mode</h3>
+<p>Read the English prompt and type the German word. The dash pattern shows the expected number of letters. For nouns, choose the article. The app gives targeted feedback for articles, capitalization, umlauts, ß and small spelling mistakes.</p>
+</article>
+<article class="guide-card">
+<span class="guide-number">4</span>
+<h3>Quiz and article modes</h3>
+<p>Quiz asks you to select the translation. The der/die/das mode tests noun articles. Incorrect words are added to the temporary difficult-word review bank.</p>
+</article>
+<article class="guide-card">
+<span class="guide-number">5</span>
+<h3>Restart and difficult words</h3>
+<p>Use <strong>Restart round</strong> to repeat the same cards in the same order. After a round, difficult words can be tested again in Writing or Quiz mode.</p>
+</article>
+<article class="guide-card">
+<span class="guide-number">6</span>
+<h3>Search and contribute</h3>
+<p>Search before suggesting vocabulary. Submit several words at once, request a new deck, opt in to the Top Contributors list, or send private feedback. Suggestions are added only after admin approval.</p>
+</article>
+</div>
+<aside class="guide-note"><h3>Works in normal mobile browsers</h3><p>The learner app is hosted on GitHub Pages and uses a Cloudflare API gateway. It does not depend on the Google accounts signed into the learner’s browser.</p></aside>
+</section></div>
+<aside>
+<section class="side-card leaderboard-card">
+<div class="side-card-heading">
+<div>
+<p class="eyebrow">Community</p>
+<h2>Top Contributors</h2>
+</div>
+</div>
+<ol class="leaderboard-list" data-leaderboard-list="">
+<li class="leaderboard-empty">No approved public contributions yet.</li>
+</ol>
+<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+</section>
+</aside>
+</div>
+</section>
+</main>
+</div>
+<script src="config.js"></script>
+<script defer="" src="app.js"></script>
+</body>
+</html>
