@@ -2424,3 +2424,81 @@ body {
     border-right: 0;
   }
 }
+
+/* V3.4: remove the inherited desktop main-content padding on mobile.
+   This was the remaining source of the visible left and right gutters. */
+@media (max-width: 820px) {
+  body {
+    padding: 0 !important;
+  }
+
+  .app-shell {
+    width: 100%;
+    min-width: 0;
+    padding-bottom: calc(82px + env(safe-area-inset-bottom));
+  }
+
+  .main-content {
+    width: 100%;
+    max-width: none;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .mobile-header {
+    width: 100%;
+    margin: 0;
+    padding:
+      max(20px, env(safe-area-inset-top))
+      12px
+      18px;
+  }
+
+  #studyView,
+  #searchView,
+  #contributeView,
+  #guideView,
+  .study-layout,
+  .page-layout,
+  .study-main-column,
+  .study-side-column,
+  .study-main-column > #studyPanel,
+  .page-main,
+  .page-layout > aside {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .study-layout,
+  .page-layout {
+    gap: 12px;
+  }
+
+  .sidebar {
+    width: 100%;
+    left: 0;
+    right: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* Explicit mobile viewport reset. This also neutralizes browser default body margins. */
+@media (max-width: 820px) {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .app-shell,
+  .main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
