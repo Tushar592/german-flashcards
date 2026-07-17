@@ -2133,3 +2133,126 @@ body {
     padding: 13px;
   }
 }
+
+/* V3.2 checklist balance and mobile-width refinement */
+@media (min-width: 821px) {
+  .contribution-help-top ul {
+    list-style: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+    padding-left: 0;
+    margin-top: 14px;
+  }
+
+  .contribution-help-top li {
+    position: relative;
+    min-height: 62px;
+    padding: 13px 16px 13px 46px;
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
+  .contribution-help-top li::before {
+    content: '✓';
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    width: 22px;
+    height: 22px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    transform: translateY(-50%);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 800;
+  }
+}
+
+@media (max-width: 820px) {
+  body {
+    padding:
+      max(10px, env(safe-area-inset-top))
+      max(4px, env(safe-area-inset-right))
+      calc(86px + env(safe-area-inset-bottom))
+      max(4px, env(safe-area-inset-left));
+  }
+
+  .main-content,
+  .study-layout,
+  .page-layout,
+  .study-main-column,
+  .study-side-column,
+  .page-main,
+  .page-layout > aside {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .mobile-header {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .study-setup,
+  .side-card,
+  .browse-panel,
+  .contribute-intro,
+  .contribution-card,
+  .guide-panel,
+  .contribution-help-top,
+  .flashcard,
+  .stat {
+    border-radius: 14px;
+  }
+
+  .contribution-help-top ul {
+    list-style: none;
+    padding-left: 0;
+    gap: 7px;
+  }
+
+  .contribution-help-top li {
+    position: relative;
+    padding: 10px 11px 10px 37px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+  }
+
+  .contribution-help-top li::before {
+    content: '✓';
+    position: absolute;
+    left: 11px;
+    top: 10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+  }
+}
+
+@media (max-width: 420px) {
+  body {
+    padding-left: max(2px, env(safe-area-inset-left));
+    padding-right: max(2px, env(safe-area-inset-right));
+  }
+
+  .mobile-header {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+}
