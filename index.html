@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="styles.css?v=3.6.0" rel="stylesheet"/>
+<link href="styles.css?v=3.7.0" rel="stylesheet"/>
 </head>
 <body>
 <div class="app-shell">
@@ -74,10 +74,10 @@
 </select>
 </div>
 <div class="writing-pattern-wrap" id="writingPatternWrap">
-<label class="lbl" for="writingInput">German answer</label>
+<label class="lbl" id="writingAnswerLabel">German answer</label>
 <div class="writing-slot-field" id="writingSlotField">
-<div aria-live="polite" aria-label="German answer letter slots" class="writing-pattern" id="writingPattern"></div>
-<input aria-label="Type the German word in the letter slots" autocapitalize="off" autocomplete="off" autocorrect="off" id="writingInput" inputmode="text" maxlength="140" spellcheck="false" type="text"/>
+<div aria-labelledby="writingAnswerLabel" aria-live="polite" class="writing-pattern" id="writingPattern" role="group"></div>
+<input id="writingInput" type="hidden" value=""/>
 </div>
 </div>
 <div class="writing-card-footer">
@@ -454,6 +454,6 @@
 </main>
 </div>
 <script src="config.js"></script>
-<script defer="" src="app.js?v=3.6.0"></script>
+<script defer="" src="app.js?v=3.7.0"></script>
 </body>
 </html>
