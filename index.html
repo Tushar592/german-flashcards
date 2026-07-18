@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./styles.css?v=4.0.0-beta.1" rel="stylesheet"/>
+<link href="./styles.css?v=4.1.0-beta.1" rel="stylesheet"/>
 </head>
 <body>
 <div class="app-shell">
@@ -279,7 +279,11 @@
 <h2 id="word-suggestion-title">Suggest one or several German words</h2>
 
 <form class="contribution-form" id="wordSuggestionForm">
-<div class="form-grid contributor-details">
+<div class="signed-contributor-identity hidden" id="suggestionAccountIdentity">
+<span aria-hidden="true" class="signed-contributor-icon">◎</span>
+<div><small>Submitting as</small><strong id="suggestionAccountName">Learner</strong><span id="suggestionAccountEmail"></span></div>
+</div>
+<div class="form-grid contributor-details" id="suggestionIdentityFields">
 <div class="form-field">
 <label for="suggestionName">Name</label>
 <input autocomplete="name" id="suggestionName" maxlength="80" name="name" required="" type="text"/>
@@ -400,7 +404,11 @@
 <h2 id="feedback-title">Share an idea or report a problem</h2>
 <p class="contribution-copy">Tell us what would make the learning experience better.</p>
 <form class="contribution-form" id="feedbackForm">
-<div class="form-grid">
+<div class="signed-contributor-identity hidden" id="feedbackAccountIdentity">
+<span aria-hidden="true" class="signed-contributor-icon">◎</span>
+<div><small>Sending as</small><strong id="feedbackAccountName">Learner</strong><span id="feedbackAccountEmail"></span></div>
+</div>
+<div class="form-grid" id="feedbackIdentityFields">
 <div class="form-field">
 <label for="feedbackName">Name</label>
 <input autocomplete="name" id="feedbackName" maxlength="80" name="name" required="" type="text"/>
@@ -506,10 +514,7 @@
 <dialog aria-labelledby="accountDialogTitle" class="account-dialog" id="accountDialog">
 <div class="account-dialog-card">
 <header class="account-dialog-header">
-<div>
-<p class="eyebrow">Learner account</p>
-<h2 id="accountDialogTitle">Save progress across devices</h2>
-</div>
+<h2 class="account-brand-title" id="accountDialogTitle">Deutsche Vokabeltrainer</h2>
 <button aria-label="Close account window" class="dialog-close" id="accountDialogClose" type="button">×</button>
 </header>
 <div class="auth-config-notice hidden" id="authConfigNotice">
@@ -528,10 +533,10 @@
 <button class="btn primary" type="submit">Sign in</button>
 </form>
 <form class="auth-form hidden" id="createAccountForm">
-<label>Display name<input autocomplete="nickname" id="createDisplayName" maxlength="60" required type="text"/></label>
+<label>Name<input autocomplete="name" id="createDisplayName" maxlength="60" required type="text"/></label>
 <label>Email<input autocomplete="email" id="createEmail" required type="email"/></label>
 <label>Password<input autocomplete="new-password" id="createPassword" minlength="8" required type="password"/></label>
-<p class="auth-help">Use at least 8 characters. Your email is not shown publicly.</p>
+<p class="auth-help">Your name and email will prefill contribution forms. They are not shown publicly unless you separately opt in to the leaderboard. Use a password with at least 8 characters.</p>
 <button class="btn primary" type="submit">Create account</button>
 </form>
 <form class="auth-form hidden" id="resetPasswordForm">
@@ -565,8 +570,8 @@
 </div>
 </dialog>
 <script src="./vendor/supabase.js?v=2.110.7"></script>
-<script src="./config.js?v=4.0.0-beta.1"></script>
-<script defer src="./supabase-integration.js?v=4.0.0-beta.1"></script>
-<script defer="" src="./app.js?v=4.0.0-beta.1"></script>
+<script src="./config.js?v=4.1.0-beta.1"></script>
+<script defer src="./supabase-integration.js?v=4.1.0-beta.1"></script>
+<script defer="" src="./app.js?v=4.1.0-beta.1"></script>
 </body>
 </html>
