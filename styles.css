@@ -1,3216 +1,2133 @@
-:root {
-  --bg: #f1f0ec;
-  --surface: #ffffff;
-  --surface-2: #eae8e1;
-  --ink: #17181c;
-  --ink-soft: #5a5b61;
-  --ink-faint: #9a9a9f;
-  --line: #e3e1d9;
-  --accent: #0d7d63;
-  --accent-2: #0a6250;
-  --accent-ink: #ffffff;
-  --accent-soft: #dbeee8;
-  --green: #0d7d63;
-  --green-bg: #dbeee8;
-  --red: #d64532;
-  --red-bg: #fbe8e5;
-  --gold: #c07f0a;
-  --gold-bg: #f8edd8;
-  --blue: #2563eb;
-  --blue-bg: #e6eefe;
-  --pink: #db2777;
-  --pink-bg: #fce7f1;
-  --ink-dark: #17181c;
-  --sh-sm: 0 1px 2px rgba(23, 24, 28, 0.06);
-  --sh-md: 0 8px 24px rgba(23, 24, 28, 0.09);
-  --sh-lg: 0 24px 50px rgba(23, 24, 28, 0.18);
-}
+(() => {
+  'use strict';
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  min-height: 100vh;
-  min-height: 100dvh;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'Hanken Grotesk', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  padding:
-    max(20px, env(safe-area-inset-top))
-    max(16px, env(safe-area-inset-right))
-    calc(48px + env(safe-area-inset-bottom))
-    max(16px, env(safe-area-inset-left));
-  background-image: radial-gradient(
-    600px 380px at 100% -10%,
-    rgba(13, 125, 99, 0.08),
-    transparent 62%
+  const API_URL = String(
+    window.DEUTSCHE_VOKABELTRAINER_CONFIG &&
+    window.DEUTSCHE_VOKABELTRAINER_CONFIG.apiUrl || ''
   );
-}
-
-button,
-select,
-input,
-textarea {
-  font: inherit;
-}
-
-button {
-  -webkit-appearance: none;
-}
-
-button:focus-visible,
-a:focus-visible,
-.app-tab:focus-visible,
-.answer-option:focus-visible,
-.flashcard:focus-visible {
-  outline: 3px solid var(--accent-soft);
-  outline-offset: 3px;
-}
-
-.wrap {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.masthead {
-  text-align: center;
-  margin: 6px 0 20px;
-}
-
-.masthead h1 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 800;
-  font-size: 42px;
-  line-height: 0.96;
-  letter-spacing: -0.035em;
-  color: var(--ink);
-}
-
-.masthead .sub {
-  color: var(--ink-faint);
-  font-size: 13px;
-  margin-top: 9px;
-}
-
-.eyebrow {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 700;
-  margin-bottom: 5px;
-}
-
-.app-tabs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
-  padding: 5px;
-  margin-bottom: 20px;
-  border-radius: 14px;
-  background: var(--surface-2);
-}
-
-.app-tab {
-  min-height: 42px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--ink-soft);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.app-tab.active {
-  background: var(--surface);
-  color: var(--accent);
-  box-shadow: var(--sh-sm);
-}
-
-.study-setup {
-  margin-bottom: 18px;
-}
-
-.section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-.section-heading h2,
-.browse-panel h2 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-}
-
-.controls {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.ctrl-group {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  min-width: 0;
-}
-
-.lbl {
-  color: var(--ink-faint);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  font-weight: 700;
-}
-
-select,
-input,
-textarea {
-  width: 100%;
-  min-height: 46px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  color: var(--ink);
-  font-size: 16px;
-  padding: 0 14px;
-  box-shadow: var(--sh-sm);
-}
-
-select {
-  font-weight: 600;
-}
-
-textarea {
-  min-height: 96px;
-  padding: 12px 14px;
-  resize: vertical;
-  line-height: 1.5;
-  font-family: inherit;
-}
-
-select:focus,
-input:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-select:disabled,
-input:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.status {
-  min-height: 38px;
-  font-size: 12.5px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  line-height: 1.45;
-}
-
-.status.info {
-  background: var(--surface-2);
-  color: var(--ink-soft);
-}
-
-.status.error {
-  background: var(--red-bg);
-  color: var(--red);
-}
-
-.connection-actions {
-  display: flex;
-  gap: 9px;
-  margin-top: 10px;
-}
-
-.stats {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.stat {
-  flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px 8px;
-  text-align: center;
-  box-shadow: var(--sh-sm);
-}
-
-.stat .n {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.stat .n.g { color: var(--accent); }
-.stat .n.r { color: var(--red); }
-.stat .n.s { color: var(--gold); }
-
-.stat .l {
-  font-size: 10px;
-  color: var(--ink-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.11em;
-  margin-top: 6px;
-  font-weight: 700;
-}
-
-.round-toolbar {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.progress-block {
-  min-width: 0;
-}
-
-.prog {
-  height: 8px;
-  background: var(--surface-2);
-  border-radius: 99px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.prog > div {
-  height: 100%;
-  width: 0;
-  background: var(--accent);
-  border-radius: 99px;
-  transition: width 0.4s ease;
-}
-
-.prog-txt {
-  font-size: 12px;
-  color: var(--ink-faint);
-  text-align: right;
-}
-
-.text-button {
-  min-height: 36px;
-  padding: 0 4px;
-  border: 0;
-  background: transparent;
-  color: var(--ink-soft);
-  font-weight: 700;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.text-button:hover,
-.text-button:focus-visible {
-  color: var(--accent);
-}
-
-.card-area {
-  perspective: 1600px;
-  margin-bottom: 16px;
-}
-
-.flashcard {
-  position: relative;
-  width: 100%;
-  min-height: 252px;
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 34px 22px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  box-shadow: var(--sh-md);
-  color: var(--ink);
-  cursor: pointer;
-  transition:
-    transform 0.22s ease,
-    background 0.28s ease,
-    color 0.28s ease,
-    box-shadow 0.28s ease;
-}
-
-.flashcard:not(:disabled):active {
-  transform: scale(0.988);
-}
-
-.flashcard:disabled {
-  cursor: default;
-}
-
-.flashcard.revealed {
-  background: var(--ink-dark);
-  border-color: var(--ink-dark);
-  color: #f4f3ef;
-  box-shadow: var(--sh-lg);
-}
-
-.card-language {
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  font-weight: 700;
-  color: var(--ink-faint);
-}
-
-.flashcard.revealed .card-language {
-  color: #57cbaa;
-}
-
-.card-word {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 34px;
-  font-weight: 700;
-  text-align: center;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  overflow-wrap: anywhere;
-}
-
-.card-hint {
-  font-size: 14px;
-  margin-top: 12px;
-  text-align: center;
-  font-weight: 500;
-  color: var(--ink-soft);
-}
-
-.flashcard.revealed .card-hint {
-  color: #b6b5b0;
-}
-
-.tap-hint {
-  position: absolute;
-  bottom: 16px;
-  font-size: 11px;
-  color: var(--ink-faint);
-  letter-spacing: 0.04em;
-  font-weight: 500;
-}
-
-.flashcard.revealed .tap-hint,
-.flashcard:disabled .tap-hint {
-  display: none;
-}
-
-.article-tag {
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 0.54em;
-  font-weight: 700;
-  padding: 2px 10px;
-  border-radius: 9px;
-  margin-right: 8px;
-  vertical-align: 0.12em;
-  letter-spacing: 0;
-  display: inline-block;
-}
-
-.art-der { color: var(--blue); background: var(--blue-bg); }
-.art-die { color: var(--pink); background: var(--pink-bg); }
-.art-das { color: var(--gold); background: var(--gold-bg); }
-
-.quiz-opts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.quiz-opts.articles {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.answer-option {
-  min-height: 54px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  box-shadow: var(--sh-sm);
-}
-
-.quiz-opts.articles .answer-option {
-  text-align: center;
-  font-size: 19px;
-  font-weight: 700;
-}
-
-.answer-option:hover:not(:disabled) {
-  border-color: var(--accent);
-}
-
-.answer-option.correct {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.answer-option.wrong {
-  background: var(--red-bg);
-  border-color: var(--red);
-  color: var(--red);
-  font-weight: 700;
-}
-
-.answer-option:disabled {
-  cursor: default;
-}
-
-.writing-panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: var(--sh-sm);
-}
-
-.writing-article-wrap {
-  display: grid;
-  grid-template-columns: 86px 1fr;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.writing-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 9px;
-  margin-top: 7px;
-}
-
-.special-keys {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
-.special-key {
-  min-width: 44px;
-  min-height: 42px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface-2);
-  color: var(--ink);
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.writing-feedback {
-  min-height: 22px;
-  margin-top: 12px;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--ink-soft);
-}
-
-.writing-feedback.correct {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.writing-feedback.wrong {
-  color: var(--red);
-  font-weight: 600;
-}
-
-.writing-feedback.hint {
-  color: var(--gold);
-  font-weight: 600;
-}
-
-.writing-attempt {
-  margin-top: 5px;
-  color: var(--ink-faint);
-  font-size: 11px;
-  text-align: right;
-}
-
-.actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-}
-
-.btn {
-  min-height: 48px;
-  padding: 0 22px;
-  border-radius: 13px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.14s;
-  box-shadow: var(--sh-sm);
-}
-
-.btn.compact {
-  min-height: 42px;
-  padding: 0 16px;
-  font-size: 14px;
-}
-
-.btn:hover {
-  border-color: var(--accent);
-}
-
-.btn:active {
-  transform: scale(0.98);
-}
-
-.btn.primary {
-  background: var(--accent);
-  border-color: transparent;
-  color: var(--accent-ink);
-  box-shadow: var(--sh-md);
-}
-
-.btn.primary:hover {
-  background: var(--accent-2);
-}
-
-.btn.danger {
-  color: var(--red);
-  border-color: var(--red-bg);
-}
-
-.btn.danger:hover {
-  background: var(--red-bg);
-  border-color: var(--red);
-}
-
-.btn:disabled {
-  opacity: 0.55;
-  cursor: wait;
-}
-
-.result {
-  text-align: center;
-  padding: 28px 0 8px;
-}
-
-.result .big {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 54px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--accent);
-  margin: 8px 0 12px;
-}
-
-.result .rmsg {
-  font-size: 16px;
-  margin-bottom: 20px;
-  color: var(--ink-soft);
-}
-
-.completion-actions {
-  display: grid;
-  gap: 10px;
-}
-
-.browse-panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: var(--sh-sm);
-}
-
-.browse-copy {
-  margin-top: 8px;
-  margin-bottom: 16px;
-  color: var(--ink-soft);
-  font-size: 14px;
-  line-height: 1.55;
-}
-
-.public-search-form {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 9px;
-  margin-bottom: 11px;
-}
-
-.public-search-results {
-  display: grid;
-  gap: 9px;
-  margin-top: 13px;
-}
-
-.search-result-card {
-  padding: 13px 14px;
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  background: var(--bg);
-}
-
-.search-result-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 700;
-  font-size: 17px;
-  line-height: 1.3;
-}
-
-.search-result-meta {
-  margin-top: 6px;
-  color: var(--ink-soft);
-  font-size: 12px;
-}
-
-
-.contribute-intro {
-  margin-bottom: 14px;
-  padding: 2px 2px 4px;
-}
-
-.contribute-intro h2,
-.contribution-card h2 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-}
-
-.contribute-intro > p:not(.eyebrow),
-.contribution-copy {
-  margin-top: 8px;
-  color: var(--ink-soft);
-  font-size: 14px;
-  line-height: 1.55;
-}
-
-.contact-option a {
-  color: var(--accent);
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.contact-option a:hover {
-  text-decoration: underline;
-}
-
-.contribution-stack {
-  display: grid;
-  gap: 14px;
-}
-
-.contribution-card {
-  position: relative;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: var(--sh-sm);
-  overflow: hidden;
-}
-
-.contribution-copy {
-  margin-bottom: 16px;
-}
-
-.contribution-form {
-  display: grid;
-  gap: 14px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  min-width: 0;
-}
-
-.form-field label {
-  color: var(--ink-faint);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  font-weight: 700;
-}
-
-.form-field label span {
-  text-transform: none;
-  letter-spacing: 0;
-  font-weight: 500;
-}
-
-.form-wide {
-  grid-column: 1 / -1;
-}
-
-.form-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.consent-row {
-  display: grid;
-  grid-template-columns: 20px 1fr;
-  gap: 10px;
-  align-items: start;
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.45;
-  cursor: pointer;
-}
-
-.consent-row input {
-  width: 18px;
-  min-height: 18px;
-  height: 18px;
-  margin-top: 1px;
-  padding: 0;
-  box-shadow: none;
-  accent-color: var(--accent);
-}
-
-.honeypot {
-  position: absolute !important;
-  left: -10000px !important;
-  top: auto !important;
-  width: 1px !important;
-  height: 1px !important;
-  overflow: hidden !important;
-}
-
-.compact-results {
-  margin-top: 0;
-}
-
-.status.success {
-  background: var(--green-bg);
-  color: var(--green);
-}
-
-
-.contributor-details {
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--line);
-}
-
-.batch-heading {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 2px;
-}
-
-.muted-inline {
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.suggestion-items {
-  display: grid;
-  gap: 12px;
-}
-
-.suggestion-item {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 16px;
-  background: var(--bg);
-}
-
-.suggestion-item-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.suggestion-item-heading h3,
-.guide-card h3,
-.guide-note h3 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.compact-actions {
-  grid-template-columns: minmax(0, 220px);
-  margin-top: 12px;
-}
-
-.item-message {
-  margin-top: 10px;
-}
-
-.batch-results {
-  display: grid;
-  gap: 8px;
-}
-
-.batch-result-item {
-  padding: 10px 12px;
-  border-radius: 11px;
-  border: 1px solid var(--line);
-  background: var(--bg);
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.batch-result-item.success {
-  background: var(--green-bg);
-  border-color: var(--accent-soft);
-  color: var(--green);
-}
-
-.batch-result-item.error {
-  background: var(--red-bg);
-  border-color: #f2c5bd;
-  color: var(--red);
-}
-
-.guide-panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: var(--sh-sm);
-}
-
-.guide-panel > h2 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-}
-
-.guide-intro {
-  margin: 9px 0 18px;
-  color: var(--ink-soft);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.guide-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.guide-card {
-  position: relative;
-  padding: 17px;
-  border: 1px solid var(--line);
-  border-radius: 15px;
-  background: var(--bg);
-}
-
-.guide-card p,
-.guide-note p {
-  margin-top: 8px;
-  color: var(--ink-soft);
-  font-size: 13.5px;
-  line-height: 1.55;
-}
-
-.guide-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin-bottom: 10px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-2);
-  font-weight: 800;
-  font-size: 13px;
-}
-
-.guide-note {
-  margin-top: 14px;
-  padding: 16px;
-  border-radius: 14px;
-  background: var(--gold-bg);
-  border: 1px solid #ead8b8;
-}
-
-.credit {
-  text-align: center;
-  margin-top: 32px;
-  font-size: 12px;
-  color: var(--ink-faint);
-  letter-spacing: 0.03em;
-}
-
-.credit strong {
-  color: var(--ink-soft);
-  font-weight: 600;
-}
-
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
-}
-
-@media (max-width: 520px) {
-  body {
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
-  }
-
-  .masthead h1 {
-    font-size: 38px;
-  }
-
-  .controls {
-    grid-template-columns: 1fr;
-  }
-
-  .section-heading {
-    align-items: flex-start;
-  }
-
-  .card-word {
-    font-size: 31px;
-  }
-
-  .writing-row,
-  .public-search-form,
-  .form-grid,
-  .form-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .form-wide {
-    grid-column: auto;
-  }
-
-  .writing-row .btn,
-  .public-search-form .btn,
-  .form-actions .btn {
-    width: 100%;
-  }
-
-  .app-tabs {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .batch-heading {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .batch-heading .btn,
-  .compact-actions .btn {
-    width: 100%;
-  }
-
-  .guide-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 390px) {
-  .section-heading {
-    display: block;
-  }
-
-  .section-heading .btn {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  .stats {
-    gap: 7px;
-  }
-
-  .stat .n {
-    font-size: 26px;
-  }
-
-  .round-toolbar {
-    grid-template-columns: 1fr;
-  }
-
-  .text-button {
-    justify-self: end;
-  }
-
-  .quiz-opts {
-    grid-template-columns: 1fr;
-  }
-
-  .quiz-opts.articles {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-
-/* V3 responsive application shell */
-body {
-  padding: 0;
-  overflow-x: hidden;
-}
-
-.app-shell {
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: grid;
-  grid-template-columns: 228px minmax(0, 1fr);
-}
-
-.sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100dvh;
-  padding: 30px 20px max(24px, env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.84);
-  border-right: 1px solid var(--line);
-  backdrop-filter: blur(16px);
-  display: flex;
-  flex-direction: column;
-  z-index: 20;
-}
-
-.brand-block h1,
-.mobile-header h1 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 0.96;
-}
-
-.brand-block h1 {
-  font-size: 31px;
-}
-
-.brand-block p,
-.mobile-header p {
-  margin-top: 10px;
-  color: var(--ink-faint);
-  font-size: 12.5px;
-  line-height: 1.45;
-}
-
-.sidebar .app-tabs {
-  margin: 34px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  background: transparent;
-}
-
-.sidebar .app-tab {
-  min-height: 50px;
-  padding: 0 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-align: left;
-  border: 1px solid transparent;
-  border-radius: 13px;
-}
-
-.sidebar .app-tab.active {
-  border-color: var(--line);
-  background: var(--surface);
-}
-
-.tab-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  display: inline-grid;
-  place-items: center;
-  background: var(--surface-2);
-  color: var(--ink-soft);
-  font-size: 15px;
-}
-
-.app-tab.active .tab-icon {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.sidebar-credit {
-  margin-top: auto;
-  color: var(--ink-faint);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.sidebar-credit strong { color: var(--ink-soft); }
-
-.mobile-header { display: none; }
-
-.main-content {
-  min-width: 0;
-  padding: 28px clamp(20px, 3vw, 48px) 48px;
-}
-
-.study-layout {
-  max-width: 1320px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(480px, 1fr) minmax(300px, 360px);
-  gap: clamp(22px, 3vw, 42px);
-  align-items: start;
-}
-
-.study-main-column {
-  min-width: 0;
-  padding-top: 4px;
-}
-
-.study-side-column,
-.page-layout > aside {
-  display: grid;
-  gap: 18px;
-  align-content: start;
-}
-
-.study-setup,
-.side-card,
-.browse-panel,
-.contribute-intro,
-.contribution-card,
-.guide-panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  box-shadow: var(--sh-sm);
-}
-
-.study-setup,
-.side-card {
-  padding: 20px;
-  margin: 0;
-}
-
-.study-setup .section-heading {
-  align-items: flex-start;
-}
-
-.study-setup .section-heading .btn {
-  display: none;
-}
-
-.controls {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 11px;
-}
-
-.controls .ctrl-group:first-child {
-  grid-column: 1 / -1;
-}
-
-.controls select {
-  min-height: 50px;
-}
-
-.study-setup::after {
-  content: '';
-  display: block;
-}
-
-.study-setup #newRoundButton { display: none; }
-
-.study-setup .connection-actions + * { margin-top: 0; }
-
-.study-setup .status { margin-top: 2px; }
-
-.study-side-column .study-setup {
-  position: sticky;
-  top: 28px;
-}
-
-.study-side-column .study-setup .section-heading::after {
-  content: '';
-}
-
-.study-side-column .study-setup .controls + .status { margin-bottom: 12px; }
-
-.study-side-column .study-setup .connection-actions { margin-bottom: 10px; }
-
-.study-side-column .study-setup > .status::after { content: ''; }
-
-/* Main new-round button on desktop, placed with setup through existing button */
-.study-side-column .study-setup .section-heading .btn {
-  display: inline-flex;
-}
-
-.stats {
-  max-width: 760px;
-  margin: 0 auto 18px;
-}
-
-.round-toolbar,
-.card-area,
-.writing-panel,
-.quiz-opts,
-.actions,
-.result {
-  max-width: 760px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.flashcard {
-  min-height: clamp(320px, 50vh, 520px);
-}
-
-.card-word { font-size: clamp(36px, 5vw, 58px); }
-
-.writing-panel,
-.result {
-  padding: 20px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: var(--sh-sm);
-}
-
-.writing-pattern-wrap {
-  margin: 0 0 12px;
-}
-
-.writing-pattern {
-  min-height: 36px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-  margin-top: 7px;
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(18px, 2.5vw, 25px);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--accent);
-  overflow-wrap: anywhere;
-}
-
-.writing-pattern .pattern-space { width: 12px; }
-.writing-pattern .pattern-mark { color: var(--ink-soft); }
-
-.page-layout {
-  max-width: 1320px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-  gap: clamp(22px, 3vw, 42px);
-  align-items: start;
-}
-
-.page-layout > main { min-width: 0; }
-
-.browse-panel,
-.guide-panel,
-.contribute-intro {
-  padding: clamp(22px, 3vw, 34px);
-}
-
-.contribute-intro {
-  max-width: 1320px;
-  margin: 0 auto 18px;
-}
-
-.contribution-layout > main { min-width: 0; }
-
-.contribution-card { padding: clamp(20px, 2.5vw, 30px); }
-
-.contribution-help ul {
-  padding-left: 20px;
-  color: var(--ink-soft);
-  line-height: 1.7;
-  font-size: 14px;
-}
-
-.side-card-heading h2,
-.side-card h2 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 20px;
-  letter-spacing: -0.015em;
-}
-
-.leaderboard-list {
-  list-style: none;
-  display: grid;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.leaderboard-item {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
-  gap: 9px;
-  align-items: center;
-  padding: 10px 11px;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-}
-
-.leaderboard-rank {
-  width: 26px;
-  height: 26px;
-  border-radius: 9px;
-  display: grid;
-  place-items: center;
-  background: var(--accent-soft);
-  color: var(--accent-2);
-  font-weight: 800;
-  font-size: 12px;
-}
-
-.leaderboard-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 700;
-}
-
-.leaderboard-count {
-  color: var(--accent);
-  font-weight: 800;
-}
-
-.leaderboard-empty,
-.leaderboard-note {
-  color: var(--ink-faint);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.leaderboard-note { margin-top: 12px; }
-
-.leaderboard-consent-card {
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: var(--bg);
-}
-
-.leaderboard-consent-row { margin: 0; }
-#publicDisplayNameWrap { margin-top: 12px; }
-#publicDisplayNameWrap small { color: var(--ink-faint); font-size: 12px; }
-
-/* Avoid duplicate heading IDs in repeated contributor widgets. */
-.leaderboard-card[aria-labelledby] { }
-
-@media (min-width: 1120px) {
-  .contribution-stack { grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr); }
-  .guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 1040px) {
-  .app-shell { grid-template-columns: 190px minmax(0, 1fr); }
-  .sidebar { padding-left: 15px; padding-right: 15px; }
-  .brand-block h1 { font-size: 27px; }
-  .study-layout,
-  .page-layout { grid-template-columns: minmax(0, 1fr) 310px; gap: 20px; }
-}
-
-@media (max-width: 820px) {
-  body {
-    padding: max(14px, env(safe-area-inset-top)) 12px calc(88px + env(safe-area-inset-bottom));
-  }
-
-  .app-shell { display: block; min-height: auto; }
-  .sidebar {
-    position: fixed;
-    inset: auto 0 0 0;
-    height: auto;
-    padding: 7px max(10px, env(safe-area-inset-right)) max(7px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
-    border-right: 0;
-    border-top: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.96);
-    display: block;
-    z-index: 100;
-  }
-
-  .brand-block,
-  .sidebar-credit { display: none; }
-
-  .sidebar .app-tabs {
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
-  }
-
-  .sidebar .app-tab {
-    min-height: 58px;
-    padding: 6px 4px;
-    flex-direction: column;
-    justify-content: center;
-    gap: 3px;
-    font-size: 11px;
-    text-align: center;
-  }
-
-  .tab-icon { width: 25px; height: 25px; }
-
-  .mobile-header {
-    display: block;
-    text-align: center;
-    margin: 4px 0 18px;
-  }
-
-  .mobile-header h1 { font-size: clamp(27px, 8vw, 38px); }
-
-  .main-content { padding: 0; }
-
-  .study-layout,
-  .page-layout {
-    display: flex;
-    flex-direction: column;
-    max-width: 620px;
-    margin: 0 auto;
-    gap: 14px;
-  }
-
-  .study-side-column { order: -1; display: block; }
-  .study-side-column .study-setup { position: static; }
-  .study-side-column > .leaderboard-card { display: none; }
-
-  .study-setup,
-  .side-card,
-  .browse-panel,
-  .contribute-intro,
-  .contribution-card,
-  .guide-panel {
-    border-radius: 17px;
-  }
-
-  .study-setup { padding: 16px; }
-
-  .section-heading { align-items: center; margin-bottom: 12px; }
-  .section-heading h2 { font-size: 19px; }
-
-  .controls {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .controls .ctrl-group:first-child { grid-column: 1 / -1; }
-  .controls select { min-height: 50px; }
-
-  .stats { gap: 8px; margin-bottom: 13px; }
-  .stat { padding: 11px 6px; }
-  .stat .n { font-size: 27px; }
-  .stat .l { font-size: 9px; }
-
-  .flashcard { min-height: 270px; border-radius: 18px; }
-  .card-word { font-size: clamp(31px, 10vw, 43px); }
-
-  .page-layout > aside { width: 100%; }
-  .page-layout > aside .leaderboard-card { margin-top: 0; }
-
-  .contribute-intro { margin-bottom: 14px; }
-  .contribution-stack { display: grid; grid-template-columns: 1fr; }
-
-  .writing-row { grid-template-columns: minmax(0, 1fr) auto; }
-  .writing-pattern { font-size: 20px; gap: 4px; }
-}
-
-@media (max-width: 420px) {
-  body { padding-left: 9px; padding-right: 9px; }
-  .study-setup { padding: 14px; }
-  .controls { gap: 8px; }
-  .controls select { padding-left: 10px; padding-right: 9px; }
-  .section-heading .btn { min-height: 46px; padding: 0 13px; }
-  .writing-row { grid-template-columns: 1fr; }
-  .writing-row .btn { width: 100%; }
-}
-/* V3.1 desktop and mobile layout refinements */
-.status:empty,
-.item-message:empty {
-  display: none;
-}
-
-.app-shell {
-  grid-template-columns: 280px minmax(0, 1fr);
-}
-
-.sidebar {
-  padding: 32px 28px max(26px, env(safe-area-inset-bottom));
-}
-
-.brand-block h1,
-.mobile-header h1 {
-  color: var(--accent);
-}
-
-.brand-block h1 {
-  font-size: 36px;
-  line-height: 0.98;
-}
-
-.brand-block p,
-.mobile-header p {
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.sidebar .app-tabs {
-  margin-top: 30px;
-  gap: 8px;
-}
-
-.sidebar .app-tab {
-  min-height: 56px;
-  padding: 0 16px;
-  gap: 14px;
-  font-size: 16px;
-}
-
-.tab-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  font-size: 18px;
-  flex: 0 0 32px;
-}
-
-.sidebar-credit {
-  font-size: 13.5px;
-  line-height: 1.55;
-}
-
-.main-content {
-  padding: 24px 28px 36px;
-}
-
-.study-layout,
-.page-layout,
-.contribute-intro,
-.contribution-help-top {
-  max-width: none;
-  width: 100%;
-}
-
-.study-layout {
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 380px);
-  gap: 24px;
-}
-
-.study-main-column,
-.study-side-column,
-.page-main {
-  width: 100%;
-  min-width: 0;
-}
-
-.stats,
-.round-toolbar,
-.card-area,
-.writing-panel,
-.quiz-opts,
-.actions,
-.result {
-  width: 100%;
-  max-width: none;
-}
-
-.stats {
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.stat {
-  padding: 15px 10px;
-}
-
-.stat .n {
-  font-size: 35px;
-}
-
-.stat .l {
-  font-size: 11.5px;
-}
-
-.round-toolbar {
-  margin-bottom: 13px;
-}
-
-.flashcard {
-  min-height: clamp(360px, 54vh, 600px);
-}
-
-.card-language,
-.lbl,
-.form-field label {
-  font-size: 12px;
-}
-
-.card-hint,
-.browse-copy,
-.contribute-intro > p:not(.eyebrow),
-.contribution-copy,
-.guide-intro,
-.muted-inline,
-.contribution-help ul {
-  font-size: 15.5px;
-}
-
-.card-word {
-  font-size: clamp(40px, 4.2vw, 64px);
-}
-
-.study-setup,
-.side-card {
-  padding: 22px;
-}
-
-.study-setup .section-heading {
-  margin-bottom: 13px;
-}
-
-.study-setup .section-heading .btn,
-.study-setup #newRoundButton {
-  display: inline-flex;
-}
-
-.section-heading h2,
-.browse-panel h2,
-.contribute-intro h2,
-.contribution-card h2,
-.side-card-heading h2,
-.side-card h2 {
-  font-size: 23px;
-}
-
-.controls {
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.controls select,
-.round-start-row select {
-  min-height: 50px;
-}
-
-.round-start-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(140px, 0.9fr);
-  gap: 10px;
-  align-items: end;
-  margin-bottom: 10px;
-}
-
-.round-start-row .ctrl-group {
-  min-width: 0;
-}
-
-.round-start-row #newRoundButton {
-  width: 100%;
-  min-height: 50px;
-  font-size: 15.5px;
-  font-weight: 700;
-}
-
-.study-setup .status {
-  min-height: 34px;
-  padding: 8px 11px;
-  font-size: 13.5px;
-}
-
-.page-layout {
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
-  gap: 24px;
-}
-
-.browse-panel,
-.guide-panel,
-.contribute-intro {
-  padding: 28px;
-}
-
-.browse-panel h2,
-.guide-panel > h2,
-.contribute-intro h2 {
-  font-size: 28px;
-}
-
-.public-search-form input {
-  min-height: 54px;
-  font-size: 18px;
-}
-
-.public-search-form .btn {
-  min-height: 54px;
-  font-size: 16px;
-}
-
-.contribute-intro {
-  margin-bottom: 14px;
-}
-
-.contribution-help-top {
-  margin: 0 0 16px;
-  padding: 20px 26px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: var(--sh-sm);
-}
-
-.contribution-help-top ul {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px 24px;
-  margin-top: 10px;
-  padding-left: 20px;
-}
-
-.contribution-page-layout {
-  grid-template-columns: minmax(0, 1fr) minmax(270px, 310px);
-}
-
-.contribution-stack {
-  gap: 16px;
-}
-
-.contribution-card {
-  padding: 26px;
-}
-
-.add-word-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 2px;
-}
-
-.add-word-row .btn {
-  min-width: 190px;
-}
-
-.suggestion-item {
-  padding: 18px;
-}
-
-.guide-card p,
-.guide-note p,
-.consent-row,
-.batch-result-item,
-.search-result-meta {
-  font-size: 14.5px;
-}
-
-.guide-card h3,
-.suggestion-item-heading h3 {
-  font-size: 19px;
-}
-
-@media (min-width: 1120px) {
-  .contribution-stack {
-    grid-template-columns: minmax(0, 1.1fr) minmax(390px, 0.9fr);
-  }
-}
-
-@media (max-width: 1180px) and (min-width: 821px) {
-  .app-shell {
-    grid-template-columns: 238px minmax(0, 1fr);
-  }
-
-  .sidebar {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-
-  .brand-block h1 {
-    font-size: 31px;
-  }
-
-  .study-layout,
-  .page-layout {
-    grid-template-columns: minmax(0, 1fr) 330px;
-    gap: 18px;
-  }
-
-  .main-content {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-}
-
-@media (max-width: 820px) {
-  body {
-    padding:
-      max(12px, env(safe-area-inset-top))
-      11px
-      calc(86px + env(safe-area-inset-bottom));
-  }
-
-  .sidebar {
-    padding:
-      6px
-      max(7px, env(safe-area-inset-right))
-      max(6px, env(safe-area-inset-bottom))
-      max(7px, env(safe-area-inset-left));
-  }
-
-  .sidebar .app-tabs {
-    max-width: 430px;
-    margin: 0 auto;
-    gap: 2px;
-  }
-
-  .sidebar .app-tab {
-    min-height: 62px;
-    padding: 5px 2px;
-    gap: 4px;
-    font-size: 13px;
-  }
-
-  .tab-icon {
-    width: 30px;
-    height: 30px;
-    flex-basis: 30px;
-    font-size: 17px;
-  }
-
-  .mobile-header {
-    margin: 2px 0 14px;
-  }
-
-  .mobile-header h1 {
-    font-size: clamp(29px, 8vw, 38px);
-  }
-
-  .mobile-header p {
-    margin-top: 7px;
-    font-size: 13px;
-  }
-
-  .study-layout,
-  .page-layout {
-    width: 100%;
-    max-width: 640px;
-    gap: 12px;
-  }
-
-  .study-main-column,
-  .study-side-column,
-  .study-main-column > #studyPanel,
-  .page-main,
-  .page-layout > aside {
-    width: 100%;
-  }
-
-  .study-setup,
-  .side-card,
-  .browse-panel,
-  .contribute-intro,
-  .contribution-card,
-  .guide-panel,
-  .contribution-help-top {
-    width: 100%;
-    border-radius: 17px;
-  }
-
-  .study-setup {
-    padding: 14px;
-  }
-
-  .study-setup .section-heading {
-    margin-bottom: 9px;
-  }
-
-  .section-heading h2 {
-    font-size: 20px;
-  }
-
-  .controls {
-    gap: 7px 8px;
-    margin-bottom: 8px;
-  }
-
-  .controls select,
-  .round-start-row select {
-    min-height: 45px;
-    padding-left: 10px;
-    padding-right: 9px;
-    font-size: 15px;
-  }
-
-  .lbl,
-  .form-field label {
-    font-size: 10.5px;
-  }
-
-  .round-start-row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-
-  .round-start-row #newRoundButton {
-    min-height: 45px;
-    padding: 0 10px;
-    font-size: 14.5px;
-  }
-
-  .study-setup .status {
-    min-height: 31px;
-    padding: 7px 9px;
-    font-size: 12.5px;
-  }
-
-  .stats {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    margin-bottom: 11px;
-  }
-
-  .stat {
-    min-width: 0;
-    padding: 11px 4px;
-  }
-
-  .stat .n {
-    font-size: 29px;
-  }
-
-  .stat .l {
-    font-size: 10px;
-    letter-spacing: 0.08em;
-  }
-
-  .round-toolbar,
-  .card-area,
-  .writing-panel,
-  .quiz-opts,
-  .actions,
-  .result {
-    width: 100%;
-    max-width: none;
-  }
-
-  .flashcard {
-    width: 100%;
-    min-height: 285px;
-  }
-
-  .card-word {
-    font-size: clamp(33px, 10vw, 45px);
-  }
-
-  .contribute-intro,
-  .browse-panel,
-  .guide-panel,
-  .contribution-card,
-  .contribution-help-top {
-    padding: 18px;
-  }
-
-  .contribution-help-top {
-    order: initial;
-    margin-bottom: 12px;
-  }
-
-  .contribution-help-top ul {
-    grid-template-columns: 1fr;
-    gap: 4px;
-    font-size: 14px;
-    line-height: 1.55;
-  }
-
-  .contribution-stack {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .add-word-row {
-    justify-content: stretch;
-  }
-
-  .add-word-row .btn {
-    width: 100%;
-    min-width: 0;
-  }
-}
-
-@media (max-width: 420px) {
-  body {
-    padding-left: 9px;
-    padding-right: 9px;
-  }
-
-  .mobile-header h1 {
-    font-size: 28px;
-  }
-
-  .sidebar .app-tab {
-    font-size: 12.5px;
-  }
-
-  .tab-icon {
-    width: 29px;
-    height: 29px;
-  }
-
-  .study-setup {
-    padding: 13px;
-  }
-}
-
-/* V3.2 checklist balance and mobile-width refinement */
-@media (min-width: 821px) {
-  .contribution-help-top ul {
-    list-style: none;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px 16px;
-    padding-left: 0;
-    margin-top: 14px;
-  }
-
-  .contribution-help-top li {
-    position: relative;
-    min-height: 62px;
-    padding: 13px 16px 13px 46px;
-    display: flex;
-    align-items: center;
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: 13px;
-    color: var(--ink-soft);
-    line-height: 1.45;
-  }
-
-  .contribution-help-top li::before {
-    content: '✓';
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    width: 22px;
-    height: 22px;
-    border-radius: 8px;
-    display: grid;
-    place-items: center;
-    transform: translateY(-50%);
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-size: 13px;
-    font-weight: 800;
-  }
-}
-
-@media (max-width: 820px) {
-  body {
-    padding:
-      max(10px, env(safe-area-inset-top))
-      max(4px, env(safe-area-inset-right))
-      calc(86px + env(safe-area-inset-bottom))
-      max(4px, env(safe-area-inset-left));
-  }
-
-  .main-content,
-  .study-layout,
-  .page-layout,
-  .study-main-column,
-  .study-side-column,
-  .page-main,
-  .page-layout > aside {
-    width: 100%;
-    max-width: none;
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  .mobile-header {
-    padding-left: 4px;
-    padding-right: 4px;
-  }
-
-  .study-setup,
-  .side-card,
-  .browse-panel,
-  .contribute-intro,
-  .contribution-card,
-  .guide-panel,
-  .contribution-help-top,
-  .flashcard,
-  .stat {
-    border-radius: 14px;
-  }
-
-  .contribution-help-top ul {
-    list-style: none;
-    padding-left: 0;
-    gap: 7px;
-  }
-
-  .contribution-help-top li {
-    position: relative;
-    padding: 10px 11px 10px 37px;
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: 11px;
-  }
-
-  .contribution-help-top li::before {
-    content: '✓';
-    position: absolute;
-    left: 11px;
-    top: 10px;
-    width: 18px;
-    height: 18px;
-    border-radius: 6px;
-    display: grid;
-    place-items: center;
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-size: 11px;
-    font-weight: 800;
-  }
-}
-
-@media (max-width: 420px) {
-  body {
-    padding-left: max(2px, env(safe-area-inset-left));
-    padding-right: max(2px, env(safe-area-inset-right));
-  }
-
-  .mobile-header {
-    padding-left: 2px;
-    padding-right: 2px;
-  }
-}
-
-/* V3.3 sidebar alignment and true mobile edge-to-edge layout */
-@media (min-width: 1181px) {
-  .app-shell {
-    grid-template-columns: 340px minmax(0, 1fr);
-  }
-
-  .sidebar {
-    padding-left: 34px;
-    padding-right: 34px;
-  }
-
-  .brand-block {
-    width: 100%;
-    max-width: 272px;
-    margin: 0 auto;
-    text-align: center;
-  }
-
-  .brand-block h1 {
-    width: 100%;
-    font-size: 35px;
-    line-height: 1;
-    overflow-wrap: normal;
-    word-break: normal;
-  }
-
-  .brand-block p {
-    max-width: 250px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
-
-@media (max-width: 1180px) and (min-width: 821px) {
-  .app-shell {
-    grid-template-columns: 276px minmax(0, 1fr);
-  }
-
-  .sidebar {
-    padding-left: 24px;
-    padding-right: 24px;
-  }
-
-  .brand-block {
-    width: 100%;
-    text-align: center;
-  }
-
-  .brand-block h1 {
-    font-size: 29px;
-    line-height: 1;
-  }
-}
-
-@media (max-width: 820px) {
-  html,
-  body {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
-  body {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .app-shell,
-  .main-content,
-  #studyView,
-  #searchView,
-  #contributeView,
-  #guideView,
-  .study-layout,
-  .page-layout,
-  .study-main-column,
-  .study-side-column,
-  .study-main-column > #studyPanel,
-  .page-main,
-  .page-layout > aside {
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  .mobile-header {
-    width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .study-setup,
-  .side-card,
-  .browse-panel,
-  .contribute-intro,
-  .contribution-card,
-  .guide-panel,
-  .contribution-help-top,
-  .flashcard,
-  .writing-panel,
-  .result {
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-    border-left: 0;
-    border-right: 0;
-    border-radius: 0;
-  }
-
-  .stats,
-  .round-toolbar,
-  .card-area,
-  .writing-panel,
-  .quiz-opts,
-  .actions,
-  .result {
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  .stats {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .stat:first-child {
-    border-left: 0;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-
-  .stat:last-child {
-    border-right: 0;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-  }
-
-  .sidebar {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .sidebar .app-tabs {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    gap: 0;
-  }
-
-  .sidebar .app-tab {
-    border-radius: 0;
-  }
-
-  .sidebar .app-tab:first-child {
-    border-left: 0;
-  }
-
-  .sidebar .app-tab:last-child {
-    border-right: 0;
-  }
-}
-
-/* V3.4: remove the inherited desktop main-content padding on mobile.
-   This was the remaining source of the visible left and right gutters. */
-@media (max-width: 820px) {
-  body {
-    padding: 0 !important;
-  }
-
-  .app-shell {
-    width: 100%;
-    min-width: 0;
-    padding-bottom: calc(82px + env(safe-area-inset-bottom));
-  }
-
-  .main-content {
-    width: 100%;
-    max-width: none;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .mobile-header {
-    width: 100%;
-    margin: 0;
-    padding:
-      max(20px, env(safe-area-inset-top))
-      12px
-      18px;
-  }
-
-  #studyView,
-  #searchView,
-  #contributeView,
-  #guideView,
-  .study-layout,
-  .page-layout,
-  .study-main-column,
-  .study-side-column,
-  .study-main-column > #studyPanel,
-  .page-main,
-  .page-layout > aside {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .study-layout,
-  .page-layout {
-    gap: 12px;
-  }
-
-  .sidebar {
-    width: 100%;
-    left: 0;
-    right: 0;
-    padding-left: 0;
-    padding-right: 0;
-  }
-}
-
-/* Explicit mobile viewport reset. This also neutralizes browser default body margins. */
-@media (max-width: 820px) {
-  html,
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  .app-shell,
-  .main-content {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-}
-
-/* V3.5: balanced mobile gutters.
-   Keep the near edge-to-edge use of space, while restoring rounded cards. */
-@media (max-width: 820px) {
-  html,
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: hidden;
-  }
-
-  .app-shell {
-    width: 100%;
-    max-width: 100%;
-    padding-bottom: calc(84px + env(safe-area-inset-bottom));
-  }
-
-  .main-content {
-    width: 100%;
-    max-width: 100%;
-    margin: 0 !important;
-    padding: 0 6px !important;
-  }
-
-  .mobile-header {
-    width: 100%;
-    margin: 0;
-    padding:
-      max(20px, env(safe-area-inset-top))
-      8px
-      18px;
-  }
-
-  #studyView,
-  #searchView,
-  #contributeView,
-  #guideView,
-  .study-layout,
-  .page-layout,
-  .study-main-column,
-  .study-side-column,
-  .study-main-column > #studyPanel,
-  .page-main,
-  .page-layout > aside {
-    width: 100%;
-    max-width: none;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .study-layout,
-  .page-layout {
-    gap: 10px;
-  }
-
-  .study-setup,
-  .side-card,
-  .browse-panel,
-  .contribute-intro,
-  .contribution-card,
-  .guide-panel,
-  .contribution-help-top,
-  .flashcard,
-  .writing-panel,
-  .result {
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-    border: 1px solid var(--line) !important;
-    border-radius: 18px !important;
-  }
-
-  .stats {
-    width: 100%;
-    max-width: 100%;
-    gap: 6px;
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .stat,
-  .stat:first-child,
-  .stat:last-child {
-    min-width: 0;
-    border: 1px solid var(--line) !important;
-    border-radius: 15px !important;
-  }
-
-  .round-toolbar,
-  .card-area,
-  .writing-panel,
-  .quiz-opts,
-  .actions,
-  .result {
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  .sidebar {
-    left: 4px;
-    right: 4px;
-    width: auto;
-    padding:
-      6px
-      max(4px, env(safe-area-inset-right))
-      max(6px, env(safe-area-inset-bottom))
-      max(4px, env(safe-area-inset-left));
-    border-left: 1px solid var(--line);
-    border-right: 1px solid var(--line);
-    border-radius: 17px 17px 0 0;
-    overflow: hidden;
-  }
-
-  .sidebar .app-tabs {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    gap: 2px;
-  }
-
-  .sidebar .app-tab,
-  .sidebar .app-tab:first-child,
-  .sidebar .app-tab:last-child {
-    border-radius: 12px !important;
-    border-left: 1px solid transparent;
-    border-right: 1px solid transparent;
-  }
-
-  .sidebar .app-tab.active {
-    border-color: var(--line);
-  }
-}
-
-@media (max-width: 420px) {
-  .main-content {
-    padding-left: 4px !important;
-    padding-right: 4px !important;
-  }
-
-  .mobile-header {
-    padding-left: 6px;
-    padding-right: 6px;
-  }
-
-  .sidebar {
-    left: 2px;
-    right: 2px;
-  }
-}
-
-/* V3.6 Writing mode: answer directly inside the main card */
-.card-area.writing-mode {
-  overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  box-shadow: var(--sh-md);
-  perspective: none;
-}
-
-.card-area.writing-mode .flashcard {
-  min-height: clamp(285px, 42vh, 430px);
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  background: transparent;
-  cursor: default;
-}
-
-.card-area.writing-mode .flashcard:active {
-  transform: none;
-}
-
-.card-area.writing-mode .tap-hint {
-  display: none;
-}
-
-.card-area.writing-mode .writing-panel {
-  width: 100%;
-  max-width: none;
-  margin: 0 !important;
-  padding: 22px 28px 24px;
-  border: 0 !important;
-  border-top: 1px solid var(--line) !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  background: var(--surface);
-}
-
-.writing-article-wrap {
-  grid-template-columns: 92px minmax(0, 1fr);
-  margin-bottom: 18px;
-}
-
-.writing-article-wrap select {
-  min-height: 48px;
-}
-
-.writing-pattern-wrap {
-  margin: 0;
-}
-
-.writing-pattern-wrap > .lbl {
-  display: block;
-  margin-bottom: 10px;
-}
-
-.writing-slot-field {
-  position: relative;
-  width: 100%;
-  min-height: 62px;
-  padding: 8px 10px 5px;
-  border: 1px solid transparent;
-  border-radius: 14px;
-  background: var(--surface-2);
-  cursor: text;
-  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
-}
-
-.writing-pattern-wrap.is-focused .writing-slot-field {
-  border-color: var(--accent);
-  background: var(--surface);
-  box-shadow: 0 0 0 4px var(--accent-soft);
-}
-
-.writing-pattern-wrap.is-correct .writing-slot-field {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.writing-pattern-wrap.is-wrong .writing-slot-field {
-  border-color: var(--red);
-  background: var(--red-bg);
-}
-
-.writing-pattern-wrap.is-locked .writing-slot-field {
-  cursor: default;
-}
-
-.writing-pattern {
-  min-height: 46px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: flex-start;
-  gap: 7px;
-  margin: 0;
-  padding: 0;
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(22px, 2.2vw, 30px);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0;
-  color: var(--ink);
-  overflow-wrap: normal;
-}
-
-.writing-pattern .pattern-letter {
-  position: relative;
-  flex: 0 0 clamp(25px, 2.3vw, 34px);
-  min-width: 25px;
-  height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 7px;
-  border-bottom: 3px solid var(--accent);
-  color: var(--ink);
-  text-transform: none;
-}
-
-.writing-pattern .pattern-letter.filled {
-  color: var(--ink);
-}
-
-.writing-pattern .pattern-letter.active::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: 8px;
-  width: 2px;
-  height: 23px;
-  border-radius: 99px;
-  background: var(--accent);
-  transform: translateX(-50%);
-  animation: writing-caret 1s steps(1) infinite;
-}
-
-.writing-pattern .pattern-letter.filled.active::after {
-  left: calc(50% + 0.38em);
-}
-
-.writing-pattern .pattern-extra {
-  border-bottom-color: var(--red);
-  color: var(--red);
-}
-
-.writing-pattern .pattern-space {
-  flex: 0 0 13px;
-  width: 13px;
-  height: 42px;
-}
-
-.writing-pattern .pattern-mark {
-  flex: 0 0 auto;
-  min-width: 12px;
-  height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 7px;
-  color: var(--ink-soft);
-}
-
-#writingInput {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: inherit;
-  opacity: 0.01;
-  background: transparent;
-  color: transparent;
-  caret-color: transparent;
-  font-size: 16px;
-  cursor: text;
-}
-
-#writingInput:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-#writingInput:disabled {
-  pointer-events: none;
-  cursor: default;
-}
-
-.writing-card-footer {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.writing-card-footer .btn {
-  min-width: 112px;
-}
-
-.writing-feedback {
-  min-height: 20px;
-  margin-top: 0;
-}
-
-.writing-attempt {
-  margin-top: 4px;
-  text-align: left;
-}
-
-@keyframes writing-caret {
-  0%, 48% { opacity: 1; }
-  49%, 100% { opacity: 0; }
-}
-
-@media (max-width: 760px) {
-  .card-area.writing-mode {
-    border-radius: 18px !important;
-  }
-
-  .card-area.writing-mode .flashcard {
-    min-height: 255px;
-    padding: 30px 18px 22px;
-  }
-
-  .card-area.writing-mode .writing-panel {
-    padding: 18px 16px 20px;
-  }
-
-  .writing-article-wrap {
-    grid-template-columns: 78px minmax(0, 1fr);
-    gap: 8px;
-    margin-bottom: 15px;
-  }
-
-  .writing-slot-field {
-    min-height: 58px;
-    padding: 7px 7px 4px;
-  }
-
-  .writing-pattern {
-    min-height: 43px;
-    gap: 5px;
-    font-size: clamp(21px, 7vw, 27px);
-  }
-
-  .writing-pattern .pattern-letter {
-    flex-basis: clamp(22px, 7vw, 30px);
-    min-width: 22px;
-    height: 39px;
-    padding-bottom: 6px;
-  }
-
-  .writing-pattern .pattern-space,
-  .writing-pattern .pattern-mark {
-    height: 39px;
-  }
-
-  .writing-pattern .pattern-space {
-    flex-basis: 9px;
-    width: 9px;
-  }
-
-  .writing-card-footer {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
-    margin-top: 14px;
-  }
-
-  .writing-card-footer .btn {
-    min-width: 94px;
-    min-height: 46px;
-  }
-}
-
-@media (max-width: 420px) {
-  .card-area.writing-mode .writing-panel {
-    padding-left: 13px;
-    padding-right: 13px;
-  }
-
-  .writing-pattern {
-    gap: 4px;
-  }
-
-  .writing-pattern .pattern-letter {
-    flex-basis: clamp(20px, 6.5vw, 27px);
-    min-width: 20px;
-  }
-
-  .writing-card-footer {
-    grid-template-columns: 1fr;
-  }
-
-  .writing-card-footer .btn {
-    width: 100%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .writing-pattern .pattern-letter.active::after {
-    animation: none;
-  }
-}
-
-/* V3.7 Writing editing, wider study canvas and community placement */
-@media (min-width: 821px) {
-  .study-layout {
-    max-width: 1500px;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 310px);
-    grid-template-areas:
-      "study-main study-setup"
-      "study-community study-setup";
-    column-gap: clamp(18px, 2vw, 28px);
-    row-gap: 20px;
-  }
-
-  .study-main-column {
-    grid-area: study-main;
-  }
-
-  .study-side-column {
-    display: contents;
-  }
-
-  .study-side-column .study-setup {
-    grid-area: study-setup;
-    position: sticky;
-    top: 24px;
-  }
-
-  .study-side-column .leaderboard-card {
-    grid-area: study-community;
-    position: static;
-    width: 100%;
-    max-width: 960px;
-    margin: 0 auto;
-  }
-
-  .study-side-column .leaderboard-card .leaderboard-list {
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  }
-
-  .stats,
-  .round-toolbar,
-  .card-area,
-  .quiz-opts,
-  .actions,
-  .result {
-    max-width: 960px;
-  }
-
-  .card-area.writing-mode .flashcard {
-    min-height: clamp(300px, 43vh, 460px);
-  }
-}
-
-.writing-slot-field {
-  overflow: hidden;
-}
-
-.writing-pattern {
-  --writing-slot-size: 32px;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-end;
-  gap: 6px;
-  width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
-  padding: 2px 2px 7px;
-}
-
-.writing-pattern::-webkit-scrollbar {
-  height: 5px;
-}
-
-.writing-pattern::-webkit-scrollbar-thumb {
-  background: var(--line);
-  border-radius: 999px;
-}
-
-.writing-pattern.long-word {
-  --writing-slot-size: 25px;
-  gap: 4px;
-}
-
-.writing-pattern.very-long-word {
-  --writing-slot-size: 20px;
-  gap: 3px;
-}
-
-.writing-letter-input {
-  appearance: none;
-  -webkit-appearance: none;
-  flex: 0 0 var(--writing-slot-size);
-  width: var(--writing-slot-size);
-  min-width: var(--writing-slot-size);
-  height: 44px;
-  min-height: 44px;
-  padding: 0 1px 6px;
-  border: 0;
-  border-bottom: 3px solid var(--accent);
-  border-radius: 5px 5px 0 0;
-  background: transparent;
-  box-shadow: none;
-  color: var(--ink);
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(22px, 2vw, 29px);
-  font-weight: 800;
-  line-height: 1;
-  text-align: center;
-  caret-color: var(--accent);
-  text-transform: none;
-}
-
-.writing-letter-input:hover:not(:disabled) {
-  background: rgba(13, 125, 99, 0.05);
-}
-
-.writing-letter-input:focus {
-  outline: none;
-  border-bottom-color: var(--accent-2);
-  background: var(--accent-soft);
-  box-shadow: none;
-}
-
-.writing-letter-input::selection {
-  background: rgba(13, 125, 99, 0.25);
-  color: var(--ink);
-}
-
-.writing-letter-input.pattern-extra {
-  border-bottom-color: var(--red);
-  color: var(--red);
-}
-
-.writing-letter-input:disabled {
-  opacity: 1;
-  color: var(--ink);
-  cursor: default;
-  -webkit-text-fill-color: var(--ink);
-}
-
-.writing-pattern .pattern-space {
-  flex: 0 0 12px;
-  width: 12px;
-  min-width: 12px;
-}
-
-.writing-pattern .pattern-mark {
-  flex: 0 0 14px;
-  width: 14px;
-  min-width: 14px;
-  font-size: 24px;
-  font-weight: 800;
-}
-
-.writing-feedback {
-  display: grid;
-  gap: 8px;
-  min-height: 20px;
-}
-
-.writing-feedback-message {
-  display: block;
-}
-
-.writing-answer-reveal {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 7px;
-  width: fit-content;
-  max-width: 100%;
-  padding: 8px 11px;
-  border: 1px solid rgba(13, 125, 99, 0.24);
-  border-radius: 10px;
-  background: var(--accent-soft);
-  color: var(--accent-2);
-}
-
-.writing-answer-label {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.writing-answer-value {
-  color: var(--accent-2);
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-}
-
-@media (max-width: 820px) {
-  .writing-pattern {
-    --writing-slot-size: 27px;
-    gap: 5px;
-  }
-
-  .writing-pattern.long-word {
-    --writing-slot-size: 22px;
-    gap: 4px;
-  }
-
-  .writing-pattern.very-long-word {
-    --writing-slot-size: 18px;
-    gap: 3px;
-  }
-
-  .writing-letter-input {
-    height: 41px;
-    min-height: 41px;
-    padding-bottom: 5px;
-    font-size: clamp(20px, 6.4vw, 27px);
-  }
-
-  .writing-pattern .pattern-space {
-    flex-basis: 9px;
-    width: 9px;
-    min-width: 9px;
-  }
-
-  .writing-answer-reveal {
-    width: 100%;
-  }
-}
-
-@media (max-width: 420px) {
-  .writing-pattern {
-    --writing-slot-size: 25px;
-    gap: 4px;
-  }
-
-  .writing-pattern.long-word {
-    --writing-slot-size: 20px;
-    gap: 3px;
-  }
-
-  .writing-pattern.very-long-word {
-    --writing-slot-size: 17px;
-    gap: 2px;
-  }
-}
+
+  async function apiCall(action, data) {
+    if (!API_URL) throw new Error('The public API URL is not configured.');
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action, data: data || {} }),
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'strict-origin-when-cross-origin'
+    });
+
+    let payload;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      throw new Error('The public API returned an invalid response.');
+    }
+
+    if (!response.ok || !payload || !payload.ok) {
+      const apiError = new Error(
+        payload && payload.message ? payload.message : 'The request could not be completed.'
+      );
+      apiError.code = payload && payload.error ? payload.error : 'REQUEST_FAILED';
+      throw apiError;
+    }
+
+    return payload.result;
+  }
+
+  const REVIEW_BANK_KEY = 'df_review_bank_v2';
+
+  const state = {
+    clientId: getOrCreateClientId(),
+    sessionId: '',
+    source: 'backend',
+    queue: [],
+    seenWords: [],
+    roundWords: [],
+    localRoundSeed: [],
+    completedRoundWords: [],
+    hasMore: false,
+    loadingBatch: false,
+    waitingForBatch: false,
+    total: 0,
+    index: 0,
+    current: null,
+    revealed: false,
+    answered: false,
+    correct: 0,
+    wrong: 0,
+    streak: 0,
+    mode: 'review',
+    direction: 'de-en',
+    writingAttempt: 1,
+    reviewBank: loadReviewBank(),
+    bankSnapshot: [],
+    wordFormStartedAt: Date.now(),
+    feedbackFormStartedAt: Date.now(),
+    availableDecks: [],
+    availableLevels: [],
+    suggestionItemCounter: 0,
+    hasStartedRound: false
+  };
+
+  const el = {};
+
+  document.addEventListener('DOMContentLoaded', init);
+
+  function init() {
+    [
+      'studyTabButton', 'searchTabButton', 'contributeTabButton', 'guideTabButton',
+      'studyView', 'searchView', 'contributeView', 'guideView',
+      'deckSelect', 'levelSelect', 'typeSelect', 'directionSelect',
+      'modeSelect', 'roundLengthSelect', 'setupMessage', 'newRoundButton',
+      'connectionActions', 'retryButton', 'reloadButton',
+      'correctCount', 'wrongCount', 'streakCount',
+      'correctLabel', 'wrongLabel', 'streakLabel',
+      'progressText', 'progressBar', 'restartRoundButton',
+      'cardArea', 'cardButton', 'cardLanguage', 'cardWord', 'cardHint',
+      'writingPanel', 'writingPatternWrap', 'writingSlotField', 'writingArticleWrap', 'writingArticleSelect',
+      'writingInput', 'writingSubmitButton', 'writingFeedback', 'writingPattern',
+      'writingAttemptText', 'quizOptions', 'reviewActions',
+      'practiceButton', 'rememberedButton', 'nextActions', 'nextButton',
+      'completePanel', 'completeScore', 'completeMessage',
+      'reviewWritingButton', 'reviewQuizButton', 'fullReviewWritingButton',
+      'playAgainButton', 'publicSearchForm', 'publicSearchInput',
+      'publicSearchButton', 'publicSearchMessage', 'publicSearchResults',
+      'wordSuggestionForm', 'suggestionName', 'suggestionEmail',
+      'suggestionItems', 'suggestionItemTemplate', 'addSuggestionItemButton',
+      'suggestionNote', 'suggestionWebsite', 'suggestionConsent',
+      'leaderboardOptIn', 'publicDisplayNameWrap', 'publicDisplayName',
+      'submitSuggestionButton', 'suggestionMessage', 'suggestionBatchResults',
+      'feedbackForm', 'feedbackName', 'feedbackEmail', 'feedbackText',
+      'feedbackWebsite', 'feedbackConsent', 'submitFeedbackButton',
+      'feedbackMessage'
+    ].forEach(id => {
+      el[id] = document.getElementById(id);
+    });
+
+    bindEvents();
+    syncModeControls();
+    updateStats();
+    loadMeta();
+  }
+
+  function bindEvents() {
+    el.studyTabButton.addEventListener('click', () => showView('study'));
+    el.searchTabButton.addEventListener('click', () => showView('search'));
+    el.contributeTabButton.addEventListener('click', () => showView('contribute'));
+    el.guideTabButton.addEventListener('click', () => showView('guide'));
+    el.newRoundButton.addEventListener('click', startBackendRound);
+    el.playAgainButton.addEventListener('click', startBackendRound);
+    el.retryButton.addEventListener('click', loadMeta);
+    el.reloadButton.addEventListener('click', () => window.location.reload());
+    el.cardButton.addEventListener('click', revealReviewCard);
+    el.practiceButton.addEventListener('click', () => scoreReview(false));
+    el.rememberedButton.addEventListener('click', () => scoreReview(true));
+    el.nextButton.addEventListener('click', advance);
+    el.restartRoundButton.addEventListener('click', restartCurrentRound);
+    el.modeSelect.addEventListener('change', () => {
+      syncModeControls();
+      updateRoundAvailability();
+    });
+    [el.deckSelect, el.levelSelect, el.typeSelect].forEach(select => {
+      select.addEventListener('change', updateRoundAvailability);
+    });
+    el.leaderboardOptIn.addEventListener('change', syncLeaderboardOptIn);
+    el.writingSubmitButton.addEventListener('click', submitWritingAnswer);
+    el.writingPattern.addEventListener('input', handleWritingSlotInput);
+    el.writingPattern.addEventListener('keydown', handleWritingSlotKeydown);
+    el.writingPattern.addEventListener('paste', handleWritingSlotPaste);
+    el.writingPattern.addEventListener('focusin', handleWritingPatternFocusIn);
+    el.writingPattern.addEventListener('focusout', handleWritingPatternFocusOut);
+    el.writingSlotField.addEventListener('click', event => {
+      if (event.target === el.writingSlotField || event.target === el.writingPattern) {
+        focusFirstAvailableWritingSlot();
+      }
+    });
+
+
+    el.reviewWritingButton.addEventListener('click', () => startReviewBankRound('writing'));
+    el.reviewQuizButton.addEventListener('click', () => startReviewBankRound('quiz'));
+    el.fullReviewWritingButton.addEventListener('click', startCompletedReviewWritingRound);
+    el.publicSearchForm.addEventListener('submit', runPublicSearch);
+    el.addSuggestionItemButton.addEventListener('click', () => addSuggestionItem());
+    el.suggestionItems.addEventListener('click', handleSuggestionItemsClick);
+    el.suggestionItems.addEventListener('change', handleSuggestionItemsChange);
+    el.wordSuggestionForm.addEventListener('submit', submitWordSuggestionForm);
+    el.feedbackForm.addEventListener('submit', submitFeedbackForm);
+    enableTabKeyboard('.app-tab');
+  }
+
+  function enableTabKeyboard(selector) {
+    const tabs = Array.from(document.querySelectorAll(selector));
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('keydown', event => {
+        let nextIndex = null;
+
+        if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+        if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+        if (event.key === 'Home') nextIndex = 0;
+        if (event.key === 'End') nextIndex = tabs.length - 1;
+        if (nextIndex === null) return;
+
+        event.preventDefault();
+        tabs[nextIndex].click();
+        tabs[nextIndex].focus();
+      });
+    });
+  }
+
+  function showView(view) {
+    const study = view === 'study';
+    const search = view === 'search';
+    const contribute = view === 'contribute';
+    const guide = view === 'guide';
+
+    el.studyView.classList.toggle('hidden', !study);
+    el.searchView.classList.toggle('hidden', !search);
+    el.contributeView.classList.toggle('hidden', !contribute);
+    el.guideView.classList.toggle('hidden', !guide);
+    [
+      [el.studyTabButton, study],
+      [el.searchTabButton, search],
+      [el.contributeTabButton, contribute],
+      [el.guideTabButton, guide]
+    ].forEach(([button, selected]) => {
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-selected', selected ? 'true' : 'false');
+      button.tabIndex = selected ? 0 : -1;
+    });
+
+    if (search) {
+      window.setTimeout(() => el.publicSearchInput.focus(), 50);
+    } else if (contribute) {
+      state.wordFormStartedAt = Date.now();
+      state.feedbackFormStartedAt = Date.now();
+      const firstGerman = el.suggestionItems.querySelector('[data-field="german"]');
+      if (firstGerman) window.setTimeout(() => firstGerman.focus(), 50);
+    }
+  }
+
+  async function loadMeta() {
+    setConnectionActions(false);
+    setMessage('Loading study options…');
+    el.newRoundButton.disabled = true;
+
+    try {
+      const result = await apiCall('getPublicMeta', { clientId: state.clientId });
+      el.newRoundButton.disabled = false;
+
+      if (!result || !result.ok) {
+        throw new Error('The study options could not be loaded.');
+      }
+
+      fillSelect(el.deckSelect, ['All'].concat(result.decks || []), value => {
+        return value === 'All' ? 'All decks' : value;
+      });
+
+      fillSelect(el.levelSelect, ['All'].concat(result.levels || []), value => {
+        return value === 'All' ? 'All levels' : value;
+      });
+
+      state.availableDecks = (result.decks || []).slice();
+      state.availableLevels = (result.levels || ['Unassigned'])
+        .filter(value => value !== 'All');
+      if (!state.availableLevels.length) state.availableLevels = ['Unassigned'];
+
+      refreshSuggestionItemOptions();
+      if (!el.suggestionItems.children.length) addSuggestionItem();
+      await Promise.allSettled([updateRoundAvailability(), loadTopContributors()]);
+      el.newRoundButton.textContent = state.hasStartedRound ? 'New round' : 'Start round';
+      setMessage('Ready. Choose your settings and start a new round.');
+    } catch (error) {
+      el.newRoundButton.disabled = false;
+      handleServerFailure(error);
+    }
+  }
+
+  async function updateRoundAvailability() {
+    if (!el.deckSelect.value || el.deckSelect.value === 'Loading…') return;
+
+    const previous = Number(el.roundLengthSelect.value || 0);
+    try {
+      const result = await apiCall('getRoundAvailability', {
+        clientId: state.clientId,
+        deck: el.deckSelect.value,
+        level: el.levelSelect.value,
+        type: el.typeSelect.value,
+        mode: el.modeSelect.value
+      });
+
+      const options = result && result.roundOptions ? result.roundOptions : [];
+      const count = Number(result && result.matchingCount || 0);
+      el.roundLengthSelect.replaceChildren();
+
+      if (!options.length) {
+        const option = document.createElement('option');
+        option.value = '0';
+        option.textContent = 'No matching words';
+        el.roundLengthSelect.appendChild(option);
+        el.roundLengthSelect.disabled = true;
+        el.newRoundButton.disabled = true;
+        return;
+      }
+
+      options.forEach(value => {
+        const option = document.createElement('option');
+        option.value = String(value);
+        option.textContent = value < 50 ? 'All ' + value + ' words' : value + ' words';
+        el.roundLengthSelect.appendChild(option);
+      });
+
+      const values = options.map(Number);
+      el.roundLengthSelect.value = values.includes(previous)
+        ? String(previous)
+        : String(values[0]);
+      el.roundLengthSelect.disabled = false;
+      el.newRoundButton.disabled = false;
+      setMessage(count + ' word' + (count === 1 ? '' : 's') + ' match the current filters.');
+    } catch (error) {
+      handleServerFailure(error);
+    }
+  }
+
+  async function loadTopContributors() {
+    try {
+      const result = await apiCall('getTopContributors', { clientId: state.clientId });
+      renderTopContributors(result && result.contributors || []);
+    } catch (error) {
+      renderTopContributors([]);
+    }
+  }
+
+  function renderTopContributors(contributors) {
+    document.querySelectorAll('[data-leaderboard-list]').forEach(list => {
+      list.replaceChildren();
+      if (!contributors.length) {
+        const empty = document.createElement('li');
+        empty.className = 'leaderboard-empty';
+        empty.textContent = 'No approved public contributions yet.';
+        list.appendChild(empty);
+        return;
+      }
+
+      contributors.forEach(item => {
+        const row = document.createElement('li');
+        row.className = 'leaderboard-item';
+        const rank = document.createElement('span');
+        rank.className = 'leaderboard-rank';
+        rank.textContent = String(item.rank || '');
+        const name = document.createElement('span');
+        name.className = 'leaderboard-name';
+        name.textContent = item.name || 'Contributor';
+        const count = document.createElement('span');
+        count.className = 'leaderboard-count';
+        count.textContent = String(item.approvedWords || 0);
+        count.title = 'Approved words';
+        row.append(rank, name, count);
+        list.appendChild(row);
+      });
+    });
+  }
+
+  function syncLeaderboardOptIn() {
+    const enabled = Boolean(el.leaderboardOptIn.checked);
+    el.publicDisplayNameWrap.classList.toggle('hidden', !enabled);
+    el.publicDisplayName.required = enabled;
+    if (enabled && !el.publicDisplayName.value.trim()) {
+      el.publicDisplayName.value = el.suggestionName.value.trim();
+    }
+  }
+
+  function fillSelect(select, values, labelFormatter) {
+    const previous = select.value;
+    select.replaceChildren();
+
+    values.forEach(value => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = labelFormatter ? labelFormatter(value) : value;
+      select.appendChild(option);
+    });
+
+    if (values.indexOf(previous) >= 0) select.value = previous;
+  }
+
+  function syncModeControls() {
+    const mode = el.modeSelect.value;
+    const articleMode = mode === 'article';
+    const writingMode = mode === 'writing';
+
+    el.directionSelect.disabled = articleMode || writingMode;
+    el.typeSelect.disabled = articleMode;
+
+    if (articleMode) {
+      el.typeSelect.value = 'noun';
+    }
+
+    if (writingMode) {
+      el.directionSelect.value = 'en-de';
+    }
+
+    updateStatLabels(mode);
+  }
+
+  async function startBackendRound() {
+    showView('study');
+    state.source = 'backend';
+    state.sessionId = '';
+    state.localRoundSeed = [];
+    state.completedRoundWords = [];
+    prepareRoundState(el.modeSelect.value, el.directionSelect.value);
+    state.bankSnapshot = cloneWords(state.reviewBank);
+
+    resetCardUi();
+    setMessage('Preparing your study round…');
+    el.newRoundButton.textContent = 'Starting…';
+    el.newRoundButton.disabled = true;
+
+    try {
+      const result = await apiCall('startStudy', {
+        clientId: state.clientId,
+        deck: el.deckSelect.value,
+        level: el.levelSelect.value,
+        type: el.typeSelect.value,
+        mode: state.mode,
+        roundLength: Number(el.roundLengthSelect.value)
+      });
+
+      el.newRoundButton.disabled = false;
+      state.loadingBatch = false;
+      if (!result || !result.ok) {
+        el.newRoundButton.textContent = state.hasStartedRound ? 'New round' : 'Start round';
+        setMessage((result && result.message) || 'The round could not be started.', true);
+        return;
+      }
+
+      state.hasStartedRound = true;
+      el.newRoundButton.textContent = 'New round';
+      state.sessionId = result.sessionId;
+      const words = annotateWords(result.words || [], state.sessionId);
+      state.queue = words.slice();
+      state.roundWords = words.slice();
+      state.hasMore = Boolean(result.hasMore);
+      state.total = Number(result.total || words.length);
+      state.source = 'backend';
+
+      setMessage('Round ready.');
+      el.restartRoundButton.classList.remove('hidden');
+      showNextCard();
+      prefetchIfNeeded();
+    } catch (error) {
+      el.newRoundButton.textContent = state.hasStartedRound ? 'New round' : 'Start round';
+      el.newRoundButton.disabled = false;
+      state.loadingBatch = false;
+      handleServerFailure(error);
+    }
+  }
+
+  function prepareRoundState(mode, direction) {
+    state.queue = [];
+    state.seenWords = [];
+    state.roundWords = [];
+    state.hasMore = false;
+    state.loadingBatch = true;
+    state.waitingForBatch = false;
+    state.total = 0;
+    state.index = 0;
+    state.current = null;
+    state.revealed = false;
+    state.answered = false;
+    state.correct = 0;
+    state.wrong = 0;
+    state.streak = 0;
+    state.mode = mode || 'review';
+    state.direction = direction || 'de-en';
+    state.writingAttempt = 1;
+    updateStatLabels(state.mode);
+    updateStats();
+  }
+
+  function showNextCard() {
+    if (!state.queue.length) {
+      if (state.hasMore) {
+        state.current = null;
+        state.waitingForBatch = true;
+        setCard('Loading', 'Next cards…', 'Please keep this tab open.');
+        fetchNextBatch();
+      } else {
+        finishRound();
+      }
+      return;
+    }
+
+    state.current = state.queue.shift();
+    state.seenWords.push(state.current);
+    state.revealed = false;
+    state.answered = false;
+    state.writingAttempt = 1;
+
+    hideAnswerPanels();
+    el.completePanel.classList.add('hidden');
+    el.cardButton.classList.remove('hidden', 'revealed');
+    el.cardButton.disabled = state.mode !== 'review';
+
+    if (state.mode === 'article') {
+      renderArticleQuestion();
+    } else if (state.mode === 'quiz') {
+      renderQuizQuestion();
+    } else if (state.mode === 'writing') {
+      renderWritingQuestion();
+    } else {
+      renderReviewFront();
+    }
+
+    updateStats();
+    prefetchIfNeeded();
+  }
+
+  function hideAnswerPanels() {
+    el.quizOptions.classList.add('hidden');
+    el.quizOptions.classList.remove('articles');
+    el.quizOptions.replaceChildren();
+    el.reviewActions.classList.add('hidden');
+    el.nextActions.classList.add('hidden');
+    el.writingPanel.classList.add('hidden');
+    el.cardArea.classList.remove('writing-mode');
+    el.writingPatternWrap.classList.remove('is-focused', 'is-correct', 'is-wrong', 'is-locked');
+    el.writingFeedback.textContent = '';
+    el.writingFeedback.className = 'writing-feedback';
+  }
+
+  function renderReviewFront() {
+    const frontIsGerman = state.direction === 'de-en';
+    setCard(
+      frontIsGerman ? 'Deutsch' : 'English',
+      frontIsGerman ? germanDisplay(state.current) : state.current.english,
+      'Tap the card to reveal'
+    );
+  }
+
+  function revealReviewCard() {
+    if (state.mode !== 'review' || !state.current || state.revealed) return;
+
+    state.revealed = true;
+    el.cardButton.classList.add('revealed');
+    const backIsGerman = state.direction === 'en-de';
+
+    setCard(
+      backIsGerman ? 'Deutsch' : 'English',
+      backIsGerman ? germanDisplay(state.current) : state.current.english,
+      state.current.hint || 'How well did you remember it before revealing?'
+    );
+
+    el.reviewActions.classList.remove('hidden');
+  }
+
+  function scoreReview(remembered) {
+    if (state.answered) return;
+
+    state.answered = true;
+
+    if (remembered) {
+      state.correct += 1;
+      state.streak += 1;
+    } else {
+      state.wrong += 1;
+      state.streak = 0;
+      addDifficultWord(state.current);
+    }
+
+    updateStats();
+    el.reviewActions.classList.add('hidden');
+    el.nextActions.classList.remove('hidden');
+  }
+
+  function renderQuizQuestion() {
+    const frontIsGerman = state.direction === 'de-en';
+
+    setCard(
+      frontIsGerman ? 'Deutsch' : 'English',
+      frontIsGerman ? germanDisplay(state.current) : state.current.english,
+      state.current.hint || 'Choose the correct answer'
+    );
+
+    const candidates = buildQuizCandidates(
+      state.current,
+      frontIsGerman ? 'english' : 'german'
+    );
+
+    renderOptions(candidates, candidate => {
+      const correct = candidate.token === state.current.token;
+      recordScoredAnswer(correct);
+      if (!correct) addDifficultWord(state.current);
+      markOptions(candidate.token, state.current.token);
+      state.answered = true;
+      el.nextActions.classList.remove('hidden');
+    });
+  }
+
+  function renderArticleQuestion() {
+    setCard(
+      'Welcher Artikel?',
+      state.current.german,
+      state.current.english ? '= ' + state.current.english : 'Choose der, die or das'
+    );
+
+    const options = ['der', 'die', 'das'].map(article => ({
+      token: article,
+      label: article
+    }));
+
+    el.quizOptions.classList.add('articles');
+
+    renderOptions(options, candidate => {
+      const correct = candidate.token === state.current.article;
+      recordScoredAnswer(correct);
+      if (!correct) addDifficultWord(state.current);
+      markOptions(candidate.token, state.current.article);
+      state.answered = true;
+      el.nextActions.classList.remove('hidden');
+    });
+  }
+
+  function renderWritingQuestion() {
+    setCard(
+      'English → Deutsch',
+      state.current.english,
+      state.current.hint || 'Type the German word'
+    );
+
+    el.cardArea.classList.add('writing-mode');
+    el.writingPanel.classList.remove('hidden');
+    el.writingArticleWrap.classList.toggle(
+      'hidden',
+      !(state.current.type === 'noun' && isGermanArticle(state.current.article))
+    );
+
+    el.writingArticleSelect.value = '';
+    el.writingInput.value = '';
+    el.writingInput.disabled = false;
+    el.writingArticleSelect.disabled = false;
+    el.writingSubmitButton.disabled = false;
+    el.writingPatternWrap.classList.remove('is-correct', 'is-wrong', 'is-locked');
+    renderWritingPattern(state.current.german || '', '');
+    el.writingAttemptText.textContent = 'Attempt 1 of 2';
+    window.setTimeout(() => focusWritingSlot(0, true), 50);
+  }
+
+  async function submitWritingAnswer() {
+    if (state.mode !== 'writing' || !state.current || state.answered) return;
+
+    const parsed = parseTypedAnswer(
+      getWritingAnswer(),
+      el.writingArticleSelect.value
+    );
+
+    if (!getWritingLetterInputs().some(input => Boolean(input.value))) {
+      setWritingFeedback('Enter the German word in the letter slots before checking.', 'wrong');
+      focusFirstAvailableWritingSlot();
+      return;
+    }
+
+    el.writingSubmitButton.disabled = true;
+    const sessionId = state.current.originSessionId || state.sessionId;
+
+    if (sessionId && isUuid(state.current.token)) {
+      try {
+        const result = await apiCall('validateWritingAnswer', {
+          sessionId: sessionId,
+          clientId: state.clientId,
+          cardToken: state.current.token,
+          german: parsed.german,
+          article: parsed.article
+        });
+        el.writingSubmitButton.disabled = false;
+        handleWritingValidationResult(parsed, result);
+      } catch (error) {
+        el.writingSubmitButton.disabled = false;
+        handleWritingValidationResult(parsed, localWritingValidation(parsed, state.current));
+      }
+    } else {
+      el.writingSubmitButton.disabled = false;
+      handleWritingValidationResult(parsed, localWritingValidation(parsed, state.current));
+    }
+  }
+
+  function handleWritingValidationResult(parsed, result) {
+    if (result && result.ok && result.correct) {
+      completeWritingAttempt(true, result.acceptedAlternative, result.matched);
+      return;
+    }
+
+    const articleIssue = result && result.articleIssue ? result.articleIssue : '';
+    const feedback = diagnoseWritingMistake(parsed, state.current, articleIssue);
+
+    if (state.writingAttempt === 1) {
+      state.wrong += 1;
+      state.streak = 0;
+      addDifficultWord(state.current);
+      updateStats();
+      setWritingFeedback(feedback, 'hint');
+      state.writingAttempt = 2;
+      el.writingAttemptText.textContent = 'Attempt 2 of 2';
+      el.writingPatternWrap.classList.remove('is-wrong');
+      focusWritingSlot(0, true);
+      return;
+    }
+
+    state.answered = true;
+    setWritingFeedback(
+      feedback,
+      'wrong',
+      germanDisplay(state.current),
+      'Correct answer'
+    );
+    lockWritingInputs();
+    el.nextActions.classList.remove('hidden');
+  }
+
+  function completeWritingAttempt(correct, acceptedAlternative, matched) {
+    if (state.writingAttempt === 1) {
+      state.correct += 1;
+      state.streak += 1;
+      updateStats();
+    }
+
+    state.answered = true;
+    const matchedText = matched
+      ? ((matched.article ? matched.article + ' ' : '') + matched.german)
+      : germanDisplay(state.current);
+
+    setWritingFeedback(
+      acceptedAlternative
+        ? 'Correct alternative accepted.'
+        : (state.writingAttempt === 1 ? 'Correct.' : 'Correct on the second attempt.'),
+      'correct',
+      matchedText,
+      acceptedAlternative ? 'Accepted answer' : 'Correct answer'
+    );
+
+    lockWritingInputs();
+    el.nextActions.classList.remove('hidden');
+  }
+
+  function lockWritingInputs() {
+    el.writingInput.disabled = true;
+    getWritingLetterInputs().forEach(input => { input.disabled = true; });
+    el.writingArticleSelect.disabled = true;
+    el.writingSubmitButton.disabled = true;
+    el.writingPatternWrap.classList.add('is-locked');
+    el.writingPatternWrap.classList.remove('is-focused');
+  }
+
+  function localWritingValidation(parsed, word) {
+    const wordCorrect = normalizeExact(parsed.german) === normalizeExact(word.german);
+    let articleIssue = '';
+    let correct = wordCorrect;
+
+    if (wordCorrect && word.type === 'noun' && isGermanArticle(word.article)) {
+      if (!parsed.article) {
+        correct = false;
+        articleIssue = 'MISSING_ARTICLE';
+      } else if (parsed.article !== word.article) {
+        correct = false;
+        articleIssue = 'WRONG_ARTICLE';
+      }
+    }
+
+    return {
+      ok: true,
+      correct: correct,
+      acceptedAlternative: false,
+      matched: correct ? { german: word.german, article: word.article } : null,
+      articleIssue: articleIssue
+    };
+  }
+
+  function diagnoseWritingMistake(parsed, expectedWord, articleIssue) {
+    const typed = normalizeExact(parsed.german);
+    const expected = normalizeExact(expectedWord.german);
+    const typedLower = typed.toLocaleLowerCase('de-DE');
+    const expectedLower = expected.toLocaleLowerCase('de-DE');
+
+    if (articleIssue === 'MISSING_ARTICLE') {
+      return 'The word is correct, but the article is missing.';
+    }
+
+    if (articleIssue === 'WRONG_ARTICLE') {
+      return 'The word is correct, but the article is not correct.';
+    }
+
+    if (typedLower === expectedLower && typed !== expected) {
+      if (expectedWord.type === 'noun') {
+        return 'German nouns begin with a capital letter.';
+      }
+      return 'Check the capitalization.';
+    }
+
+    const umlautReplacement = findUmlautReplacement(expectedLower, typedLower);
+    if (umlautReplacement) {
+      return 'Use ' + umlautReplacement.umlaut + ' instead of ' + umlautReplacement.sequence + '.';
+    }
+
+    const missedUmlaut = findMissedUmlaut(expectedLower, typedLower);
+    if (missedUmlaut) {
+      return 'You missed the umlaut on ' + missedUmlaut + '.';
+    }
+
+    if (expectedLower.indexOf('ß') >= 0 && expectedLower.replace(/ß/g, 'ss') === typedLower) {
+      return 'Use ß instead of ss in this word.';
+    }
+
+    const distance = levenshtein(typedLower, expectedLower);
+
+    if (distance === 1) {
+      if (typedLower.length < expectedLower.length) return 'One letter is missing.';
+      if (typedLower.length > expectedLower.length) return 'There is one extra letter.';
+      return 'One letter is incorrect.';
+    }
+
+    if (distance === 2) {
+      return 'Very close. Check two letters or their order.';
+    }
+
+    return 'Not quite. Check the spelling and try once more.';
+  }
+
+  function findUmlautReplacement(expected, typed) {
+    const replacements = [
+      { umlaut: 'ä', sequence: 'ae' },
+      { umlaut: 'ö', sequence: 'oe' },
+      { umlaut: 'ü', sequence: 'ue' }
+    ];
+
+    for (const item of replacements) {
+      if (expected.indexOf(item.umlaut) >= 0 && expected.replace(new RegExp(item.umlaut, 'g'), item.sequence) === typed) {
+        return item;
+      }
+    }
+
+    return null;
+  }
+
+  function findMissedUmlaut(expected, typed) {
+    const replacements = [
+      { umlaut: 'ä', plain: 'a' },
+      { umlaut: 'ö', plain: 'o' },
+      { umlaut: 'ü', plain: 'u' }
+    ];
+
+    for (const item of replacements) {
+      if (expected.indexOf(item.umlaut) >= 0 && expected.replace(new RegExp(item.umlaut, 'g'), item.plain) === typed) {
+        return item.umlaut;
+      }
+    }
+
+    return '';
+  }
+
+  function parseTypedAnswer(input, selectedArticle) {
+    let german = String(input || '').trim().replace(/\s+/g, ' ');
+    let article = String(selectedArticle || '').toLocaleLowerCase('de-DE');
+    const match = german.match(/^(der|die|das)\s+(.+)$/i);
+
+    if (match) {
+      article = match[1].toLocaleLowerCase('de-DE');
+      german = match[2].trim();
+    }
+
+    if (!isGermanArticle(article)) article = '';
+    return { german, article };
+  }
+
+  function renderWritingPattern(word, typedValue) {
+    const expectedCharacters = Array.from(String(word || ''));
+    const expectedLetters = expectedCharacters.filter(
+      character => !/\s/u.test(character) && !/[-'’]/u.test(character)
+    ).length;
+
+    el.writingPattern.replaceChildren();
+    el.writingPattern.dataset.expectedWord = String(word || '');
+    el.writingPattern.style.setProperty('--writing-letter-count', String(Math.max(expectedLetters, 1)));
+    el.writingPattern.classList.toggle('long-word', expectedLetters > 18);
+    el.writingPattern.classList.toggle('very-long-word', expectedLetters > 28);
+
+    let letterNumber = 0;
+
+    expectedCharacters.forEach((expectedCharacter, characterIndex) => {
+      if (/\s/u.test(expectedCharacter)) {
+        const space = document.createElement('span');
+        space.className = 'pattern-space';
+        space.setAttribute('aria-hidden', 'true');
+        el.writingPattern.appendChild(space);
+        return;
+      }
+
+      if (/[-'’]/u.test(expectedCharacter)) {
+        const mark = document.createElement('span');
+        mark.className = 'pattern-mark';
+        mark.textContent = expectedCharacter;
+        mark.setAttribute('aria-hidden', 'true');
+        el.writingPattern.appendChild(mark);
+        return;
+      }
+
+      letterNumber += 1;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.inputMode = 'text';
+      input.maxLength = 1;
+      input.autocomplete = 'off';
+      input.autocapitalize = 'off';
+      input.autocorrect = 'off';
+      input.spellcheck = false;
+      input.className = 'writing-letter-input';
+      input.dataset.characterIndex = String(characterIndex);
+      input.dataset.slotOrder = String(letterNumber - 1);
+      input.setAttribute('aria-label', 'Letter ' + letterNumber + ' of ' + expectedLetters);
+      el.writingPattern.appendChild(input);
+    });
+
+    fillWritingSlotsFromText(String(typedValue || ''), 0, true);
+    syncWritingAggregate();
+  }
+
+  function getWritingLetterInputs() {
+    return Array.from(el.writingPattern.querySelectorAll('.writing-letter-input'));
+  }
+
+  function getWritingExpectedInputs() {
+    return getWritingLetterInputs().filter(input => input.dataset.overflow !== 'true');
+  }
+
+  function createWritingOverflowSlot(character) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.inputMode = 'text';
+    input.maxLength = 1;
+    input.autocomplete = 'off';
+    input.autocapitalize = 'off';
+    input.autocorrect = 'off';
+    input.spellcheck = false;
+    input.className = 'writing-letter-input pattern-extra';
+    input.dataset.overflow = 'true';
+    input.dataset.slotOrder = String(getWritingLetterInputs().length);
+    input.setAttribute('aria-label', 'Extra letter');
+    input.value = character || '';
+    el.writingPattern.appendChild(input);
+    return input;
+  }
+
+  function getWritingAnswer() {
+    const expectedCharacters = Array.from(
+      state.current && state.current.german ? state.current.german : el.writingPattern.dataset.expectedWord || ''
+    );
+    const inputByCharacterIndex = new Map();
+
+    getWritingExpectedInputs().forEach(input => {
+      inputByCharacterIndex.set(Number(input.dataset.characterIndex), input.value || '');
+    });
+
+    const expectedPart = expectedCharacters.map((character, index) => {
+      if (/\s/u.test(character) || /[-'’]/u.test(character)) return character;
+      return inputByCharacterIndex.get(index) || '';
+    }).join('');
+
+    const overflowPart = getWritingLetterInputs()
+      .filter(input => input.dataset.overflow === 'true')
+      .map(input => input.value || '')
+      .join('');
+
+    return (expectedPart + overflowPart).trim();
+  }
+
+  function syncWritingAggregate() {
+    const answer = getWritingAnswer();
+    el.writingInput.value = answer;
+
+    getWritingLetterInputs().forEach(input => {
+      input.classList.toggle('filled', Boolean(input.value));
+    });
+
+    const expectedLetters = getWritingExpectedInputs().length;
+    const enteredLetters = getWritingLetterInputs().filter(input => Boolean(input.value)).length;
+    el.writingPattern.setAttribute(
+      'aria-label',
+      expectedLetters + ' letter answer pattern. ' + enteredLetters + ' letters entered.'
+    );
+  }
+
+  function fillWritingSlotsFromText(text, startIndex, clearFollowing) {
+    const incomingCharacters = Array.from(String(text || ''))
+      .filter(character => !/\s/u.test(character) && !/[-'’]/u.test(character));
+    let inputs = getWritingLetterInputs();
+    const safeStart = Math.max(0, Math.min(Number(startIndex) || 0, inputs.length));
+
+    if (clearFollowing) {
+      inputs.slice(safeStart).forEach(input => {
+        input.value = '';
+      });
+      el.writingPattern.querySelectorAll('.writing-letter-input[data-overflow="true"]').forEach(input => input.remove());
+      inputs = getWritingLetterInputs();
+    }
+
+    incomingCharacters.forEach((character, offset) => {
+      const targetIndex = safeStart + offset;
+      let target = inputs[targetIndex];
+      if (!target) {
+        target = createWritingOverflowSlot('');
+        inputs = getWritingLetterInputs();
+      }
+      target.value = character;
+    });
+
+    syncWritingAggregate();
+    return Math.min(safeStart + incomingCharacters.length, Math.max(getWritingLetterInputs().length - 1, 0));
+  }
+
+  function focusWritingSlot(index, selectContent) {
+    const inputs = getWritingLetterInputs();
+    if (!inputs.length) return;
+    const safeIndex = Math.max(0, Math.min(Number(index) || 0, inputs.length - 1));
+    const input = inputs[safeIndex];
+    if (input.disabled) return;
+
+    input.focus({ preventScroll: true });
+    if (selectContent && typeof input.select === 'function') {
+      input.select();
+    }
+  }
+
+  function focusFirstAvailableWritingSlot() {
+    const inputs = getWritingLetterInputs();
+    if (!inputs.length) return;
+    const emptyIndex = inputs.findIndex(input => !input.value);
+    focusWritingSlot(emptyIndex >= 0 ? emptyIndex : inputs.length - 1, true);
+  }
+
+  function handleWritingPatternFocusIn(event) {
+    const input = event.target.closest('.writing-letter-input');
+    if (!input) return;
+    el.writingPatternWrap.classList.add('is-focused');
+    window.setTimeout(() => {
+      if (document.activeElement === input && typeof input.select === 'function') input.select();
+    }, 0);
+  }
+
+  function handleWritingPatternFocusOut() {
+    window.setTimeout(() => {
+      if (!el.writingPattern.contains(document.activeElement)) {
+        el.writingPatternWrap.classList.remove('is-focused');
+      }
+    }, 0);
+  }
+
+  function handleWritingSlotInput(event) {
+    const input = event.target.closest('.writing-letter-input');
+    if (!input) return;
+
+    const characters = Array.from(input.value || '').filter(character => !/\s/u.test(character));
+    input.value = characters.length ? characters[characters.length - 1] : '';
+    syncWritingAggregate();
+
+    if (input.value) {
+      const inputs = getWritingLetterInputs();
+      const index = inputs.indexOf(input);
+      if (index >= 0 && index < inputs.length - 1) {
+        focusWritingSlot(index + 1, true);
+      }
+    }
+  }
+
+  function handleWritingSlotKeydown(event) {
+    const input = event.target.closest('.writing-letter-input');
+    if (!input) return;
+
+    const inputs = getWritingLetterInputs();
+    const index = inputs.indexOf(input);
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      submitWritingAnswer();
+      return;
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      focusWritingSlot(index - 1, true);
+      return;
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      focusWritingSlot(index + 1, true);
+      return;
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      focusWritingSlot(0, true);
+      return;
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault();
+      focusWritingSlot(inputs.length - 1, true);
+      return;
+    }
+
+    if (event.key === 'Backspace' && !input.value && index > 0) {
+      event.preventDefault();
+      const previous = inputs[index - 1];
+      previous.value = '';
+      syncWritingAggregate();
+      focusWritingSlot(index - 1, true);
+      return;
+    }
+
+    if (event.key === 'Delete') {
+      event.preventDefault();
+      input.value = '';
+      syncWritingAggregate();
+      return;
+    }
+
+    if (event.key === ' ' || event.key === '-' || event.key === "'") {
+      event.preventDefault();
+      focusWritingSlot(index + 1, true);
+      return;
+    }
+
+    if (
+      event.key.length === 1 &&
+      input.value &&
+      input.selectionStart === input.selectionEnd &&
+      index === inputs.length - 1
+    ) {
+      event.preventDefault();
+      const overflowInput = createWritingOverflowSlot(event.key);
+      syncWritingAggregate();
+      overflowInput.focus({ preventScroll: true });
+      overflowInput.select();
+    }
+  }
+
+  function handleWritingSlotPaste(event) {
+    const input = event.target.closest('.writing-letter-input');
+    if (!input) return;
+
+    event.preventDefault();
+    const pastedText = event.clipboardData ? event.clipboardData.getData('text') : '';
+    const inputs = getWritingLetterInputs();
+    const startIndex = Math.max(0, inputs.indexOf(input));
+    const finalIndex = fillWritingSlotsFromText(pastedText, startIndex, true);
+    focusWritingSlot(finalIndex, true);
+  }
+
+  function setWritingFeedback(message, type, highlightedAnswer, answerLabel) {
+    el.writingFeedback.replaceChildren();
+    el.writingFeedback.className = 'writing-feedback' + (type ? ' ' + type : '');
+
+    if (message) {
+      const messageText = document.createElement('span');
+      messageText.className = 'writing-feedback-message';
+      messageText.textContent = message;
+      el.writingFeedback.appendChild(messageText);
+    }
+
+    if (highlightedAnswer) {
+      const answer = document.createElement('span');
+      answer.className = 'writing-answer-reveal';
+
+      const label = document.createElement('span');
+      label.className = 'writing-answer-label';
+      label.textContent = (answerLabel || 'Correct answer') + ':';
+
+      const value = document.createElement('strong');
+      value.className = 'writing-answer-value';
+      value.textContent = highlightedAnswer;
+
+      answer.append(label, value);
+      el.writingFeedback.appendChild(answer);
+    }
+
+    el.writingPatternWrap.classList.toggle('is-correct', type === 'correct');
+    el.writingPatternWrap.classList.toggle('is-wrong', type === 'wrong');
+  }
+
+  function buildQuizCandidates(correctWord, answerField) {
+    const combined = uniqueWords(
+      state.roundWords.concat(state.seenWords, state.queue)
+    ).filter(word => word.token !== correctWord.token);
+
+    shuffle(combined);
+    const selected = [correctWord].concat(combined.slice(0, 3));
+    shuffle(selected);
+
+    return selected.map(word => ({
+      token: word.token,
+      label: answerField === 'german' ? germanDisplay(word) : word.english
+    }));
+  }
+
+  function renderOptions(options, onChoose) {
+    el.quizOptions.replaceChildren();
+    el.quizOptions.classList.remove('hidden');
+
+    options.forEach(option => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'answer-option';
+      button.dataset.token = option.token;
+      button.textContent = option.label;
+      button.addEventListener('click', () => {
+        if (state.answered) return;
+        onChoose(option);
+      });
+      el.quizOptions.appendChild(button);
+    });
+  }
+
+  function markOptions(chosenToken, correctToken) {
+    Array.from(el.quizOptions.children).forEach(button => {
+      button.disabled = true;
+      if (button.dataset.token === correctToken) button.classList.add('correct');
+      else if (button.dataset.token === chosenToken) button.classList.add('wrong');
+    });
+  }
+
+  function recordScoredAnswer(correct) {
+    if (correct) {
+      state.correct += 1;
+      state.streak += 1;
+    } else {
+      state.wrong += 1;
+      state.streak = 0;
+    }
+    updateStats();
+  }
+
+  function advance() {
+    el.nextActions.classList.add('hidden');
+    state.index += 1;
+    showNextCard();
+  }
+
+  function finishRound() {
+    state.current = null;
+    state.completedRoundWords = cloneWords(state.roundWords);
+    el.cardButton.classList.add('hidden');
+    hideAnswerPanels();
+    el.restartRoundButton.classList.add('hidden');
+    el.completePanel.classList.remove('hidden');
+
+    const answered = state.correct + state.wrong;
+
+    if (state.mode === 'review') {
+      el.completeScore.textContent = state.correct + ' remembered';
+      el.completeMessage.textContent = state.wrong
+        ? state.wrong + ' word' + (state.wrong === 1 ? '' : 's') + ' added to practice.'
+        : 'You remembered every word in this round.';
+    } else {
+      el.completeScore.textContent = state.correct + ' of ' + answered;
+      const percentage = answered ? Math.round((state.correct / answered) * 100) : 0;
+      el.completeMessage.textContent = percentage >= 80
+        ? 'Strong round — keep going.'
+        : 'Review the difficult words and try again.';
+    }
+
+    const hasDifficultWords = state.reviewBank.length > 0;
+    el.reviewWritingButton.classList.toggle('hidden', !hasDifficultWords);
+    el.reviewQuizButton.classList.toggle('hidden', !hasDifficultWords);
+    el.fullReviewWritingButton.classList.toggle(
+      'hidden',
+      !(state.mode === 'review' && state.completedRoundWords.length > 0)
+    );
+
+    state.index = state.total;
+    updateStats();
+  }
+
+  function startReviewBankRound(mode) {
+    if (!state.reviewBank.length) return;
+    startLocalRound(state.reviewBank, mode);
+  }
+
+  function startCompletedReviewWritingRound() {
+    if (!state.completedRoundWords.length) return;
+    startLocalRound(state.completedRoundWords, 'writing');
+  }
+
+  function startLocalRound(words, mode) {
+    showView('study');
+    const selected = cloneWords(uniqueWords(words));
+    if (!selected.length) return;
+
+    el.modeSelect.value = mode;
+    syncModeControls();
+    state.source = 'local';
+    state.sessionId = '';
+    state.localRoundSeed = cloneWords(selected);
+    prepareRoundState(mode, mode === 'writing' ? 'en-de' : el.directionSelect.value);
+    state.bankSnapshot = cloneWords(state.reviewBank);
+    state.queue = cloneWords(selected);
+    state.roundWords = cloneWords(selected);
+    state.total = selected.length;
+    state.hasMore = false;
+    state.loadingBatch = false;
+    el.restartRoundButton.classList.remove('hidden');
+    resetCardUi();
+    setMessage('Practice round ready.');
+    showNextCard();
+  }
+
+  async function restartCurrentRound() {
+    if (!state.total) return;
+
+    const hasProgress = state.index > 0 || state.answered || state.revealed || state.writingAttempt > 1;
+    if (hasProgress && !window.confirm('Restart this round and reset its progress?')) return;
+
+    state.reviewBank = cloneWords(state.bankSnapshot);
+    saveReviewBank();
+
+    if (state.source === 'local') {
+      const seed = cloneWords(state.localRoundSeed);
+      prepareRoundState(state.mode, state.direction);
+      state.source = 'local';
+      state.localRoundSeed = cloneWords(seed);
+      state.queue = cloneWords(seed);
+      state.roundWords = cloneWords(seed);
+      state.total = seed.length;
+      state.hasMore = false;
+      state.loadingBatch = false;
+      resetCardUi();
+      el.restartRoundButton.classList.remove('hidden');
+      showNextCard();
+      return;
+    }
+
+    if (!state.sessionId) return;
+    resetCardUi();
+    setMessage('Restarting the same round…');
+
+    try {
+      const result = await apiCall('restartStudySession', {
+        sessionId: state.sessionId,
+        clientId: state.clientId
+      });
+      if (!result || !result.ok) {
+        setMessage('The round could not be restarted.', true);
+        return;
+      }
+
+      const words = annotateWords(result.words || [], state.sessionId);
+      prepareRoundState(state.mode, state.direction);
+      state.source = 'backend';
+      state.queue = words.slice();
+      state.roundWords = words.slice();
+      state.total = Number(result.total || words.length);
+      state.hasMore = Boolean(result.hasMore);
+      state.loadingBatch = false;
+      el.restartRoundButton.classList.remove('hidden');
+      setMessage('Round restarted with the same words and order.');
+      showNextCard();
+    } catch (error) {
+      handleServerFailure(error);
+    }
+  }
+
+  function prefetchIfNeeded() {
+    if (state.source === 'backend' && state.hasMore && state.queue.length <= 6 && !state.loadingBatch) {
+      fetchNextBatch();
+    }
+  }
+
+  async function fetchNextBatch() {
+    if (!state.hasMore || state.loadingBatch || !state.sessionId) return;
+    state.loadingBatch = true;
+
+    try {
+      const result = await apiCall('nextStudyBatch', {
+        sessionId: state.sessionId,
+        clientId: state.clientId
+      });
+      state.loadingBatch = false;
+
+      if (!result || !result.ok) {
+        state.hasMore = false;
+        setMessage((result && result.message) || 'The next cards could not be loaded.', true);
+        return;
+      }
+
+      const words = annotateWords(result.words || [], state.sessionId);
+      state.queue = state.queue.concat(words);
+      state.roundWords = uniqueWords(state.roundWords.concat(words));
+      state.hasMore = Boolean(result.hasMore);
+
+      if (state.waitingForBatch) {
+        state.waitingForBatch = false;
+        showNextCard();
+      }
+    } catch (error) {
+      state.loadingBatch = false;
+      state.hasMore = false;
+      handleServerFailure(error);
+    }
+  }
+
+  function resetCardUi() {
+    el.cardButton.classList.remove('hidden', 'revealed');
+    el.cardButton.disabled = true;
+    el.completePanel.classList.add('hidden');
+    hideAnswerPanels();
+    setCard('Preparing', 'Loading…', '');
+    updateStats();
+  }
+
+  function setCard(language, word, hint) {
+    el.cardLanguage.textContent = language;
+    renderCardWord(language, word);
+    el.cardHint.textContent = hint || '';
+  }
+
+  function renderCardWord(language, word) {
+    const text = String(word || '');
+    el.cardWord.replaceChildren();
+
+    if (language === 'Deutsch') {
+      const match = text.match(/^(der|die|das)\s+(.+)$/i);
+      if (match) {
+        const article = match[1].toLowerCase();
+        const tag = document.createElement('span');
+        tag.className = 'article-tag art-' + article;
+        tag.textContent = article;
+        el.cardWord.append(tag, document.createTextNode(match[2]));
+        return;
+      }
+    }
+
+    el.cardWord.textContent = text;
+  }
+
+  function germanDisplay(word) {
+    return word.type === 'noun' && isGermanArticle(word.article)
+      ? word.article + ' ' + word.german
+      : word.german;
+  }
+
+  function updateStatLabels(mode) {
+    const review = mode === 'review';
+    el.correctLabel.textContent = review ? 'Remembered' : 'Correct';
+    el.wrongLabel.textContent = review ? 'Practice' : 'Wrong';
+    el.streakLabel.textContent = review ? 'Recall streak' : 'Streak';
+  }
+
+  function updateStats() {
+    el.correctCount.textContent = state.correct;
+    el.wrongCount.textContent = state.wrong;
+    el.streakCount.textContent = state.streak;
+
+    const displayed = state.current
+      ? Math.min(state.index + 1, state.total)
+      : Math.min(state.index, state.total);
+
+    el.progressText.textContent = 'Card ' + displayed + ' of ' + state.total;
+
+    const progress = state.total
+      ? Math.min(100, (state.index / state.total) * 100)
+      : 0;
+
+    el.progressBar.style.width = progress + '%';
+  }
+
+  function addDifficultWord(word) {
+    const copy = cloneWord(word);
+    const key = wordKey(copy);
+    const existingIndex = state.reviewBank.findIndex(item => wordKey(item) === key);
+
+    if (existingIndex >= 0) {
+      state.reviewBank[existingIndex] = copy;
+    } else {
+      state.reviewBank.push(copy);
+    }
+
+    if (state.reviewBank.length > 300) {
+      state.reviewBank = state.reviewBank.slice(-300);
+    }
+
+    saveReviewBank();
+  }
+
+  function loadReviewBank() {
+    try {
+      const parsed = JSON.parse(sessionStorage.getItem(REVIEW_BANK_KEY) || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveReviewBank() {
+    try {
+      sessionStorage.setItem(REVIEW_BANK_KEY, JSON.stringify(state.reviewBank));
+    } catch (error) {
+      // Session storage is optional; the in-memory bank still works.
+    }
+  }
+
+  function configureContactEmail() {
+    // Public contact email intentionally disabled. Use the in-app feedback form.
+  }
+
+  function addSuggestionItem(seed) {
+    if (el.suggestionItems.children.length >= 20) {
+      setContributionMessage(el.suggestionMessage, 'A single request can contain at most 20 words.', true);
+      return;
+    }
+
+    state.suggestionItemCounter += 1;
+    const fragment = el.suggestionItemTemplate.content.cloneNode(true);
+    const item = fragment.querySelector('.suggestion-item');
+    item.dataset.itemId = String(state.suggestionItemCounter);
+    el.suggestionItems.appendChild(fragment);
+
+    const inserted = el.suggestionItems.lastElementChild;
+    assignSuggestionItemLabels(inserted);
+    populateSuggestionItemOptions(inserted);
+    applySuggestionItemSeed(inserted, seed || {});
+    syncSuggestionItemFields(inserted);
+    renumberSuggestionItems();
+  }
+
+  function assignSuggestionItemLabels(item) {
+    const itemId = item.dataset.itemId || String(state.suggestionItemCounter);
+    item.querySelectorAll('[data-field]').forEach(field => {
+      const fieldName = field.dataset.field || 'field';
+      field.id = 'suggestion-' + itemId + '-' + fieldName;
+      const wrapper = field.closest('.form-field');
+      const label = wrapper ? wrapper.querySelector('label') : null;
+      if (label) label.htmlFor = field.id;
+    });
+  }
+
+  function applySuggestionItemSeed(item, seed) {
+    Object.keys(seed || {}).forEach(key => {
+      const field = item.querySelector('[data-field="' + key + '"]');
+      if (field && seed[key] != null) field.value = seed[key];
+    });
+  }
+
+  function populateSuggestionItemOptions(item) {
+    const deckSelect = item.querySelector('[data-field="deck"]');
+    const levelSelect = item.querySelector('[data-field="level"]');
+    if (deckSelect) {
+      fillSelect(deckSelect, [''].concat(state.availableDecks), value => value || 'Choose a deck');
+    }
+    if (levelSelect) {
+      fillSelect(levelSelect, state.availableLevels.length ? state.availableLevels : ['Unassigned']);
+      if (Array.from(levelSelect.options).some(option => option.value === 'Unassigned')) {
+        levelSelect.value = 'Unassigned';
+      }
+    }
+  }
+
+  function refreshSuggestionItemOptions() {
+    Array.from(el.suggestionItems.children).forEach(item => {
+      const deck = item.querySelector('[data-field="deck"]');
+      const level = item.querySelector('[data-field="level"]');
+      const previousDeck = deck ? deck.value : '';
+      const previousLevel = level ? level.value : '';
+      populateSuggestionItemOptions(item);
+      if (deck && state.availableDecks.indexOf(previousDeck) >= 0) deck.value = previousDeck;
+      if (level && state.availableLevels.indexOf(previousLevel) >= 0) level.value = previousLevel;
+      syncSuggestionItemFields(item);
+    });
+  }
+
+  function renumberSuggestionItems() {
+    const items = Array.from(el.suggestionItems.children);
+    items.forEach((item, index) => {
+      const number = item.querySelector('[data-role="item-number"]');
+      const remove = item.querySelector('.remove-suggestion-item');
+      if (number) number.textContent = String(index + 1);
+      if (remove) remove.classList.toggle('hidden', items.length === 1);
+    });
+  }
+
+  function handleSuggestionItemsClick(event) {
+    const item = event.target.closest('.suggestion-item');
+    if (!item) return;
+
+    if (event.target.closest('.remove-suggestion-item')) {
+      if (el.suggestionItems.children.length > 1) {
+        item.remove();
+        renumberSuggestionItems();
+      }
+      return;
+    }
+
+    if (event.target.closest('.check-item-availability')) {
+      checkSuggestionItemAvailability(item);
+    }
+  }
+
+  function handleSuggestionItemsChange(event) {
+    const item = event.target.closest('.suggestion-item');
+    if (!item) return;
+    if (event.target.matches('[data-field="type"], [data-field="deckSelection"]')) {
+      syncSuggestionItemFields(item);
+    }
+  }
+
+  function syncSuggestionItemFields(item) {
+    const type = item.querySelector('[data-field="type"]');
+    const articleField = item.querySelector('[data-role="article-field"]');
+    const article = item.querySelector('[data-field="article"]');
+    const deckSelection = item.querySelector('[data-field="deckSelection"]');
+    const existingDeckField = item.querySelector('[data-role="existing-deck-field"]');
+    const newDeckField = item.querySelector('[data-role="new-deck-field"]');
+    const deck = item.querySelector('[data-field="deck"]');
+    const requestedNewDeck = item.querySelector('[data-field="requestedNewDeck"]');
+
+    const isNoun = type && type.value === 'noun';
+    articleField.classList.toggle('hidden', !isNoun);
+    article.required = isNoun;
+    if (!isNoun) article.value = '';
+
+    const requestingNewDeck = deckSelection && deckSelection.value === 'new';
+    existingDeckField.classList.toggle('hidden', requestingNewDeck);
+    newDeckField.classList.toggle('hidden', !requestingNewDeck);
+    deck.required = !requestingNewDeck;
+    requestedNewDeck.required = requestingNewDeck;
+    if (requestingNewDeck) deck.value = '';
+    else requestedNewDeck.value = '';
+  }
+
+  function suggestionItemData(item) {
+    const read = field => {
+      const node = item.querySelector('[data-field="' + field + '"]');
+      return node ? node.value : '';
+    };
+
+    return {
+      german: read('german'),
+      article: read('article'),
+      english: read('english'),
+      type: read('type'),
+      deckSelection: read('deckSelection'),
+      deck: read('deck'),
+      requestedNewDeck: read('requestedNewDeck'),
+      level: read('level'),
+      hint: read('hint')
+    };
+  }
+
+  async function checkSuggestionItemAvailability(item) {
+    const data = suggestionItemData(item);
+    const query = data.german.trim();
+    const message = item.querySelector('[data-role="item-message"]');
+    const matches = item.querySelector('[data-role="item-matches"]');
+    const button = item.querySelector('.check-item-availability');
+    matches.replaceChildren();
+
+    if (query.length < 2) {
+      setContributionMessage(message, 'Enter at least two characters in the German word.', true);
+      const input = item.querySelector('[data-field="german"]');
+      if (input) input.focus();
+      return;
+    }
+
+    button.disabled = true;
+    setContributionMessage(message, 'Checking the vocabulary…', false);
+
+    try {
+      const result = await apiCall('publicVocabularySearch', {
+        clientId: state.clientId,
+        query: query
+      });
+      button.disabled = false;
+      if (!result || !result.ok) {
+        setContributionMessage(message, 'Availability check is temporarily unavailable.', true);
+        return;
+      }
+      renderSuggestionItemMatches(item, result.results || [], query);
+    } catch (error) {
+      button.disabled = false;
+      setContributionMessage(
+        message,
+        /too many requests/i.test(error && error.message ? error.message : '')
+          ? 'Too many checks. Please wait and try again.'
+          : 'Availability check is temporarily unavailable.',
+        true
+      );
+    }
+  }
+
+  function renderSuggestionItemMatches(item, results, query) {
+    const matches = item.querySelector('[data-role="item-matches"]');
+    const message = item.querySelector('[data-role="item-message"]');
+    matches.replaceChildren();
+    const normalized = normalizeSearch(query);
+    const exactGerman = results.find(word => normalizeSearch(word.german) === normalized);
+
+    if (!results.length) {
+      setContributionMessage(message, 'No matching German word was found.', false, true);
+      return;
+    }
+
+    setContributionMessage(
+      message,
+      exactGerman
+        ? 'A word with this German spelling already exists. Check the meaning before submitting.'
+        : 'Similar vocabulary was found. Review it before submitting.',
+      Boolean(exactGerman)
+    );
+
+    results.slice(0, 5).forEach(word => {
+      const article = document.createElement('article');
+      article.className = 'search-result-card';
+      const title = document.createElement('div');
+      title.className = 'search-result-title';
+      title.textContent = (word.article ? word.article + ' ' : '') + word.german + ': ' + word.english;
+      const meta = document.createElement('div');
+      meta.className = 'search-result-meta';
+      meta.textContent = [word.deck, formatType(word.type), word.level].filter(Boolean).join(' · ');
+      article.append(title, meta);
+      matches.appendChild(article);
+    });
+  }
+
+  async function submitWordSuggestionForm(event) {
+    event.preventDefault();
+    if (!el.wordSuggestionForm.reportValidity()) return;
+
+    const items = Array.from(el.suggestionItems.children);
+    if (!items.length) {
+      setContributionMessage(el.suggestionMessage, 'Add at least one word.', true);
+      return;
+    }
+
+    const request = {
+      clientId: state.clientId,
+      formStartedAt: state.wordFormStartedAt,
+      name: el.suggestionName.value,
+      email: el.suggestionEmail.value,
+      leaderboardOptIn: el.leaderboardOptIn.checked,
+      publicDisplayName: el.publicDisplayName.value,
+      note: el.suggestionNote.value,
+      website: el.suggestionWebsite.value,
+      consent: el.suggestionConsent.checked,
+      words: items.map(suggestionItemData)
+    };
+
+    el.submitSuggestionButton.disabled = true;
+    el.addSuggestionItemButton.disabled = true;
+    setContributionMessage(el.suggestionMessage, 'Sending the suggestions for review…', false);
+
+    try {
+      const result = await apiCall('submitWordSuggestionsBatch', request);
+      el.submitSuggestionButton.disabled = false;
+      el.addSuggestionItemButton.disabled = false;
+
+      if (!result || !result.items) {
+        handleBatchSuggestionResponseError(result || {});
+        return;
+      }
+
+      renderBatchSuggestionResults(result.items);
+      if (result.acceptedCount > 0) {
+        const previousName = el.suggestionName.value;
+        const previousEmail = el.suggestionEmail.value;
+        const previousDisplayName = el.publicDisplayName.value;
+        const previousOptIn = el.leaderboardOptIn.checked;
+
+        if (result.rejectedCount === 0) {
+          el.wordSuggestionForm.reset();
+          el.suggestionName.value = previousName;
+          el.suggestionEmail.value = previousEmail;
+          el.leaderboardOptIn.checked = previousOptIn;
+          el.publicDisplayName.value = previousDisplayName;
+          syncLeaderboardOptIn();
+          el.suggestionItems.replaceChildren();
+          addSuggestionItem();
+        } else {
+          const originalItems = Array.from(el.suggestionItems.children);
+          (result.items || []).forEach((itemResult, index) => {
+            if (itemResult.ok && originalItems[index]) originalItems[index].remove();
+          });
+          if (!el.suggestionItems.children.length) addSuggestionItem();
+          renumberSuggestionItems();
+          el.suggestionConsent.checked = false;
+        }
+
+        state.wordFormStartedAt = Date.now();
+        setContributionMessage(
+          el.suggestionMessage,
+          result.acceptedCount + ' word' + (result.acceptedCount === 1 ? '' : 's') +
+            ' sent for admin review.' +
+            (result.rejectedCount ? ' Keep the remaining word cards and correct them before resubmitting.' :
+              ' Approved contributors will receive a thank-you email.'),
+          false,
+          true
+        );
+      } else {
+        setContributionMessage(el.suggestionMessage, 'No word was submitted. Review the results below.', true);
+      }
+    } catch (error) {
+      el.submitSuggestionButton.disabled = false;
+      el.addSuggestionItemButton.disabled = false;
+      setContributionMessage(el.suggestionMessage, contributionFailureMessage(error), true);
+    }
+  }
+
+  function renderBatchSuggestionResults(items) {
+    el.suggestionBatchResults.replaceChildren();
+    (items || []).forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'batch-result-item ' + (item.ok ? 'success' : 'error');
+      if (item.ok) {
+        row.textContent = 'Word ' + item.itemNumber + ': ' + item.german + ': ' + item.english + ' was submitted.';
+      } else if (item.error === 'DUPLICATE') {
+        const existing = item.existing || {};
+        row.textContent = 'Word ' + item.itemNumber + ': already present as ' +
+          (existing.article ? existing.article + ' ' : '') + (existing.german || item.german) +
+          ' — ' + (existing.english || item.english) + '.';
+      } else if (item.error === 'PENDING_DUPLICATE') {
+        row.textContent = 'Word ' + item.itemNumber + ': the same word is already pending review.';
+      } else {
+        row.textContent = 'Word ' + item.itemNumber + ': could not be submitted.';
+      }
+      el.suggestionBatchResults.appendChild(row);
+    });
+  }
+
+  function handleBatchSuggestionResponseError(result) {
+    if (result.error === 'FORM_TOO_FAST') {
+      setContributionMessage(el.suggestionMessage, 'Please review the form for a moment, then submit again.', true);
+      return;
+    }
+    if (result.error === 'FORM_EXPIRED') {
+      state.wordFormStartedAt = Date.now();
+      setContributionMessage(el.suggestionMessage, 'The form timed out. Please check the details and submit again.', true);
+      return;
+    }
+    setContributionMessage(el.suggestionMessage, 'The suggestions could not be submitted.', true);
+  }
+
+  async function submitFeedbackForm(event) {
+    event.preventDefault();
+    if (!el.feedbackForm.reportValidity()) return;
+
+    el.submitFeedbackButton.disabled = true;
+    setContributionMessage(el.feedbackMessage, 'Sending your feedback privately…', false);
+
+    const request = {
+      clientId: state.clientId,
+      formStartedAt: state.feedbackFormStartedAt,
+      name: el.feedbackName.value,
+      email: el.feedbackEmail.value,
+      feedback: el.feedbackText.value,
+      website: el.feedbackWebsite.value,
+      consent: el.feedbackConsent.checked
+    };
+
+    try {
+      const result = await apiCall('submitGeneralFeedback', request);
+      el.submitFeedbackButton.disabled = false;
+
+      if (!result || !result.ok) {
+        if (result && result.error === 'RECENT_DUPLICATE') {
+          setContributionMessage(el.feedbackMessage, 'This feedback was already submitted recently.', true);
+        } else if (result && result.error === 'FORM_TOO_FAST') {
+          setContributionMessage(el.feedbackMessage, 'Please review the message for a moment, then submit again.', true);
+        } else if (result && result.error === 'FORM_EXPIRED') {
+          state.feedbackFormStartedAt = Date.now();
+          setContributionMessage(el.feedbackMessage, 'The form timed out. Please submit it again.', true);
+        } else {
+          setContributionMessage(el.feedbackMessage, 'The feedback could not be submitted.', true);
+        }
+        return;
+      }
+
+      const previousName = el.feedbackName.value;
+      const previousEmail = el.feedbackEmail.value;
+      el.feedbackForm.reset();
+      el.feedbackName.value = previousName;
+      el.feedbackEmail.value = previousEmail;
+      state.feedbackFormStartedAt = Date.now();
+
+      setContributionMessage(
+        el.feedbackMessage,
+        'Thank you. Your feedback was sent privately for admin review.',
+        false,
+        true
+      );
+    } catch (error) {
+      el.submitFeedbackButton.disabled = false;
+      setContributionMessage(el.feedbackMessage, contributionFailureMessage(error), true);
+    }
+  }
+
+  function contributionFailureMessage(error) {
+    const raw = error && error.message ? error.message : '';
+
+    if (/valid email/i.test(raw)) return 'Please enter a valid email address.';
+    if (/proposed new deck|choose a deck/i.test(raw)) return 'Choose an existing deck or enter the proposed new deck name.';
+    if (/enter your name/i.test(raw)) return 'Please enter your name.';
+    if (/article/i.test(raw)) return 'Please choose der, die, or das for the noun.';
+    if (/consent|confirm/i.test(raw)) return 'Please confirm the privacy checkbox.';
+    if (/configuration|contribution service/i.test(raw)) return 'The contribution service is temporarily unavailable.';
+    if (/too many requests/i.test(raw)) return 'Too many submissions were made. Please wait and try again.';
+    return raw || 'The contribution could not be submitted.';
+  }
+
+  function setContributionMessage(node, message, isError, isSuccess) {
+    node.textContent = message || '';
+    node.classList.toggle('error', Boolean(isError));
+    node.classList.toggle('success', Boolean(isSuccess));
+  }
+
+  async function runPublicSearch(event) {
+    event.preventDefault();
+    const query = el.publicSearchInput.value.trim();
+    el.publicSearchResults.replaceChildren();
+
+    if (query.length < 2) {
+      setPublicSearchMessage('', false);
+      return;
+    }
+
+    el.publicSearchButton.disabled = true;
+    setPublicSearchMessage('Searching…', false);
+
+    try {
+      const result = await apiCall('publicVocabularySearch', {
+        clientId: state.clientId,
+        query: query
+      });
+      el.publicSearchButton.disabled = false;
+
+      if (!result || !result.ok) {
+        setPublicSearchMessage('Search is temporarily unavailable.', true);
+        return;
+      }
+
+      renderPublicSearchResults(result.results || [], query, result.limit || 12);
+    } catch (error) {
+      el.publicSearchButton.disabled = false;
+      setPublicSearchMessage(
+        /too many requests/i.test(error && error.message ? error.message : '')
+          ? 'Too many searches. Please wait and try again.'
+          : 'Search is temporarily unavailable.',
+        true
+      );
+    }
+  }
+
+  function renderPublicSearchResults(results, query, limit) {
+    el.publicSearchResults.replaceChildren();
+
+    if (!results.length) {
+      setPublicSearchMessage('No matching vocabulary found.', false);
+      return;
+    }
+
+    const normalizedQuery = normalizeSearch(query);
+    const exactMatch = results.some(word => {
+      return normalizeSearch(word.german) === normalizedQuery || normalizeSearch(word.english) === normalizedQuery;
+    });
+
+    setPublicSearchMessage(
+      exactMatch
+        ? 'This word is already present in the vocabulary.'
+        : results.length + ' matching result' + (results.length === 1 ? '' : 's') + ' shown' + (results.length >= limit ? ' (limited).' : '.'),
+      false
+    );
+
+    results.forEach(word => {
+      const article = document.createElement('article');
+      article.className = 'search-result-card';
+
+      const title = document.createElement('div');
+      title.className = 'search-result-title';
+      title.textContent = (word.article ? word.article + ' ' : '') + word.german + ': ' + word.english;
+
+      const meta = document.createElement('div');
+      meta.className = 'search-result-meta';
+      meta.textContent = [word.deck, formatType(word.type), word.level].filter(Boolean).join(' · ');
+
+      article.append(title, meta);
+      el.publicSearchResults.appendChild(article);
+    });
+  }
+
+  function setPublicSearchMessage(message, isError) {
+    el.publicSearchMessage.textContent = message || '';
+    el.publicSearchMessage.classList.toggle('error', Boolean(isError));
+  }
+
+  function formatType(type) {
+    const labels = {
+      noun: 'Noun',
+      verb: 'Verb',
+      adjective: 'Adjective',
+      other: 'Other'
+    };
+    return labels[type] || type;
+  }
+
+  function setMessage(message, isError) {
+    el.setupMessage.textContent = message || '';
+    el.setupMessage.classList.toggle('error', Boolean(isError));
+  }
+
+  function handleServerFailure(error) {
+    el.newRoundButton.disabled = false;
+    setConnectionActions(true);
+
+    const raw = error && error.message ? error.message : '';
+    let message = 'The app could not connect. Check your connection and retry.';
+
+    if (/permission|access denied/i.test(raw)) {
+      message = 'This web-app deployment is not publicly accessible. Open the production /exec link.';
+    } else if (/configuration|spreadsheet|sheet.*not found/i.test(raw)) {
+      message = 'The vocabulary service is temporarily unavailable because its server configuration needs attention.';
+    } else if (/too many requests/i.test(raw)) {
+      message = 'Too many requests were made. Wait a moment and retry.';
+    } else if (/session/i.test(raw)) {
+      message = 'Your study session expired. Start a new round.';
+    }
+
+    setMessage(message, true);
+  }
+
+  function setConnectionActions(visible) {
+    el.connectionActions.classList.toggle('hidden', !visible);
+  }
+
+  function annotateWords(words, sessionId) {
+    return words.map(word => {
+      const copy = cloneWord(word);
+      copy.originSessionId = sessionId;
+      return copy;
+    });
+  }
+
+  function cloneWord(word) {
+    return {
+      token: String(word.token || makeLocalToken()),
+      deck: String(word.deck || 'General'),
+      german: String(word.german || ''),
+      article: String(word.article || ''),
+      english: String(word.english || ''),
+      type: String(word.type || 'other'),
+      hint: String(word.hint || ''),
+      level: String(word.level || 'Unassigned'),
+      originSessionId: String(word.originSessionId || '')
+    };
+  }
+
+  function cloneWords(words) {
+    return (words || []).map(cloneWord);
+  }
+
+  function uniqueWords(words) {
+    const seen = new Set();
+    const result = [];
+
+    (words || []).forEach(word => {
+      const key = wordKey(word);
+      if (seen.has(key)) return;
+      seen.add(key);
+      result.push(cloneWord(word));
+    });
+
+    return result;
+  }
+
+  function wordKey(word) {
+    return [
+      normalizeSearch(word.german),
+      normalizeSearch(word.english),
+      normalizeSearch(word.article)
+    ].join('|');
+  }
+
+  function normalizeSearch(value) {
+    return String(value || '')
+      .trim()
+      .toLocaleLowerCase('de-DE')
+      .normalize('NFKC')
+      .replace(/\s+/g, ' ');
+  }
+
+  function normalizeExact(value) {
+    return String(value || '')
+      .trim()
+      .normalize('NFKC')
+      .replace(/\s+/g, ' ')
+      .replace(/[.!?;,]+$/g, '');
+  }
+
+  function isGermanArticle(value) {
+    return ['der', 'die', 'das'].indexOf(String(value || '').toLowerCase()) >= 0;
+  }
+
+  function isUuid(value) {
+    return /^[0-9a-fA-F-]{36}$/.test(String(value || ''));
+  }
+
+  function makeLocalToken() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return '00000000-0000-4000-8000-' + Math.random().toString(16).slice(2, 14).padEnd(12, '0');
+  }
+
+  function getOrCreateClientId() {
+    const key = 'df_public_client_v2';
+    let value = localStorage.getItem(key);
+
+    if (!/^[A-Za-z0-9_-]{20,100}$/.test(value || '')) {
+      const bytes = new Uint8Array(24);
+      crypto.getRandomValues(bytes);
+      value = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+      localStorage.setItem(key, value);
+    }
+
+    return value;
+  }
+
+  function levenshtein(left, right) {
+    const rows = left.length + 1;
+    const columns = right.length + 1;
+    const matrix = Array.from({ length: rows }, () => new Array(columns).fill(0));
+
+    for (let row = 0; row < rows; row++) matrix[row][0] = row;
+    for (let column = 0; column < columns; column++) matrix[0][column] = column;
+
+    for (let row = 1; row < rows; row++) {
+      for (let column = 1; column < columns; column++) {
+        const cost = left[row - 1] === right[column - 1] ? 0 : 1;
+        matrix[row][column] = Math.min(
+          matrix[row - 1][column] + 1,
+          matrix[row][column - 1] + 1,
+          matrix[row - 1][column - 1] + cost
+        );
+      }
+    }
+
+    return matrix[rows - 1][columns - 1];
+  }
+
+  function shuffle(array) {
+    for (let index = array.length - 1; index > 0; index--) {
+      const randomIndex = Math.floor(Math.random() * (index + 1));
+      const temporary = array[index];
+      array[index] = array[randomIndex];
+      array[randomIndex] = temporary;
+    }
+    return array;
+  }
+})();
