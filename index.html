@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="styles.css?v=3.5.0" rel="stylesheet"/>
+<link href="styles.css?v=3.6.0" rel="stylesheet"/>
 </head>
 <body>
 <div class="app-shell">
@@ -56,14 +56,13 @@
 </div>
 <button class="text-button hidden" id="restartRoundButton" type="button">Restart round</button>
 </div>
-<div class="card-area">
+<div class="card-area" id="cardArea">
 <button class="flashcard" disabled="" id="cardButton" type="button">
 <span class="card-language" id="cardLanguage">Ready</span>
 <span class="card-word" id="cardWord">Start a round</span>
 <span class="card-hint" id="cardHint">Choose your settings and start a round.</span>
 <span class="tap-hint">tap to reveal</span>
 </button>
-</div>
 <div class="writing-panel hidden" id="writingPanel">
 <div class="writing-article-wrap hidden" id="writingArticleWrap">
 <label class="lbl" for="writingArticleSelect">Article</label>
@@ -74,13 +73,21 @@
 <option value="das">das</option>
 </select>
 </div>
-<div class="writing-pattern-wrap"><span class="lbl">Word length</span><div aria-label="Expected word length" class="writing-pattern" id="writingPattern"></div></div><label class="lbl" for="writingInput">German answer</label>
-<div class="writing-row">
-<input autocapitalize="off" autocomplete="off" id="writingInput" maxlength="140" placeholder="Type the German word" spellcheck="false" type="text"/>
-<button class="btn primary compact" id="writingSubmitButton" type="button">Check</button>
+<div class="writing-pattern-wrap" id="writingPatternWrap">
+<label class="lbl" for="writingInput">German answer</label>
+<div class="writing-slot-field" id="writingSlotField">
+<div aria-live="polite" aria-label="German answer letter slots" class="writing-pattern" id="writingPattern"></div>
+<input aria-label="Type the German word in the letter slots" autocapitalize="off" autocomplete="off" autocorrect="off" id="writingInput" inputmode="text" maxlength="140" spellcheck="false" type="text"/>
 </div>
+</div>
+<div class="writing-card-footer">
+<div>
 <p class="writing-feedback" id="writingFeedback" role="status"></p>
 <p class="writing-attempt" id="writingAttemptText">Attempt 1 of 2</p>
+</div>
+<button class="btn primary compact" id="writingSubmitButton" type="button">Check</button>
+</div>
+</div>
 </div>
 <div class="quiz-opts hidden" id="quizOptions"></div>
 <div class="actions hidden" id="reviewActions">
@@ -447,6 +454,6 @@
 </main>
 </div>
 <script src="config.js"></script>
-<script defer="" src="app.js"></script>
+<script defer="" src="app.js?v=3.6.0"></script>
 </body>
 </html>
