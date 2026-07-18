@@ -53,6 +53,7 @@
     getPreferences: () => Object.assign({}, state.preferences),
     getProgressCount: () => state.progress.size,
     getSeenWordIds,
+    getDifficultWordIds,
     getWordProgress,
     isWordSeen,
     open: openAccountDialog,
@@ -513,6 +514,12 @@
     return Array.from(state.progress.keys()).filter(Boolean);
   }
 
+  function getDifficultWordIds() {
+    return Array.from(state.progress.values())
+      .filter(row => row && row.status === 'difficult' && row.word_id)
+      .map(row => String(row.word_id));
+  }
+
   function getWordProgress(wordOrId) {
     const wordId = typeof wordOrId === 'string'
       ? wordOrId
@@ -546,9 +553,20 @@
   function recordAnswer(word, result) {
     const wordId = String(word && word.wordId || '').trim();
     if (!wordId) return Promise.resolve(false);
-    const outcome = ['correct', 'almost', 'incorrect'].includes(result) ? result : 'incorrect';
+    const details = result && typeof result === 'object'
+      ? result
+      : { outcome: result };
+    const outcome = ['correct', 'almost', 'incorrect'].includes(details.outcome)
+      ? details.outcome
+      : 'incorrect';
+    const context = {
+      activity: ['review', 'writing', 'quiz', 'article'].includes(details.activity)
+        ? details.activity
+        : 'review',
+      attempt: Math.max(1, Math.min(2, Number(details.attempt || 1)))
+    };
     const current = sanitizeProgressRow(state.progress.get(wordId) || { word_id: wordId });
-    const updated = calculateProgress(current, outcome);
+    const updated = calculateProgress(current, outcome, context);
     state.progress.set(wordId, updated);
 
     return persistProgressRow(updated);
@@ -587,31 +605,47 @@
       });
   }
 
-  function calculateProgress(row, outcome) {
+  function calculateProgress(row, outcome, context) {
     const now = new Date();
-    const correct = outcome === 'correct';
-    const almost = outcome === 'almost';
     const next = sanitizeProgressRow(row);
+    const activity = context && context.activity || 'review';
+    const attempt = context && Number(context.attempt || 1) || 1;
+    const wasDifficult = next.status === 'difficult';
+
+    const weights = {
+      review: { correct: 12, almost: 3, incorrect: -20 },
+      writing: { correct: attempt === 1 ? 18 : 7, almost: 7, incorrect: -24 },
+      quiz: { correct: 12, almost: 4, incorrect: -18 },
+      article: { correct: 5, almost: 2, incorrect: -8 }
+    };
+    const activityWeights = weights[activity] || weights.review;
+    const delta = Number(activityWeights[outcome] || 0);
 
     next.times_seen += 1;
     next.last_result = outcome;
     next.last_studied_at = now.toISOString();
 
-    if (correct || almost) {
+    if (outcome === 'correct') {
       next.correct_count += 1;
-      next.current_streak = correct ? next.current_streak + 1 : 0;
-      next.mastery_score = Math.min(100, next.mastery_score + (correct ? 15 : 7));
+      next.current_streak += 1;
+    } else if (outcome === 'almost') {
+      next.correct_count += 1;
+      next.current_streak = 0;
     } else {
       next.wrong_count += 1;
       next.current_streak = 0;
-      next.mastery_score = Math.max(0, next.mastery_score - 15);
     }
 
-    if (!correct && !almost) {
-      next.status = 'difficult';
-    } else if (next.mastery_score >= 80 && next.correct_count >= 3) {
+    next.mastery_score = Math.max(0, Math.min(100, next.mastery_score + delta));
+
+    if (outcome === 'incorrect') {
+      const articleMistakeNeedsRepetition = activity === 'article' && next.wrong_count < 2 && next.mastery_score > 15;
+      next.status = articleMistakeNeedsRepetition ? 'learning' : 'difficult';
+    } else if (outcome === 'almost') {
+      next.status = wasDifficult ? 'difficult' : 'learning';
+    } else if (next.mastery_score >= 80 && next.correct_count >= 3 && next.current_streak >= 3) {
       next.status = 'mastered';
-    } else if (next.mastery_score >= 45) {
+    } else if (next.mastery_score >= 45 && next.current_streak >= 2) {
       next.status = 'remembered';
     } else {
       next.status = 'learning';
@@ -624,8 +658,7 @@
         : next.status === 'difficult'
           ? 1
           : 3;
-    const nextReview = new Date(now.getTime() + reviewDays * 86400000);
-    next.next_review_at = nextReview.toISOString();
+    next.next_review_at = new Date(now.getTime() + reviewDays * 86400000).toISOString();
     return next;
   }
 
