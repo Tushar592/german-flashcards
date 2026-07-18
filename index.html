@@ -6,12 +6,12 @@
 <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/><meta content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://deutsche-vokabeltrainer-api.tushar-jejurkar592.workers.dev https://*.supabase.co; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'" http-equiv="Content-Security-Policy"/>
 <meta content="#f1f0ec" name="theme-color"/>
 <meta content="light dark" name="color-scheme"/>
-<meta content="Learn German vocabulary with guided learning, review, mixed practice, writing, quiz and article modes." name="description"/>
+<meta content="Learn German vocabulary with guided learning, review, writing, quiz and article modes." name="description"/>
 <title>Deutsche Vokabeltrainer</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./styles.css?v=4.2.0-beta.1" rel="stylesheet"/>
+<link href="./styles.css?v=4.3.0-beta.1" rel="stylesheet"/>
 </head>
 <body>
 <div class="app-shell">
@@ -136,9 +136,14 @@
 <div class="big" id="completeScore">0 of 0</div>
 <p class="rmsg" id="completeMessage">Good work.</p>
 <div class="completion-actions" id="completeActions">
-<button class="btn primary hidden" id="reviewWritingButton" type="button">Test difficult words in Writing</button>
-<button class="btn hidden" id="reviewQuizButton" type="button">Test difficult words in Quiz</button>
-<button class="btn hidden" id="fullReviewWritingButton" type="button">Test this Review round in Writing</button>
+<button class="btn primary hidden" id="reviewLearnedSetButton" type="button">Review these words</button>
+<button class="btn hidden" id="writeLearnedSetButton" type="button">Practice writing these words</button>
+<button class="btn primary hidden" id="repeatReviewSetButton" type="button">Review these words again</button>
+<button class="btn hidden" id="learnMoreButton" type="button">Learn more new words</button>
+<button class="btn hidden" id="reviewWritingButton" type="button">Practice difficult words in Writing</button>
+<button class="btn hidden" id="reviewQuizButton" type="button">Practice difficult words in Quiz</button>
+<button class="btn hidden" id="fullReviewWritingButton" type="button">Write this reviewed set</button>
+<button class="btn" id="backToSetupButton" type="button">Back to Study Setup</button>
 <button class="btn primary" id="playAgainButton" type="button">New round</button>
 </div>
 </div>
@@ -197,20 +202,17 @@
 <select id="modeSelect">
 <option value="learn">Learn new words</option>
 <option value="review">Review learned words</option>
-<option value="mixed">Mixed practice</option>
 <option value="writing">Writing</option>
 <option value="quiz">Quiz</option>
 <option value="article">der / die / das</option>
 </select>
 </div>
-<div class="ctrl-group" id="newWordsLimitGroup">
-<label class="lbl" for="newWordsLimitSelect">New words</label>
-<select id="newWordsLimitSelect">
-<option value="5">5 new words</option>
-<option value="10" selected>10 new words</option>
-<option value="15">15 new words</option>
-<option value="20">20 new words</option>
-</select>
+<div class="ctrl-group writing-source-group hidden" id="writingSourceGroup">
+<span class="lbl" id="writingSourceLabel">Words to practise</span>
+<div aria-labelledby="writingSourceLabel" class="source-segmented" role="radiogroup">
+<label><input checked name="writingSource" type="radio" value="learned"/><span>My learned words</span></label>
+<label><input name="writingSource" type="radio" value="all"/><span>All vocabulary</span></label>
+</div>
 </div>
 
 </div><div class="round-start-row"><div class="ctrl-group">
@@ -481,8 +483,8 @@
 </article>
 <article class="guide-card">
 <span class="guide-number">2</span>
-<h3>Learn, Review and Mixed</h3>
-<p><strong>Learn</strong> introduces only unseen words without a score. <strong>Review</strong> uses previously introduced words and offers Remembered, Almost and Need practice. <strong>Mixed</strong> combines learned words with a limited number of new words, introducing each new word before testing it.</p>
+<h3>Learn and Review</h3>
+<p><strong>Learn new words</strong> introduces only unseen words without a score. Enter any available round length manually. When the round ends, continue directly with Review or Writing using the same set. <strong>Review learned words</strong> uses only words you have already encountered and offers Remembered, Almost and Need practice.</p>
 </article>
 <article class="guide-card">
 <span class="guide-number">3</span>
@@ -492,7 +494,7 @@
 <article class="guide-card">
 <span class="guide-number">4</span>
 <h3>Quiz and article modes</h3>
-<p>Quiz asks you to select the translation. The der/die/das mode tests noun articles. Incorrect words are added to the temporary difficult-word review bank.</p>
+<p>Writing uses learned words by default, with an optional All vocabulary source for experienced learners. Quiz asks you to select the translation. The der/die/das mode tests noun articles. Weak answers update the learner’s difficult-word status automatically.</p>
 </article>
 <article class="guide-card">
 <span class="guide-number">5</span>
@@ -581,8 +583,8 @@
 </div>
 </dialog>
 <script src="./vendor/supabase.js?v=2.110.7"></script>
-<script src="./config.js?v=4.2.0-beta.1"></script>
-<script defer src="./supabase-integration.js?v=4.2.0-beta.1"></script>
-<script defer="" src="./app.js?v=4.2.0-beta.1"></script>
+<script src="./config.js?v=4.3.0-beta.1"></script>
+<script defer src="./supabase-integration.js?v=4.3.0-beta.1"></script>
+<script defer="" src="./app.js?v=4.3.0-beta.1"></script>
 </body>
 </html>
