@@ -4183,3 +4183,138 @@ html[data-theme="dark"] .account-dialog::backdrop {
     font-size: 29px;
   }
 }
+
+/* =========================================================
+   V4.2 learning paths, reliable account centering and
+   restored navigation sizing
+   ========================================================= */
+
+/* The dialog itself fills the viewport and centers the card reliably in
+   Safari, Chrome and Firefox. */
+.account-dialog[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  inset: 0;
+  margin: 0;
+  padding: 12px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.account-dialog-card {
+  width: min(520px, 100%);
+  margin: 0 auto;
+}
+
+.sidebar-credit {
+  display: block;
+  align-self: stretch;
+  width: 100%;
+  text-align: center !important;
+}
+
+/* Restore the more substantial navigation treatment used before account sync. */
+@media (min-width: 821px) {
+  .sidebar .app-tabs {
+    width: 100%;
+    gap: 9px;
+  }
+
+  .sidebar .app-tab {
+    width: 100%;
+    min-height: 58px;
+    padding: 0 17px;
+    gap: 14px;
+    border-radius: 14px;
+    font-size: 16.5px;
+    font-weight: 750;
+  }
+
+  .sidebar .tab-icon {
+    width: 33px;
+    height: 33px;
+    flex: 0 0 33px;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+}
+
+.btn.almost {
+  border-color: color-mix(in srgb, var(--gold) 58%, var(--line));
+  background: var(--gold-bg);
+  color: var(--gold);
+}
+
+.btn.almost:hover,
+.btn.almost:focus-visible {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 18%, transparent);
+}
+
+.review-rating-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.learn-actions {
+  justify-content: center;
+}
+
+.learn-actions .btn {
+  min-width: min(260px, 100%);
+}
+
+.card-area.learning-phase .flashcard {
+  cursor: default;
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--accent-soft) 72%, transparent), transparent 52%),
+    var(--surface);
+}
+
+.card-area.learning-phase .tap-hint {
+  display: none;
+}
+
+.card-area.learning-phase .card-hint {
+  max-width: 720px;
+  color: var(--ink-soft);
+  font-size: clamp(16px, 1.8vw, 20px);
+  line-height: 1.55;
+}
+
+#newWordsLimitGroup.hidden {
+  display: none !important;
+}
+
+@media (max-width: 820px) {
+  .review-rating-actions {
+    grid-template-columns: 1fr;
+  }
+
+  /* Community belongs only to Contribute on mobile. */
+  #studyView .leaderboard-card,
+  #searchView .leaderboard-card,
+  #guideView .leaderboard-card,
+  .study-side-column > .leaderboard-card {
+    display: none !important;
+  }
+
+  #contributeView .leaderboard-card {
+    display: block !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-dialog[open] {
+    padding: 9px;
+  }
+
+  .account-dialog-card {
+    width: 100%;
+  }
+}
