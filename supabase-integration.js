@@ -2,8 +2,18 @@
   'use strict';
 
   const CONFIG = window.DEUTSCHE_VOKABELTRAINER_CONFIG || {};
-  const SUPABASE_URL = normalizeSupabaseUrl(CONFIG.supabaseUrl);
-  const SUPABASE_KEY = String(CONFIG.supabasePublishableKey || '').trim();
+  const SUPABASE_URL = normalizeSupabaseUrl(
+    CONFIG.supabaseUrl ||
+    CONFIG.SUPABASE_URL ||
+    CONFIG.supabaseProjectUrl ||
+    ''
+  );
+  const SUPABASE_KEY = String(
+    CONFIG.supabasePublishableKey ||
+    CONFIG.SUPABASE_PUBLISHABLE_KEY ||
+    CONFIG.supabaseAnonKey ||
+    ''
+  ).trim();
   const GUEST_PROGRESS_KEY = 'dv_guest_progress_v1';
   const USER_CACHE_PREFIX = 'dv_user_progress_cache_v1_';
   const PENDING_PREFIX = 'dv_user_progress_pending_v1_';
@@ -42,7 +52,11 @@
     getIdentity,
     getPreferences: () => Object.assign({}, state.preferences),
     getProgressCount: () => state.progress.size,
+    getSeenWordIds,
+    getWordProgress,
+    isWordSeen,
     open: openAccountDialog,
+    recordExposure,
     recordAnswer,
     savePreferences,
     refresh: refreshAccountData
@@ -57,7 +71,7 @@
     renderAccountState();
 
     if (!state.configured) {
-      setAuthMessage('Supabase is not configured yet. Guest progress will stay on this device.', 'info');
+      setAuthMessage('', 'info');
       state.initialized = true;
       readyResolve();
       return;
@@ -115,7 +129,7 @@
     [
       'accountDialog', 'accountDialogClose', 'accountOpenButton', 'accountOpenMobileButton',
       'accountSidebarTitle', 'accountSidebarSubtitle', 'accountMobileLabel',
-      'authGuestPanel', 'authSignedInPanel', 'authRecoveryPanel', 'authConfigNotice',
+      'authGuestPanel', 'authSignedInPanel', 'authRecoveryPanel',
       'authModeSignIn', 'authModeCreate', 'authModeReset',
       'signInForm', 'signInEmail', 'signInPassword',
       'createAccountForm', 'createDisplayName', 'createEmail', 'createPassword',
@@ -495,6 +509,40 @@
     });
   }
 
+  function getSeenWordIds() {
+    return Array.from(state.progress.keys()).filter(Boolean);
+  }
+
+  function getWordProgress(wordOrId) {
+    const wordId = typeof wordOrId === 'string'
+      ? wordOrId
+      : String(wordOrId && wordOrId.wordId || '');
+    const row = state.progress.get(String(wordId || '').trim());
+    return row ? Object.assign({}, sanitizeProgressRow(row)) : null;
+  }
+
+  function isWordSeen(wordOrId) {
+    return Boolean(getWordProgress(wordOrId));
+  }
+
+  function recordExposure(word) {
+    const wordId = String(word && word.wordId || '').trim();
+    if (!wordId) return Promise.resolve(false);
+
+    const current = sanitizeProgressRow(state.progress.get(wordId) || { word_id: wordId });
+    const now = new Date();
+    const updated = Object.assign({}, current, {
+      word_id: wordId,
+      status: current.times_seen > 0 ? current.status : 'introduced',
+      times_seen: current.times_seen + 1,
+      last_studied_at: now.toISOString(),
+      next_review_at: current.next_review_at || new Date(now.getTime() + 86400000).toISOString()
+    });
+
+    state.progress.set(wordId, updated);
+    return persistProgressRow(updated);
+  }
+
   function recordAnswer(word, result) {
     const wordId = String(word && word.wordId || '').trim();
     if (!wordId) return Promise.resolve(false);
@@ -503,15 +551,24 @@
     const updated = calculateProgress(current, outcome);
     state.progress.set(wordId, updated);
 
+    return persistProgressRow(updated);
+  }
+
+  function persistProgressRow(updated) {
+    const wordId = String(updated && updated.word_id || '').trim();
+    if (!wordId) return Promise.resolve(false);
+
     if (!state.user || !state.client) {
       saveMapToStorage(GUEST_PROGRESS_KEY, state.progress);
       renderAccountState();
+      dispatchAccountChanged();
       return Promise.resolve(true);
     }
 
     updated.user_id = state.user.id;
     saveMapToStorage(USER_CACHE_PREFIX + state.user.id, state.progress);
     renderAccountState();
+    dispatchAccountChanged();
 
     return state.client
       .from('word_progress')
@@ -690,6 +747,10 @@
     localStorage.removeItem(PENDING_PREFIX + userId);
   }
 
+  function dispatchAccountChanged() {
+    document.dispatchEvent(new CustomEvent('dv-account-changed', { detail: getIdentity() }));
+  }
+
   function getIdentity() {
     const signedIn = Boolean(state.user);
     const displayName = state.profile && state.profile.display_name
@@ -709,9 +770,6 @@
     const guestCount = signedIn ? 0 : loadGuestProgressMap().size;
     const progressCount = signedIn ? state.progress.size : guestCount;
 
-    if (el.authConfigNotice) {
-      el.authConfigNotice.classList.toggle('hidden', configured);
-    }
     if (el.authGuestPanel) el.authGuestPanel.classList.toggle('hidden', signedIn || state.recoveryMode);
     if (el.authSignedInPanel) el.authSignedInPanel.classList.toggle('hidden', !signedIn || state.recoveryMode);
     if (el.authRecoveryPanel) el.authRecoveryPanel.classList.toggle('hidden', !state.recoveryMode);
