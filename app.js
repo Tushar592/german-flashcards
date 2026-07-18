@@ -85,8 +85,8 @@
       'correctCount', 'wrongCount', 'streakCount',
       'correctLabel', 'wrongLabel', 'streakLabel',
       'progressText', 'progressBar', 'restartRoundButton',
-      'cardButton', 'cardLanguage', 'cardWord', 'cardHint',
-      'writingPanel', 'writingArticleWrap', 'writingArticleSelect',
+      'cardArea', 'cardButton', 'cardLanguage', 'cardWord', 'cardHint',
+      'writingPanel', 'writingPatternWrap', 'writingSlotField', 'writingArticleWrap', 'writingArticleSelect',
       'writingInput', 'writingSubmitButton', 'writingFeedback', 'writingPattern',
       'writingAttemptText', 'quizOptions', 'reviewActions',
       'practiceButton', 'rememberedButton', 'nextActions', 'nextButton',
@@ -140,6 +140,26 @@
         event.preventDefault();
         submitWritingAnswer();
       }
+    });
+    el.writingInput.addEventListener('input', () => {
+      renderWritingPattern(
+        state.current ? state.current.german : '',
+        el.writingInput.value
+      );
+    });
+    el.writingInput.addEventListener('focus', () => {
+      el.writingPatternWrap.classList.add('is-focused');
+      renderWritingPattern(
+        state.current ? state.current.german : '',
+        el.writingInput.value
+      );
+    });
+    el.writingInput.addEventListener('blur', () => {
+      el.writingPatternWrap.classList.remove('is-focused');
+      renderWritingPattern(
+        state.current ? state.current.german : '',
+        el.writingInput.value
+      );
     });
 
 
@@ -491,6 +511,8 @@
     el.reviewActions.classList.add('hidden');
     el.nextActions.classList.add('hidden');
     el.writingPanel.classList.add('hidden');
+    el.cardArea.classList.remove('writing-mode');
+    el.writingPatternWrap.classList.remove('is-focused', 'is-correct', 'is-wrong', 'is-locked');
     el.writingFeedback.textContent = '';
     el.writingFeedback.className = 'writing-feedback';
   }
@@ -594,18 +616,20 @@
       state.current.hint || 'Type the German word'
     );
 
+    el.cardArea.classList.add('writing-mode');
     el.writingPanel.classList.remove('hidden');
     el.writingArticleWrap.classList.toggle(
       'hidden',
       !(state.current.type === 'noun' && isGermanArticle(state.current.article))
     );
 
-    renderWritingPattern(state.current.german || '');
     el.writingArticleSelect.value = '';
     el.writingInput.value = '';
     el.writingInput.disabled = false;
     el.writingArticleSelect.disabled = false;
     el.writingSubmitButton.disabled = false;
+    el.writingPatternWrap.classList.remove('is-correct', 'is-wrong', 'is-locked');
+    renderWritingPattern(state.current.german || '', '');
     el.writingAttemptText.textContent = 'Attempt 1 of 2';
     window.setTimeout(() => el.writingInput.focus(), 50);
   }
@@ -619,7 +643,7 @@
     );
 
     if (!parsed.german) {
-      setWritingFeedback('Type a German word before checking.', 'wrong');
+      setWritingFeedback('Enter the German word in the letter slots before checking.', 'wrong');
       el.writingInput.focus();
       return;
     }
@@ -665,7 +689,9 @@
       setWritingFeedback(feedback, 'hint');
       state.writingAttempt = 2;
       el.writingAttemptText.textContent = 'Attempt 2 of 2';
+      el.writingPatternWrap.classList.remove('is-wrong');
       el.writingInput.select();
+      el.writingInput.focus();
       return;
     }
 
@@ -705,6 +731,8 @@
     el.writingInput.disabled = true;
     el.writingArticleSelect.disabled = true;
     el.writingSubmitButton.disabled = true;
+    el.writingPatternWrap.classList.add('is-locked');
+    el.writingPatternWrap.classList.remove('is-focused');
   }
 
   function localWritingValidation(parsed, word) {
@@ -827,32 +855,72 @@
     return { german, article };
   }
 
-  function renderWritingPattern(word) {
-    el.writingPattern.replaceChildren();
-    Array.from(String(word || '')).forEach(character => {
-      const mark = document.createElement('span');
-      if (/\s/u.test(character)) {
-        mark.className = 'pattern-space';
-        mark.setAttribute('aria-hidden', 'true');
-        mark.textContent = ' ';
-      } else if (/[-'’]/u.test(character)) {
-        mark.className = 'pattern-mark';
-        mark.textContent = character;
-      } else {
-        mark.className = 'pattern-letter';
-        mark.textContent = '_';
+  function renderWritingPattern(word, typedValue) {
+    const expectedCharacters = Array.from(String(word || ''));
+    const typedCharacters = Array.from(String(typedValue || ''));
+    const hasFocus = document.activeElement === el.writingInput;
+    let nextActiveSlot = -1;
+
+    if (hasFocus && !el.writingInput.disabled) {
+      nextActiveSlot = Math.min(typedCharacters.length, expectedCharacters.length);
+      while (
+        nextActiveSlot < expectedCharacters.length &&
+        (/\s/u.test(expectedCharacters[nextActiveSlot]) || /[-'’]/u.test(expectedCharacters[nextActiveSlot]))
+      ) {
+        nextActiveSlot += 1;
       }
-      el.writingPattern.appendChild(mark);
+    }
+
+    el.writingPattern.replaceChildren();
+
+    expectedCharacters.forEach((expectedCharacter, index) => {
+      const slot = document.createElement('span');
+      const typedCharacter = typedCharacters[index] || '';
+
+      if (/\s/u.test(expectedCharacter)) {
+        slot.className = 'pattern-space';
+        slot.setAttribute('aria-hidden', 'true');
+        slot.textContent = ' ';
+      } else if (/[-'’]/u.test(expectedCharacter)) {
+        slot.className = 'pattern-mark';
+        slot.textContent = expectedCharacter;
+      } else {
+        slot.className = 'pattern-letter';
+        if (typedCharacter && !/\s/u.test(typedCharacter)) {
+          slot.textContent = typedCharacter;
+          slot.classList.add('filled');
+        } else {
+          slot.textContent = '';
+        }
+        if (index === nextActiveSlot) slot.classList.add('active');
+      }
+
+      el.writingPattern.appendChild(slot);
     });
+
+    if (typedCharacters.length > expectedCharacters.length) {
+      typedCharacters.slice(expectedCharacters.length).forEach(character => {
+        if (/\s/u.test(character)) return;
+        const overflowSlot = document.createElement('span');
+        overflowSlot.className = 'pattern-letter pattern-extra filled';
+        overflowSlot.textContent = character;
+        el.writingPattern.appendChild(overflowSlot);
+      });
+    }
+
+    const expectedLetters = expectedCharacters.filter(character => !/\s/u.test(character) && !/[-'’]/u.test(character)).length;
     el.writingPattern.setAttribute(
       'aria-label',
-      String(word || '').length + ' character pattern for the expected German word'
+      expectedLetters + ' letter answer pattern. ' +
+      (typedCharacters.length ? typedCharacters.join('') + ' entered.' : 'No letters entered yet.')
     );
   }
 
   function setWritingFeedback(message, type) {
     el.writingFeedback.textContent = message || '';
     el.writingFeedback.className = 'writing-feedback' + (type ? ' ' + type : '');
+    el.writingPatternWrap.classList.toggle('is-correct', type === 'correct');
+    el.writingPatternWrap.classList.toggle('is-wrong', type === 'wrong');
   }
 
   function buildQuizCandidates(correctWord, answerField) {
