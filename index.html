@@ -6,12 +6,12 @@
 <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/><meta content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://deutsche-vokabeltrainer-api.tushar-jejurkar592.workers.dev https://*.supabase.co; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'" http-equiv="Content-Security-Policy"/>
 <meta content="#f1f0ec" name="theme-color"/>
 <meta content="light dark" name="color-scheme"/>
-<meta content="Learn German vocabulary with review, writing, quiz and article practice." name="description"/>
+<meta content="Learn German vocabulary with guided learning, review, mixed practice, writing, quiz and article modes." name="description"/>
 <title>Deutsche Vokabeltrainer</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./styles.css?v=4.1.0-beta.1" rel="stylesheet"/>
+<link href="./styles.css?v=4.2.0-beta.1" rel="stylesheet"/>
 </head>
 <body>
 <div class="app-shell">
@@ -120,8 +120,12 @@
 </div>
 </div>
 <div class="quiz-opts hidden" id="quizOptions"></div>
-<div class="actions hidden" id="reviewActions">
+<div class="actions learn-actions hidden" id="learnActions">
+<button class="btn primary" id="learnContinueButton" type="button">Continue</button>
+</div>
+<div class="actions review-rating-actions hidden" id="reviewActions">
 <button class="btn danger" id="practiceButton" type="button">Need practice</button>
+<button class="btn almost" id="almostButton" type="button">Almost</button>
 <button class="btn primary" id="rememberedButton" type="button">I remembered it</button>
 </div>
 <div class="actions hidden" id="nextActions">
@@ -191,10 +195,21 @@
 <div class="ctrl-group">
 <label class="lbl" for="modeSelect">Mode</label>
 <select id="modeSelect">
-<option value="review">Review</option>
+<option value="learn">Learn new words</option>
+<option value="review">Review learned words</option>
+<option value="mixed">Mixed practice</option>
 <option value="writing">Writing</option>
 <option value="quiz">Quiz</option>
 <option value="article">der / die / das</option>
+</select>
+</div>
+<div class="ctrl-group" id="newWordsLimitGroup">
+<label class="lbl" for="newWordsLimitSelect">New words</label>
+<select id="newWordsLimitSelect">
+<option value="5">5 new words</option>
+<option value="10" selected>10 new words</option>
+<option value="15">15 new words</option>
+<option value="20">20 new words</option>
 </select>
 </div>
 
@@ -462,12 +477,12 @@
 <article class="guide-card">
 <span class="guide-number">1</span>
 <h3>Choose your study setup</h3>
-<p>Select one or more decks, A1–B2 levels and word types, then choose the direction, mode and any whole-number round length. Unassigned contains words whose CEFR level has not been reviewed yet.</p>
+<p>Select one or more decks, A1–B2 levels and word types, then choose the learning path, direction and any whole-number round length. Unassigned contains words whose CEFR level has not been reviewed yet.</p>
 </article>
 <article class="guide-card">
 <span class="guide-number">2</span>
-<h3>Review mode</h3>
-<p>Think of the answer before revealing the card. Select <strong>I remembered it</strong> or <strong>Need practice</strong>. Review mode is self-assessment and is not presented as a test score.</p>
+<h3>Learn, Review and Mixed</h3>
+<p><strong>Learn</strong> introduces only unseen words without a score. <strong>Review</strong> uses previously introduced words and offers Remembered, Almost and Need practice. <strong>Mixed</strong> combines learned words with a limited number of new words, introducing each new word before testing it.</p>
 </article>
 <article class="guide-card">
 <span class="guide-number">3</span>
@@ -517,10 +532,6 @@
 <h2 class="account-brand-title" id="accountDialogTitle">Deutsche Vokabeltrainer</h2>
 <button aria-label="Close account window" class="dialog-close" id="accountDialogClose" type="button">×</button>
 </header>
-<div class="auth-config-notice hidden" id="authConfigNotice">
-<strong>Supabase setup is not finished.</strong>
-<p>Add your Project URL and publishable key to <code>config.js</code>. Guest study remains available.</p>
-</div>
 <section id="authGuestPanel">
 <div aria-label="Account actions" class="auth-mode-tabs">
 <button aria-pressed="true" class="active" id="authModeSignIn" type="button">Sign in</button>
@@ -570,8 +581,8 @@
 </div>
 </dialog>
 <script src="./vendor/supabase.js?v=2.110.7"></script>
-<script src="./config.js?v=4.1.0-beta.1"></script>
-<script defer src="./supabase-integration.js?v=4.1.0-beta.1"></script>
-<script defer="" src="./app.js?v=4.1.0-beta.1"></script>
+<script src="./config.js?v=4.2.0-beta.1"></script>
+<script defer src="./supabase-integration.js?v=4.2.0-beta.1"></script>
+<script defer="" src="./app.js?v=4.2.0-beta.1"></script>
 </body>
 </html>
