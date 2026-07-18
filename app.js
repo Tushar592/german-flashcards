@@ -39,6 +39,7 @@
   const REVIEW_BANK_KEY = 'df_review_bank_v2';
   const THEME_KEY = 'df_theme_v1';
   const ROUND_LENGTH_KEY = 'dv_round_length_v1';
+  const NEW_WORDS_LIMIT_KEY = 'dv_new_words_limit_v1';
 
   const FILTER_DEFINITIONS = Object.freeze({
     deck: { allValue: 'All', allLabel: 'All decks', singular: 'deck', plural: 'decks' },
@@ -64,9 +65,11 @@
     revealed: false,
     answered: false,
     correct: 0,
+    almost: 0,
     wrong: 0,
     streak: 0,
-    mode: 'review',
+    introduced: 0,
+    mode: 'learn',
     direction: 'de-en',
     writingAttempt: 1,
     reviewBank: loadReviewBank(),
@@ -77,11 +80,12 @@
     availableLevels: [],
     suggestionItemCounter: 0,
     hasStartedRound: false,
-    lastMode: 'review',
+    lastMode: 'learn',
     typeSelectionBeforeArticle: ['all'],
     matchingCount: 0,
     maxRound: 500,
-    pendingCloudPreferences: null
+    pendingCloudPreferences: null,
+    newWordsLimit: 10
   };
 
   const el = {};
@@ -96,7 +100,7 @@
       'levelFilterButton', 'levelFilterMenu', 'levelFilterOptions', 'levelFilterSummary',
       'typeFilterButton', 'typeFilterMenu', 'typeFilterOptions', 'typeFilterSummary',
       'directionSelect',
-      'modeSelect', 'roundLengthInput', 'setupMessage', 'newRoundButton',
+      'modeSelect', 'newWordsLimitGroup', 'newWordsLimitSelect', 'roundLengthInput', 'setupMessage', 'newRoundButton',
       'studySetupBody', 'connectionActions', 'retryButton', 'reloadButton',
       'correctCount', 'wrongCount', 'streakCount',
       'correctLabel', 'wrongLabel', 'streakLabel',
@@ -104,8 +108,8 @@
       'cardArea', 'cardButton', 'cardLanguage', 'cardWord', 'cardHint',
       'writingPanel', 'writingPatternWrap', 'writingSlotField', 'writingArticleWrap', 'writingArticleSelect',
       'writingInput', 'writingSubmitButton', 'writingFeedback', 'writingPattern',
-      'writingAttemptText', 'quizOptions', 'reviewActions',
-      'practiceButton', 'rememberedButton', 'nextActions', 'nextButton',
+      'writingAttemptText', 'quizOptions', 'learnActions', 'learnContinueButton', 'reviewActions',
+      'practiceButton', 'almostButton', 'rememberedButton', 'nextActions', 'nextButton',
       'completePanel', 'completeScore', 'completeMessage',
       'reviewWritingButton', 'reviewQuizButton', 'fullReviewWritingButton',
       'playAgainButton', 'publicSearchForm', 'publicSearchInput',
@@ -125,6 +129,8 @@
     });
 
     el.roundLengthInput.value = localStorage.getItem(ROUND_LENGTH_KEY) || '50';
+    state.newWordsLimit = normalizeNewWordsLimit(localStorage.getItem(NEW_WORDS_LIMIT_KEY) || '10');
+    if (el.newWordsLimitSelect) el.newWordsLimitSelect.value = String(state.newWordsLimit);
     initializeTheme();
     document.addEventListener('dv-preferences-loaded', handleCloudPreferences);
     document.addEventListener('dv-account-changed', syncContributorIdentity);
@@ -160,13 +166,22 @@
     el.retryButton.addEventListener('click', loadMeta);
     el.reloadButton.addEventListener('click', () => window.location.reload());
     el.cardButton.addEventListener('click', revealReviewCard);
-    el.practiceButton.addEventListener('click', () => scoreReview(false));
-    el.rememberedButton.addEventListener('click', () => scoreReview(true));
+    el.learnContinueButton.addEventListener('click', completeLearnStep);
+    el.practiceButton.addEventListener('click', () => scoreReview('incorrect'));
+    el.almostButton.addEventListener('click', () => scoreReview('almost'));
+    el.rememberedButton.addEventListener('click', () => scoreReview('correct'));
     el.nextButton.addEventListener('click', advance);
     el.restartRoundButton.addEventListener('click', restartCurrentRound);
     el.modeSelect.addEventListener('change', () => {
       syncModeControls();
+      handleRoundLengthChange();
       updateRoundAvailability();
+    });
+    el.newWordsLimitSelect.addEventListener('change', () => {
+      state.newWordsLimit = normalizeNewWordsLimit(el.newWordsLimitSelect.value);
+      el.newWordsLimitSelect.value = String(state.newWordsLimit);
+      localStorage.setItem(NEW_WORDS_LIMIT_KEY, String(state.newWordsLimit));
+      handleRoundLengthChange();
     });
     el.roundLengthInput.addEventListener('change', handleRoundLengthChange);
     el.roundLengthInput.addEventListener('blur', handleRoundLengthChange);
@@ -541,7 +556,11 @@
   function getEffectiveRoundLength() {
     const requested = getRequestedRoundLength();
     const available = state.matchingCount > 0 ? state.matchingCount : requested;
-    const maximum = Math.max(1, Math.min(available, state.maxRound || available));
+    const serverMaximum = Math.max(1, Math.min(available, state.maxRound || available));
+    const learningMaximum = el.modeSelect && el.modeSelect.value === 'learn'
+      ? normalizeNewWordsLimit(el.newWordsLimitSelect && el.newWordsLimitSelect.value)
+      : serverMaximum;
+    const maximum = Math.max(1, Math.min(serverMaximum, learningMaximum));
     const effective = Math.max(1, Math.min(requested, maximum));
     el.roundLengthInput.value = String(effective);
     localStorage.setItem(ROUND_LENGTH_KEY, String(effective));
@@ -739,8 +758,11 @@
     const mode = el.modeSelect.value;
     const articleMode = mode === 'article';
     const writingMode = mode === 'writing';
+    const learnMode = mode === 'learn';
+    const usesNewWordsLimit = learnMode || mode === 'mixed';
 
-    el.directionSelect.disabled = articleMode || writingMode;
+    el.directionSelect.disabled = articleMode || writingMode || learnMode;
+    el.newWordsLimitGroup.classList.toggle('hidden', !usesNewWordsLimit);
 
     if (articleMode && state.lastMode !== 'article') {
       state.typeSelectionBeforeArticle = getMultiSelectValues('type');
@@ -762,6 +784,20 @@
 
     state.lastMode = mode;
     updateStatLabels(mode);
+    updateStats();
+  }
+
+  function normalizeNewWordsLimit(value) {
+    const numeric = Math.floor(Number(value || 10));
+    if (numeric <= 5) return 5;
+    if (numeric <= 10) return 10;
+    if (numeric <= 15) return 15;
+    return 20;
+  }
+
+  function getSeenWordIds() {
+    if (!window.DVAccount || typeof window.DVAccount.getSeenWordIds !== 'function') return [];
+    return window.DVAccount.getSeenWordIds().slice(0, 4000);
   }
 
   async function startBackendRound() {
@@ -790,7 +826,9 @@
         levels: getMultiSelectValues('level'),
         types: getMultiSelectValues('type'),
         mode: state.mode,
-        roundLength: roundLength.effective
+        roundLength: roundLength.effective,
+        newWordsLimit: normalizeNewWordsLimit(el.newWordsLimitSelect.value),
+        seenWordIds: getSeenWordIds()
       });
 
       el.newRoundButton.disabled = false;
@@ -805,10 +843,10 @@
       el.newRoundButton.textContent = 'New round';
       state.sessionId = result.sessionId;
       const words = annotateWords(result.words || [], state.sessionId);
-      state.queue = words.slice();
-      state.roundWords = words.slice();
+      state.queue = expandWordsForLearningFlow(words, state.mode);
+      state.roundWords = cloneWords(words);
       state.hasMore = Boolean(result.hasMore);
-      state.total = Number(result.total || words.length);
+      state.total = Number(result.stepTotal || result.total || state.queue.length);
       state.source = 'backend';
 
       setMessage('Round ready.');
@@ -836,8 +874,10 @@
     state.revealed = false;
     state.answered = false;
     state.correct = 0;
+    state.almost = 0;
     state.wrong = 0;
     state.streak = 0;
+    state.introduced = 0;
     state.mode = mode || 'review';
     state.direction = direction || 'de-en';
     state.writingAttempt = 1;
@@ -867,9 +907,11 @@
     hideAnswerPanels();
     el.completePanel.classList.add('hidden');
     el.cardButton.classList.remove('hidden', 'revealed');
-    el.cardButton.disabled = state.mode !== 'review';
+    el.cardButton.disabled = !isReviewStep();
 
-    if (state.mode === 'article') {
+    if (isLearnStep()) {
+      renderLearnQuestion();
+    } else if (state.mode === 'article') {
       renderArticleQuestion();
     } else if (state.mode === 'quiz') {
       renderQuizQuestion();
@@ -887,13 +929,47 @@
     el.quizOptions.classList.add('hidden');
     el.quizOptions.classList.remove('articles');
     el.quizOptions.replaceChildren();
+    el.learnActions.classList.add('hidden');
     el.reviewActions.classList.add('hidden');
     el.nextActions.classList.add('hidden');
     el.writingPanel.classList.add('hidden');
-    el.cardArea.classList.remove('writing-mode');
+    el.cardArea.classList.remove('writing-mode', 'learning-phase');
     el.writingPatternWrap.classList.remove('is-focused', 'is-correct', 'is-wrong', 'is-locked');
     el.writingFeedback.textContent = '';
     el.writingFeedback.className = 'writing-feedback';
+  }
+
+  function isLearnStep() {
+    return Boolean(
+      state.current &&
+      (state.mode === 'learn' || (state.mode === 'mixed' && state.current.studyPhase === 'learn'))
+    );
+  }
+
+  function isReviewStep() {
+    return Boolean(
+      state.current &&
+      (state.mode === 'review' || (state.mode === 'mixed' && state.current.studyPhase !== 'learn'))
+    );
+  }
+
+  function renderLearnQuestion() {
+    el.cardArea.classList.add('learning-phase');
+    setCard(
+      'New word',
+      germanDisplay(state.current),
+      state.current.english + (state.current.hint ? ' · ' + state.current.hint : '')
+    );
+    el.learnActions.classList.remove('hidden');
+  }
+
+  function completeLearnStep() {
+    if (!state.current || state.answered || !isLearnStep()) return;
+    state.answered = true;
+    state.introduced += 1;
+    recordLearningExposure(state.current);
+    updateStats();
+    advance();
   }
 
   function renderReviewFront() {
@@ -906,7 +982,7 @@
   }
 
   function revealReviewCard() {
-    if (state.mode !== 'review' || !state.current || state.revealed) return;
+    if (!isReviewStep() || !state.current || state.revealed) return;
 
     state.revealed = true;
     el.cardButton.classList.add('revealed');
@@ -921,14 +997,20 @@
     el.reviewActions.classList.remove('hidden');
   }
 
-  function scoreReview(remembered) {
-    if (state.answered) return;
+  function scoreReview(outcome) {
+    if (state.answered || !isReviewStep()) return;
 
+    const normalized = ['correct', 'almost', 'incorrect'].includes(outcome)
+      ? outcome
+      : 'incorrect';
     state.answered = true;
 
-    if (remembered) {
+    if (normalized === 'correct') {
       state.correct += 1;
       state.streak += 1;
+    } else if (normalized === 'almost') {
+      state.almost += 1;
+      state.streak = 0;
     } else {
       state.wrong += 1;
       state.streak = 0;
@@ -936,7 +1018,7 @@
     }
 
     updateStats();
-    recordLearningProgress(state.current, remembered ? 'correct' : 'incorrect');
+    recordLearningProgress(state.current, normalized);
     el.reviewActions.classList.add('hidden');
     el.nextActions.classList.remove('hidden');
   }
@@ -1617,6 +1699,13 @@
     });
   }
 
+  function recordLearningExposure(word) {
+    if (!word || !word.wordId || !window.DVAccount || typeof window.DVAccount.recordExposure !== 'function') return;
+    window.DVAccount.recordExposure(word).catch(() => {
+      // Exposure sync is best effort and must never interrupt a study round.
+    });
+  }
+
   function advance() {
     el.nextActions.classList.add('hidden');
     state.index += 1;
@@ -1631,16 +1720,21 @@
     el.restartRoundButton.classList.add('hidden');
     el.completePanel.classList.remove('hidden');
 
-    const answered = state.correct + state.wrong;
+    const reviewAnswered = state.correct + state.almost + state.wrong;
+    const testAnswered = state.correct + state.wrong;
 
-    if (state.mode === 'review') {
+    if (state.mode === 'learn') {
+      el.completeScore.textContent = state.introduced + ' new words';
+      el.completeMessage.textContent = 'These words are now ready for Review or Mixed practice.';
+    } else if (state.mode === 'review' || state.mode === 'mixed') {
       el.completeScore.textContent = state.correct + ' remembered';
-      el.completeMessage.textContent = state.wrong
-        ? state.wrong + ' word' + (state.wrong === 1 ? '' : 's') + ' added to practice.'
-        : 'You remembered every word in this round.';
+      el.completeMessage.textContent =
+        state.almost + ' almost · ' +
+        state.wrong + ' need' + (state.wrong === 1 ? 's' : '') + ' practice · ' +
+        reviewAnswered + ' reviewed';
     } else {
-      el.completeScore.textContent = state.correct + ' of ' + answered;
-      const percentage = answered ? Math.round((state.correct / answered) * 100) : 0;
+      el.completeScore.textContent = state.correct + ' of ' + testAnswered;
+      const percentage = testAnswered ? Math.round((state.correct / testAnswered) * 100) : 0;
       el.completeMessage.textContent = percentage >= 80
         ? 'Strong round — keep going.'
         : 'Review the difficult words and try again.';
@@ -1651,7 +1745,7 @@
     el.reviewQuizButton.classList.toggle('hidden', !hasDifficultWords);
     el.fullReviewWritingButton.classList.toggle(
       'hidden',
-      !(state.mode === 'review' && state.completedRoundWords.length > 0)
+      !((state.mode === 'review' || state.mode === 'mixed') && state.completedRoundWords.length > 0)
     );
 
     state.index = state.total;
@@ -1733,9 +1827,9 @@
       const words = annotateWords(result.words || [], state.sessionId);
       prepareRoundState(state.mode, state.direction);
       state.source = 'backend';
-      state.queue = words.slice();
-      state.roundWords = words.slice();
-      state.total = Number(result.total || words.length);
+      state.queue = expandWordsForLearningFlow(words, state.mode);
+      state.roundWords = cloneWords(words);
+      state.total = Number(result.stepTotal || result.total || state.queue.length);
       state.hasMore = Boolean(result.hasMore);
       state.loadingBatch = false;
       el.restartRoundButton.classList.remove('hidden');
@@ -1770,7 +1864,7 @@
       }
 
       const words = annotateWords(result.words || [], state.sessionId);
-      state.queue = state.queue.concat(words);
+      state.queue = state.queue.concat(expandWordsForLearningFlow(words, state.mode));
       state.roundWords = uniqueWords(state.roundWords.concat(words));
       state.hasMore = Boolean(result.hasMore);
 
@@ -1826,16 +1920,39 @@
   }
 
   function updateStatLabels(mode) {
-    const review = mode === 'review';
-    el.correctLabel.textContent = review ? 'Remembered' : 'Correct';
-    el.wrongLabel.textContent = review ? 'Practice' : 'Wrong';
-    el.streakLabel.textContent = review ? 'Recall streak' : 'Streak';
+    if (mode === 'learn') {
+      el.correctLabel.textContent = 'Introduced';
+      el.wrongLabel.textContent = 'Remaining';
+      el.streakLabel.textContent = 'Total';
+      return;
+    }
+
+    if (mode === 'review' || mode === 'mixed') {
+      el.correctLabel.textContent = 'Remembered';
+      el.wrongLabel.textContent = 'Almost';
+      el.streakLabel.textContent = 'Practice';
+      return;
+    }
+
+    el.correctLabel.textContent = 'Correct';
+    el.wrongLabel.textContent = 'Wrong';
+    el.streakLabel.textContent = 'Streak';
   }
 
   function updateStats() {
-    el.correctCount.textContent = state.correct;
-    el.wrongCount.textContent = state.wrong;
-    el.streakCount.textContent = state.streak;
+    if (state.mode === 'learn') {
+      el.correctCount.textContent = state.introduced;
+      el.wrongCount.textContent = Math.max(0, state.total - state.index - (state.current ? 1 : 0));
+      el.streakCount.textContent = state.total;
+    } else if (state.mode === 'review' || state.mode === 'mixed') {
+      el.correctCount.textContent = state.correct;
+      el.wrongCount.textContent = state.almost;
+      el.streakCount.textContent = state.wrong;
+    } else {
+      el.correctCount.textContent = state.correct;
+      el.wrongCount.textContent = state.wrong;
+      el.streakCount.textContent = state.streak;
+    }
 
     const displayed = state.current
       ? Math.min(state.index + 1, state.total)
@@ -1848,6 +1965,31 @@
       : 0;
 
     el.progressBar.style.width = progress + '%';
+  }
+
+  function expandWordsForLearningFlow(words, mode) {
+    const baseWords = cloneWords(words);
+
+    if (mode === 'learn') {
+      return baseWords.map(word => Object.assign(word, { studyPhase: 'learn' }));
+    }
+
+    if (mode === 'review') {
+      return baseWords.map(word => Object.assign(word, { studyPhase: 'review' }));
+    }
+
+    if (mode !== 'mixed') return baseWords;
+
+    const introductions = [];
+    const reviews = [];
+    baseWords.forEach(word => {
+      if (word.isNew) {
+        introductions.push(Object.assign(cloneWord(word), { studyPhase: 'learn' }));
+      }
+      reviews.push(Object.assign(cloneWord(word), { studyPhase: 'review' }));
+    });
+    shuffle(reviews);
+    return introductions.concat(reviews);
   }
 
   function addDifficultWord(word) {
@@ -2436,6 +2578,8 @@
       type: String(word.type || 'other'),
       hint: String(word.hint || ''),
       level: String(word.level || 'Unassigned'),
+      isNew: Boolean(word.isNew),
+      studyPhase: String(word.studyPhase || ''),
       originSessionId: String(word.originSessionId || '')
     };
   }
