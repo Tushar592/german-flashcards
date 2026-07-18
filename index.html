@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./styles.css?v=3.7.1" rel="stylesheet"/>
+<link href="./styles.css?v=3.8.0" rel="stylesheet"/>
 </head>
 <body>
 <div class="app-shell">
@@ -54,7 +54,10 @@
 <div aria-hidden="true" class="prog"><div id="progressBar"></div></div>
 <div class="prog-txt" id="progressText">Card 0 of 0</div>
 </div>
-<button class="text-button hidden" id="restartRoundButton" type="button">Restart round</button>
+<button class="restart-round-button hidden" id="restartRoundButton" type="button">
+<span aria-hidden="true">↻</span>
+<span>Restart round</span>
+</button>
 </div>
 <div class="card-area" id="cardArea">
 <button class="flashcard" disabled="" id="cardButton" type="button">
@@ -115,8 +118,12 @@
 <p class="eyebrow">Study setup</p>
 <h2 id="study-settings-title">Choose your round</h2>
 </div>
-
+<button aria-controls="studySetupBody" aria-expanded="true" class="study-setup-toggle" id="studySetupToggleButton" type="button">
+<span class="study-setup-toggle-label">Hide setup</span>
+<span aria-hidden="true" class="study-setup-toggle-icon">⌃</span>
+</button>
 </div>
+<div class="study-setup-body" id="studySetupBody">
 <div class="controls">
 <div class="ctrl-group">
 <label class="lbl" for="deckSelect">Deck</label>
@@ -161,6 +168,7 @@
 <div class="connection-actions hidden" id="connectionActions">
 <button class="btn primary compact" id="retryButton" type="button">Retry</button>
 <button class="btn compact" id="reloadButton" type="button">Reload app</button>
+</div>
 </div>
 </section>
 <section class="side-card leaderboard-card">
@@ -454,6 +462,6 @@
 </main>
 </div>
 <script src="./config.js?v=3.7.1"></script>
-<script defer="" src="./app.js?v=3.7.1"></script>
+<script defer="" src="./app.js?v=3.8.0"></script>
 </body>
 </html>
