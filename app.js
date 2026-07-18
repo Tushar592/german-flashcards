@@ -135,31 +135,15 @@
     });
     el.leaderboardOptIn.addEventListener('change', syncLeaderboardOptIn);
     el.writingSubmitButton.addEventListener('click', submitWritingAnswer);
-    el.writingInput.addEventListener('keydown', event => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        submitWritingAnswer();
+    el.writingPattern.addEventListener('input', handleWritingSlotInput);
+    el.writingPattern.addEventListener('keydown', handleWritingSlotKeydown);
+    el.writingPattern.addEventListener('paste', handleWritingSlotPaste);
+    el.writingPattern.addEventListener('focusin', handleWritingPatternFocusIn);
+    el.writingPattern.addEventListener('focusout', handleWritingPatternFocusOut);
+    el.writingSlotField.addEventListener('click', event => {
+      if (event.target === el.writingSlotField || event.target === el.writingPattern) {
+        focusFirstAvailableWritingSlot();
       }
-    });
-    el.writingInput.addEventListener('input', () => {
-      renderWritingPattern(
-        state.current ? state.current.german : '',
-        el.writingInput.value
-      );
-    });
-    el.writingInput.addEventListener('focus', () => {
-      el.writingPatternWrap.classList.add('is-focused');
-      renderWritingPattern(
-        state.current ? state.current.german : '',
-        el.writingInput.value
-      );
-    });
-    el.writingInput.addEventListener('blur', () => {
-      el.writingPatternWrap.classList.remove('is-focused');
-      renderWritingPattern(
-        state.current ? state.current.german : '',
-        el.writingInput.value
-      );
     });
 
 
@@ -631,20 +615,20 @@
     el.writingPatternWrap.classList.remove('is-correct', 'is-wrong', 'is-locked');
     renderWritingPattern(state.current.german || '', '');
     el.writingAttemptText.textContent = 'Attempt 1 of 2';
-    window.setTimeout(() => el.writingInput.focus(), 50);
+    window.setTimeout(() => focusWritingSlot(0, true), 50);
   }
 
   async function submitWritingAnswer() {
     if (state.mode !== 'writing' || !state.current || state.answered) return;
 
     const parsed = parseTypedAnswer(
-      el.writingInput.value,
+      getWritingAnswer(),
       el.writingArticleSelect.value
     );
 
-    if (!parsed.german) {
+    if (!getWritingLetterInputs().some(input => Boolean(input.value))) {
       setWritingFeedback('Enter the German word in the letter slots before checking.', 'wrong');
-      el.writingInput.focus();
+      focusFirstAvailableWritingSlot();
       return;
     }
 
@@ -690,15 +674,16 @@
       state.writingAttempt = 2;
       el.writingAttemptText.textContent = 'Attempt 2 of 2';
       el.writingPatternWrap.classList.remove('is-wrong');
-      el.writingInput.select();
-      el.writingInput.focus();
+      focusWritingSlot(0, true);
       return;
     }
 
     state.answered = true;
     setWritingFeedback(
-      feedback + ' Correct answer: ' + germanDisplay(state.current) + '.',
-      'wrong'
+      feedback,
+      'wrong',
+      germanDisplay(state.current),
+      'Correct answer'
     );
     lockWritingInputs();
     el.nextActions.classList.remove('hidden');
@@ -718,9 +703,11 @@
 
     setWritingFeedback(
       acceptedAlternative
-        ? 'Correct alternative: ' + matchedText + '.'
+        ? 'Correct alternative accepted.'
         : (state.writingAttempt === 1 ? 'Correct.' : 'Correct on the second attempt.'),
-      'correct'
+      'correct',
+      matchedText,
+      acceptedAlternative ? 'Accepted answer' : 'Correct answer'
     );
 
     lockWritingInputs();
@@ -729,6 +716,7 @@
 
   function lockWritingInputs() {
     el.writingInput.disabled = true;
+    getWritingLetterInputs().forEach(input => { input.disabled = true; });
     el.writingArticleSelect.disabled = true;
     el.writingSubmitButton.disabled = true;
     el.writingPatternWrap.classList.add('is-locked');
@@ -857,68 +845,315 @@
 
   function renderWritingPattern(word, typedValue) {
     const expectedCharacters = Array.from(String(word || ''));
-    const typedCharacters = Array.from(String(typedValue || ''));
-    const hasFocus = document.activeElement === el.writingInput;
-    let nextActiveSlot = -1;
-
-    if (hasFocus && !el.writingInput.disabled) {
-      nextActiveSlot = Math.min(typedCharacters.length, expectedCharacters.length);
-      while (
-        nextActiveSlot < expectedCharacters.length &&
-        (/\s/u.test(expectedCharacters[nextActiveSlot]) || /[-'’]/u.test(expectedCharacters[nextActiveSlot]))
-      ) {
-        nextActiveSlot += 1;
-      }
-    }
+    const expectedLetters = expectedCharacters.filter(
+      character => !/\s/u.test(character) && !/[-'’]/u.test(character)
+    ).length;
 
     el.writingPattern.replaceChildren();
+    el.writingPattern.dataset.expectedWord = String(word || '');
+    el.writingPattern.style.setProperty('--writing-letter-count', String(Math.max(expectedLetters, 1)));
+    el.writingPattern.classList.toggle('long-word', expectedLetters > 18);
+    el.writingPattern.classList.toggle('very-long-word', expectedLetters > 28);
 
-    expectedCharacters.forEach((expectedCharacter, index) => {
-      const slot = document.createElement('span');
-      const typedCharacter = typedCharacters[index] || '';
+    let letterNumber = 0;
 
+    expectedCharacters.forEach((expectedCharacter, characterIndex) => {
       if (/\s/u.test(expectedCharacter)) {
-        slot.className = 'pattern-space';
-        slot.setAttribute('aria-hidden', 'true');
-        slot.textContent = ' ';
-      } else if (/[-'’]/u.test(expectedCharacter)) {
-        slot.className = 'pattern-mark';
-        slot.textContent = expectedCharacter;
-      } else {
-        slot.className = 'pattern-letter';
-        if (typedCharacter && !/\s/u.test(typedCharacter)) {
-          slot.textContent = typedCharacter;
-          slot.classList.add('filled');
-        } else {
-          slot.textContent = '';
-        }
-        if (index === nextActiveSlot) slot.classList.add('active');
+        const space = document.createElement('span');
+        space.className = 'pattern-space';
+        space.setAttribute('aria-hidden', 'true');
+        el.writingPattern.appendChild(space);
+        return;
       }
 
-      el.writingPattern.appendChild(slot);
+      if (/[-'’]/u.test(expectedCharacter)) {
+        const mark = document.createElement('span');
+        mark.className = 'pattern-mark';
+        mark.textContent = expectedCharacter;
+        mark.setAttribute('aria-hidden', 'true');
+        el.writingPattern.appendChild(mark);
+        return;
+      }
+
+      letterNumber += 1;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.inputMode = 'text';
+      input.maxLength = 1;
+      input.autocomplete = 'off';
+      input.autocapitalize = 'off';
+      input.autocorrect = 'off';
+      input.spellcheck = false;
+      input.className = 'writing-letter-input';
+      input.dataset.characterIndex = String(characterIndex);
+      input.dataset.slotOrder = String(letterNumber - 1);
+      input.setAttribute('aria-label', 'Letter ' + letterNumber + ' of ' + expectedLetters);
+      el.writingPattern.appendChild(input);
     });
 
-    if (typedCharacters.length > expectedCharacters.length) {
-      typedCharacters.slice(expectedCharacters.length).forEach(character => {
-        if (/\s/u.test(character)) return;
-        const overflowSlot = document.createElement('span');
-        overflowSlot.className = 'pattern-letter pattern-extra filled';
-        overflowSlot.textContent = character;
-        el.writingPattern.appendChild(overflowSlot);
-      });
-    }
+    fillWritingSlotsFromText(String(typedValue || ''), 0, true);
+    syncWritingAggregate();
+  }
 
-    const expectedLetters = expectedCharacters.filter(character => !/\s/u.test(character) && !/[-'’]/u.test(character)).length;
+  function getWritingLetterInputs() {
+    return Array.from(el.writingPattern.querySelectorAll('.writing-letter-input'));
+  }
+
+  function getWritingExpectedInputs() {
+    return getWritingLetterInputs().filter(input => input.dataset.overflow !== 'true');
+  }
+
+  function createWritingOverflowSlot(character) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.inputMode = 'text';
+    input.maxLength = 1;
+    input.autocomplete = 'off';
+    input.autocapitalize = 'off';
+    input.autocorrect = 'off';
+    input.spellcheck = false;
+    input.className = 'writing-letter-input pattern-extra';
+    input.dataset.overflow = 'true';
+    input.dataset.slotOrder = String(getWritingLetterInputs().length);
+    input.setAttribute('aria-label', 'Extra letter');
+    input.value = character || '';
+    el.writingPattern.appendChild(input);
+    return input;
+  }
+
+  function getWritingAnswer() {
+    const expectedCharacters = Array.from(
+      state.current && state.current.german ? state.current.german : el.writingPattern.dataset.expectedWord || ''
+    );
+    const inputByCharacterIndex = new Map();
+
+    getWritingExpectedInputs().forEach(input => {
+      inputByCharacterIndex.set(Number(input.dataset.characterIndex), input.value || '');
+    });
+
+    const expectedPart = expectedCharacters.map((character, index) => {
+      if (/\s/u.test(character) || /[-'’]/u.test(character)) return character;
+      return inputByCharacterIndex.get(index) || '';
+    }).join('');
+
+    const overflowPart = getWritingLetterInputs()
+      .filter(input => input.dataset.overflow === 'true')
+      .map(input => input.value || '')
+      .join('');
+
+    return (expectedPart + overflowPart).trim();
+  }
+
+  function syncWritingAggregate() {
+    const answer = getWritingAnswer();
+    el.writingInput.value = answer;
+
+    getWritingLetterInputs().forEach(input => {
+      input.classList.toggle('filled', Boolean(input.value));
+    });
+
+    const expectedLetters = getWritingExpectedInputs().length;
+    const enteredLetters = getWritingLetterInputs().filter(input => Boolean(input.value)).length;
     el.writingPattern.setAttribute(
       'aria-label',
-      expectedLetters + ' letter answer pattern. ' +
-      (typedCharacters.length ? typedCharacters.join('') + ' entered.' : 'No letters entered yet.')
+      expectedLetters + ' letter answer pattern. ' + enteredLetters + ' letters entered.'
     );
   }
 
-  function setWritingFeedback(message, type) {
-    el.writingFeedback.textContent = message || '';
+  function fillWritingSlotsFromText(text, startIndex, clearFollowing) {
+    const incomingCharacters = Array.from(String(text || ''))
+      .filter(character => !/\s/u.test(character) && !/[-'’]/u.test(character));
+    let inputs = getWritingLetterInputs();
+    const safeStart = Math.max(0, Math.min(Number(startIndex) || 0, inputs.length));
+
+    if (clearFollowing) {
+      inputs.slice(safeStart).forEach(input => {
+        input.value = '';
+      });
+      el.writingPattern.querySelectorAll('.writing-letter-input[data-overflow="true"]').forEach(input => input.remove());
+      inputs = getWritingLetterInputs();
+    }
+
+    incomingCharacters.forEach((character, offset) => {
+      const targetIndex = safeStart + offset;
+      let target = inputs[targetIndex];
+      if (!target) {
+        target = createWritingOverflowSlot('');
+        inputs = getWritingLetterInputs();
+      }
+      target.value = character;
+    });
+
+    syncWritingAggregate();
+    return Math.min(safeStart + incomingCharacters.length, Math.max(getWritingLetterInputs().length - 1, 0));
+  }
+
+  function focusWritingSlot(index, selectContent) {
+    const inputs = getWritingLetterInputs();
+    if (!inputs.length) return;
+    const safeIndex = Math.max(0, Math.min(Number(index) || 0, inputs.length - 1));
+    const input = inputs[safeIndex];
+    if (input.disabled) return;
+
+    input.focus({ preventScroll: true });
+    if (selectContent && typeof input.select === 'function') {
+      input.select();
+    }
+  }
+
+  function focusFirstAvailableWritingSlot() {
+    const inputs = getWritingLetterInputs();
+    if (!inputs.length) return;
+    const emptyIndex = inputs.findIndex(input => !input.value);
+    focusWritingSlot(emptyIndex >= 0 ? emptyIndex : inputs.length - 1, true);
+  }
+
+  function handleWritingPatternFocusIn(event) {
+    const input = event.target.closest('.writing-letter-input');
+    if (!input) return;
+    el.writingPatternWrap.classList.add('is-focused');
+    window.setTimeout(() => {
+      if (document.activeElement === input && typeof input.select === 'function') input.select();
+    }, 0);
+  }
+
+  function handleWritingPatternFocusOut() {
+    window.setTimeout(() => {
+      if (!el.writingPattern.contains(document.activeElement)) {
+        el.writingPatternWrap.classList.remove('is-focused');
+      }
+    }, 0);
+  }
+
+  function handleWritingSlotInput(event) {
+    const input = event.target.closest('.writing-letter-input');
+    if (!input) return;
+
+    const characters = Array.from(input.value || '').filter(character => !/\s/u.test(character));
+    input.value = characters.length ? characters[characters.length - 1] : '';
+    syncWritingAggregate();
+
+    if (input.value) {
+      const inputs = getWritingLetterInputs();
+      const index = inputs.indexOf(input);
+      if (index >= 0 && index < inputs.length - 1) {
+        focusWritingSlot(index + 1, true);
+      }
+    }
+  }
+
+  function handleWritingSlotKeydown(event) {
+    const input = event.target.closest('.writing-letter-input');
+    if (!input) return;
+
+    const inputs = getWritingLetterInputs();
+    const index = inputs.indexOf(input);
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      submitWritingAnswer();
+      return;
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      focusWritingSlot(index - 1, true);
+      return;
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      focusWritingSlot(index + 1, true);
+      return;
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      focusWritingSlot(0, true);
+      return;
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault();
+      focusWritingSlot(inputs.length - 1, true);
+      return;
+    }
+
+    if (event.key === 'Backspace' && !input.value && index > 0) {
+      event.preventDefault();
+      const previous = inputs[index - 1];
+      previous.value = '';
+      syncWritingAggregate();
+      focusWritingSlot(index - 1, true);
+      return;
+    }
+
+    if (event.key === 'Delete') {
+      event.preventDefault();
+      input.value = '';
+      syncWritingAggregate();
+      return;
+    }
+
+    if (event.key === ' ' || event.key === '-' || event.key === "'") {
+      event.preventDefault();
+      focusWritingSlot(index + 1, true);
+      return;
+    }
+
+    if (
+      event.key.length === 1 &&
+      input.value &&
+      input.selectionStart === input.selectionEnd &&
+      index === inputs.length - 1
+    ) {
+      event.preventDefault();
+      const overflowInput = createWritingOverflowSlot(event.key);
+      syncWritingAggregate();
+      overflowInput.focus({ preventScroll: true });
+      overflowInput.select();
+    }
+  }
+
+  function handleWritingSlotPaste(event) {
+    const input = event.target.closest('.writing-letter-input');
+    if (!input) return;
+
+    event.preventDefault();
+    const pastedText = event.clipboardData ? event.clipboardData.getData('text') : '';
+    const inputs = getWritingLetterInputs();
+    const startIndex = Math.max(0, inputs.indexOf(input));
+    const finalIndex = fillWritingSlotsFromText(pastedText, startIndex, true);
+    focusWritingSlot(finalIndex, true);
+  }
+
+  function setWritingFeedback(message, type, highlightedAnswer, answerLabel) {
+    el.writingFeedback.replaceChildren();
     el.writingFeedback.className = 'writing-feedback' + (type ? ' ' + type : '');
+
+    if (message) {
+      const messageText = document.createElement('span');
+      messageText.className = 'writing-feedback-message';
+      messageText.textContent = message;
+      el.writingFeedback.appendChild(messageText);
+    }
+
+    if (highlightedAnswer) {
+      const answer = document.createElement('span');
+      answer.className = 'writing-answer-reveal';
+
+      const label = document.createElement('span');
+      label.className = 'writing-answer-label';
+      label.textContent = (answerLabel || 'Correct answer') + ':';
+
+      const value = document.createElement('strong');
+      value.className = 'writing-answer-value';
+      value.textContent = highlightedAnswer;
+
+      answer.append(label, value);
+      el.writingFeedback.appendChild(answer);
+    }
+
     el.writingPatternWrap.classList.toggle('is-correct', type === 'correct');
     el.writingPatternWrap.classList.toggle('is-wrong', type === 'wrong');
   }
