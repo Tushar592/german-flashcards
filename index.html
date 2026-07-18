@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/><meta content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://deutsche-vokabeltrainer-api.tushar-jejurkar592.workers.dev; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'" http-equiv="Content-Security-Policy"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/><meta content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://deutsche-vokabeltrainer-api.tushar-jejurkar592.workers.dev https://*.supabase.co; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'" http-equiv="Content-Security-Policy"/>
 <meta content="#f1f0ec" name="theme-color"/>
 <meta content="light dark" name="color-scheme"/>
 <meta content="Learn German vocabulary with review, writing, quiz and article practice." name="description"/>
@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./styles.css?v=3.10.0" rel="stylesheet"/>
+<link href="./styles.css?v=4.0.0-beta.1" rel="stylesheet"/>
 </head>
 <body>
 <div class="app-shell">
@@ -32,6 +32,14 @@
 <button aria-controls="contributeView" aria-selected="false" class="app-tab" id="contributeTabButton" role="tab" tabindex="-1" type="button"><span class="tab-icon">＋</span><span>Contribute</span></button>
 <button aria-controls="guideView" aria-selected="false" class="app-tab" id="guideTabButton" role="tab" tabindex="-1" type="button"><span class="tab-icon">?</span><span>Guide</span></button>
 </nav>
+<button class="account-sidebar-card" id="accountOpenButton" type="button">
+<span aria-hidden="true" class="account-avatar">◎</span>
+<span class="account-sidebar-copy">
+<strong id="accountSidebarTitle">Guest mode</strong>
+<small id="accountSidebarSubtitle">Sign in to sync progress</small>
+</span>
+<span aria-hidden="true" class="account-chevron">›</span>
+</button>
 <footer class="sidebar-credit">Created by <strong>Tushar Jejurkar</strong></footer>
 </aside>
 <header class="mobile-header">
@@ -39,10 +47,16 @@
 <h1>Deutsche Vokabeltrainer</h1>
 <p>Lerne deutsche Wörter Schritt für Schritt.</p>
 </div>
+<div class="mobile-header-actions">
+<button aria-label="Open learner account" class="account-mobile-button" id="accountOpenMobileButton" type="button">
+<span aria-hidden="true">◎</span>
+<span class="sr-only" id="accountMobileLabel">Sign in</span>
+</button>
 <button aria-label="Switch to dark mode" class="theme-toggle theme-toggle-mobile" data-theme-toggle type="button">
 <span aria-hidden="true" class="theme-toggle-icon">☾</span>
 <span class="sr-only theme-toggle-label">Dark mode</span>
 </button>
+</div>
 </header>
 <main class="main-content">
 <section aria-labelledby="studyTabButton" id="studyView" role="tabpanel">
@@ -185,8 +199,11 @@
 </div>
 
 </div><div class="round-start-row"><div class="ctrl-group">
-<label class="lbl" for="roundLengthSelect">Round length</label>
-<select id="roundLengthSelect"><option value="50">50 words</option></select>
+<label class="lbl" for="roundLengthInput">Round length</label>
+<div class="round-length-input-wrap">
+<input id="roundLengthInput" inputmode="numeric" min="1" pattern="[0-9]*" step="1" type="number" value="50"/>
+<span>words</span>
+</div>
 </div><button class="btn primary compact" id="newRoundButton" type="button">Start round</button></div>
 <p class="status info" id="setupMessage" role="status"></p>
 <div class="connection-actions hidden" id="connectionActions">
@@ -432,12 +449,12 @@
 <div class="page-main"><section class="guide-panel">
 <p class="eyebrow">User guide</p>
 <h2 id="guide-title">How to use Deutsche Vokabeltrainer</h2>
-<p class="guide-intro">Choose a deck and CEFR level, select a learning mode, and start a round. Your study progress remains on your device.</p>
+<p class="guide-intro">Choose a deck and CEFR level, select a learning mode, and start a round. Guest progress remains on the current device. Signed-in learners can synchronize progress across devices.</p>
 <div class="guide-grid">
 <article class="guide-card">
 <span class="guide-number">1</span>
 <h3>Choose your study setup</h3>
-<p>Select a deck, A1–B2 level, word type, direction, mode and round length. Unassigned contains words whose CEFR level has not been reviewed yet.</p>
+<p>Select one or more decks, A1–B2 levels and word types, then choose the direction, mode and any whole-number round length. Unassigned contains words whose CEFR level has not been reviewed yet.</p>
 </article>
 <article class="guide-card">
 <span class="guide-number">2</span>
@@ -485,7 +502,71 @@
 </section>
 </main>
 </div>
-<script src="./config.js?v=3.7.1"></script>
-<script defer="" src="./app.js?v=3.10.0"></script>
+
+<dialog aria-labelledby="accountDialogTitle" class="account-dialog" id="accountDialog">
+<div class="account-dialog-card">
+<header class="account-dialog-header">
+<div>
+<p class="eyebrow">Learner account</p>
+<h2 id="accountDialogTitle">Save progress across devices</h2>
+</div>
+<button aria-label="Close account window" class="dialog-close" id="accountDialogClose" type="button">×</button>
+</header>
+<div class="auth-config-notice hidden" id="authConfigNotice">
+<strong>Supabase setup is not finished.</strong>
+<p>Add your Project URL and publishable key to <code>config.js</code>. Guest study remains available.</p>
+</div>
+<section id="authGuestPanel">
+<div aria-label="Account actions" class="auth-mode-tabs">
+<button aria-pressed="true" class="active" id="authModeSignIn" type="button">Sign in</button>
+<button aria-pressed="false" id="authModeCreate" type="button">Create account</button>
+<button aria-pressed="false" id="authModeReset" type="button">Reset password</button>
+</div>
+<form class="auth-form" id="signInForm">
+<label>Email<input autocomplete="email" id="signInEmail" required type="email"/></label>
+<label>Password<input autocomplete="current-password" id="signInPassword" minlength="8" required type="password"/></label>
+<button class="btn primary" type="submit">Sign in</button>
+</form>
+<form class="auth-form hidden" id="createAccountForm">
+<label>Display name<input autocomplete="nickname" id="createDisplayName" maxlength="60" required type="text"/></label>
+<label>Email<input autocomplete="email" id="createEmail" required type="email"/></label>
+<label>Password<input autocomplete="new-password" id="createPassword" minlength="8" required type="password"/></label>
+<p class="auth-help">Use at least 8 characters. Your email is not shown publicly.</p>
+<button class="btn primary" type="submit">Create account</button>
+</form>
+<form class="auth-form hidden" id="resetPasswordForm">
+<label>Email<input autocomplete="email" id="resetEmail" required type="email"/></label>
+<p class="auth-help">A secure password-reset link will be sent to this address.</p>
+<button class="btn primary" type="submit">Send reset email</button>
+</form>
+<button class="text-button auth-clear-guest" id="clearGuestProgressButton" type="button">Clear guest progress on this device</button>
+</section>
+<section class="hidden" id="authSignedInPanel">
+<div class="signed-in-summary">
+<span aria-hidden="true" class="signed-in-avatar">◎</span>
+<div><strong id="signedInDisplayName">Learner</strong><p id="signedInEmail"></p></div>
+</div>
+<div class="account-stat"><span id="signedInProgressCount">0</span><small>studied words synchronized</small></div>
+<div class="auth-account-actions">
+<button class="btn" id="signOutButton" type="button">Sign out</button>
+<button class="btn danger" id="deleteAccountButton" type="button">Delete account</button>
+</div>
+<p class="auth-help">Deleting the account permanently removes the login and synchronized learning progress.</p>
+</section>
+<section class="hidden" id="authRecoveryPanel">
+<p class="auth-help">Enter a new password for your account.</p>
+<form class="auth-form" id="recoveryPasswordForm">
+<label>New password<input autocomplete="new-password" id="recoveryNewPassword" minlength="8" required type="password"/></label>
+<label>Confirm new password<input autocomplete="new-password" id="recoveryConfirmPassword" minlength="8" required type="password"/></label>
+<button class="btn primary" type="submit">Update password</button>
+</form>
+</section>
+<p aria-live="polite" class="auth-message" id="authMessage"></p>
+</div>
+</dialog>
+<script src="./vendor/supabase.js?v=2.110.7"></script>
+<script src="./config.js?v=4.0.0-beta.1"></script>
+<script defer src="./supabase-integration.js?v=4.0.0-beta.1"></script>
+<script defer="" src="./app.js?v=4.0.0-beta.1"></script>
 </body>
 </html>
