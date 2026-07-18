@@ -38,6 +38,7 @@
 
   const REVIEW_BANK_KEY = 'df_review_bank_v2';
   const THEME_KEY = 'df_theme_v1';
+  const ROUND_LENGTH_KEY = 'dv_round_length_v1';
 
   const FILTER_DEFINITIONS = Object.freeze({
     deck: { allValue: 'All', allLabel: 'All decks', singular: 'deck', plural: 'decks' },
@@ -77,7 +78,10 @@
     suggestionItemCounter: 0,
     hasStartedRound: false,
     lastMode: 'review',
-    typeSelectionBeforeArticle: ['all']
+    typeSelectionBeforeArticle: ['all'],
+    matchingCount: 0,
+    maxRound: 500,
+    pendingCloudPreferences: null
   };
 
   const el = {};
@@ -92,7 +96,7 @@
       'levelFilterButton', 'levelFilterMenu', 'levelFilterOptions', 'levelFilterSummary',
       'typeFilterButton', 'typeFilterMenu', 'typeFilterOptions', 'typeFilterSummary',
       'directionSelect',
-      'modeSelect', 'roundLengthSelect', 'setupMessage', 'newRoundButton',
+      'modeSelect', 'roundLengthInput', 'setupMessage', 'newRoundButton',
       'studySetupBody', 'connectionActions', 'retryButton', 'reloadButton',
       'correctCount', 'wrongCount', 'streakCount',
       'correctLabel', 'wrongLabel', 'streakLabel',
@@ -118,7 +122,16 @@
       el[id] = document.getElementById(id);
     });
 
+    el.roundLengthInput.value = localStorage.getItem(ROUND_LENGTH_KEY) || '50';
     initializeTheme();
+    document.addEventListener('dv-preferences-loaded', handleCloudPreferences);
+    if (window.DVAccount && window.DVAccount.ready && typeof window.DVAccount.ready.then === 'function') {
+      window.DVAccount.ready.then(() => {
+        if (!window.DVAccount || typeof window.DVAccount.getPreferences !== 'function') return;
+        const preferences = window.DVAccount.getPreferences();
+        if (preferences) handleCloudPreferences({ detail: preferences });
+      }).catch(() => {});
+    }
     initializeMultiSelectControls();
     bindEvents();
     syncModeControls();
@@ -146,6 +159,14 @@
     el.modeSelect.addEventListener('change', () => {
       syncModeControls();
       updateRoundAvailability();
+    });
+    el.roundLengthInput.addEventListener('change', handleRoundLengthChange);
+    el.roundLengthInput.addEventListener('blur', handleRoundLengthChange);
+    el.roundLengthInput.addEventListener('keydown', event => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      handleRoundLengthChange();
+      el.newRoundButton.focus();
     });
     el.leaderboardOptIn.addEventListener('change', syncLeaderboardOptIn);
     el.writingSubmitButton.addEventListener('click', submitWritingAnswer);
@@ -205,7 +226,10 @@
       button.setAttribute('aria-pressed', darkActive ? 'true' : 'false');
     });
 
-    if (persist) localStorage.setItem(THEME_KEY, normalized);
+    if (persist) {
+      localStorage.setItem(THEME_KEY, normalized);
+      saveStudyPreferences({ theme: normalized });
+    }
   }
 
   function initializeMultiSelectControls() {
@@ -287,6 +311,7 @@
 
     ensureMultiSelectHasValue(kind);
     updateMultiSelectSummary(kind);
+    saveStudyPreferences();
     updateRoundAvailability();
   }
 
@@ -440,16 +465,17 @@
         { value: 'All', label: 'All levels' }
       ].concat((result.levels || []).map(value => ({ value: value, label: value }))));
 
+      state.maxRound = Number(result.maxRound || state.maxRound || 500);
       state.availableDecks = (result.decks || []).slice();
       state.availableLevels = (result.levels || ['Unassigned'])
         .filter(value => value !== 'All');
       if (!state.availableLevels.length) state.availableLevels = ['Unassigned'];
 
+      applyPendingCloudPreferences();
       refreshSuggestionItemOptions();
       if (!el.suggestionItems.children.length) addSuggestionItem();
       await Promise.allSettled([updateRoundAvailability(), loadTopContributors()]);
       el.newRoundButton.textContent = state.hasStartedRound ? 'New round' : 'Start round';
-      setMessage('Ready. Choose your settings and start a new round.');
     } catch (error) {
       el.newRoundButton.disabled = false;
       handleServerFailure(error);
@@ -459,7 +485,7 @@
   async function updateRoundAvailability() {
     if (!getMultiSelectValues('deck').length) return;
 
-    const previous = Number(el.roundLengthSelect.value || 0);
+    const previous = getRequestedRoundLength();
     try {
       const result = await apiCall('getRoundAvailability', {
         clientId: state.clientId,
@@ -469,37 +495,104 @@
         mode: el.modeSelect.value
       });
 
-      const options = result && result.roundOptions ? result.roundOptions : [];
       const count = Number(result && result.matchingCount || 0);
-      el.roundLengthSelect.replaceChildren();
+      const serverMax = Number(result && result.maxRound || state.maxRound || 500);
+      state.matchingCount = Math.max(0, count);
+      state.maxRound = Math.max(1, serverMax);
 
-      if (!options.length) {
-        const option = document.createElement('option');
-        option.value = '0';
-        option.textContent = 'No matching words';
-        el.roundLengthSelect.appendChild(option);
-        el.roundLengthSelect.disabled = true;
+      if (!count) {
+        el.roundLengthInput.value = '1';
+        el.roundLengthInput.disabled = true;
         el.newRoundButton.disabled = true;
+        setMessage('No words match the current filters.', true);
         return;
       }
 
-      options.forEach(value => {
-        const option = document.createElement('option');
-        option.value = String(value);
-        option.textContent = value < 50 ? 'All ' + value + ' words' : value + ' words';
-        el.roundLengthSelect.appendChild(option);
-      });
-
-      const values = options.map(Number);
-      el.roundLengthSelect.value = values.includes(previous)
-        ? String(previous)
-        : String(values[0]);
-      el.roundLengthSelect.disabled = false;
+      const maximum = Math.max(1, Math.min(count, state.maxRound));
+      el.roundLengthInput.min = '1';
+      el.roundLengthInput.max = String(maximum);
+      el.roundLengthInput.value = String(Math.max(1, Math.min(previous || 50, maximum)));
+      el.roundLengthInput.disabled = false;
       el.newRoundButton.disabled = false;
-      setMessage(count + ' word' + (count === 1 ? '' : 's') + ' match the current filters.');
+      localStorage.setItem(ROUND_LENGTH_KEY, el.roundLengthInput.value);
+      setMessage(
+        count + ' word' + (count === 1 ? '' : 's') + ' match. Enter any round length from 1 to ' + maximum + '.'
+      );
     } catch (error) {
       handleServerFailure(error);
     }
+  }
+
+  function getRequestedRoundLength() {
+    const raw = Number(el.roundLengthInput && el.roundLengthInput.value || localStorage.getItem(ROUND_LENGTH_KEY) || 50);
+    if (!Number.isFinite(raw)) return 50;
+    return Math.max(1, Math.floor(raw));
+  }
+
+  function getEffectiveRoundLength() {
+    const requested = getRequestedRoundLength();
+    const available = state.matchingCount > 0 ? state.matchingCount : requested;
+    const maximum = Math.max(1, Math.min(available, state.maxRound || available));
+    const effective = Math.max(1, Math.min(requested, maximum));
+    el.roundLengthInput.value = String(effective);
+    localStorage.setItem(ROUND_LENGTH_KEY, String(effective));
+    return { requested: requested, effective: effective, maximum: maximum };
+  }
+
+  function handleRoundLengthChange() {
+    const details = getEffectiveRoundLength();
+    if (details.requested !== details.effective) {
+      setMessage('The round length was adjusted to ' + details.effective + ', the maximum available for these filters.');
+    }
+    saveStudyPreferences({ round_length: details.effective });
+  }
+
+  function handleCloudPreferences(event) {
+    state.pendingCloudPreferences = event && event.detail ? event.detail : null;
+    applyPendingCloudPreferences();
+  }
+
+  function applyPendingCloudPreferences() {
+    const preferences = state.pendingCloudPreferences;
+    if (!preferences || !state.availableDecks.length) return;
+
+    if (preferences.theme === 'dark' || preferences.theme === 'light') {
+      applyTheme(preferences.theme, false);
+      localStorage.setItem(THEME_KEY, preferences.theme);
+    }
+
+    const decks = Array.isArray(preferences.selected_decks) && preferences.selected_decks.length
+      ? preferences.selected_decks.filter(value => value === 'All' || state.availableDecks.includes(value))
+      : ['All'];
+    const levels = Array.isArray(preferences.selected_levels) && preferences.selected_levels.length
+      ? preferences.selected_levels.filter(value => value === 'All' || state.availableLevels.includes(value))
+      : ['All'];
+    const types = Array.isArray(preferences.selected_types) && preferences.selected_types.length
+      ? preferences.selected_types.filter(value => ['all', 'noun', 'verb', 'adjective', 'other'].includes(value))
+      : ['all'];
+
+    setMultiSelectValues('deck', decks.length ? decks : ['All']);
+    setMultiSelectValues('level', levels.length ? levels : ['All']);
+    setMultiSelectValues('type', types.length ? types : ['all']);
+
+    if (Number.isFinite(Number(preferences.round_length))) {
+      el.roundLengthInput.value = String(Math.max(1, Math.floor(Number(preferences.round_length))));
+      localStorage.setItem(ROUND_LENGTH_KEY, el.roundLengthInput.value);
+    }
+
+    state.pendingCloudPreferences = null;
+  }
+
+  function saveStudyPreferences(patch) {
+    if (!window.DVAccount || typeof window.DVAccount.savePreferences !== 'function') return;
+    const payload = Object.assign({
+      theme: document.documentElement.dataset.theme || 'light',
+      round_length: getRequestedRoundLength(),
+      selected_decks: getMultiSelectValues('deck'),
+      selected_levels: getMultiSelectValues('level'),
+      selected_types: getMultiSelectValues('type')
+    }, patch || {});
+    window.DVAccount.savePreferences(payload);
   }
 
   async function loadTopContributors() {
@@ -608,13 +701,18 @@
     el.newRoundButton.disabled = true;
 
     try {
+      const roundLength = getEffectiveRoundLength();
+      if (roundLength.requested > roundLength.effective) {
+        setMessage('Only ' + roundLength.effective + ' words can be used with the current filters.');
+      }
+      saveStudyPreferences({ round_length: roundLength.effective });
       const result = await apiCall('startStudy', {
         clientId: state.clientId,
         decks: getMultiSelectValues('deck'),
         levels: getMultiSelectValues('level'),
         types: getMultiSelectValues('type'),
         mode: state.mode,
-        roundLength: Number(el.roundLengthSelect.value)
+        roundLength: roundLength.effective
       });
 
       el.newRoundButton.disabled = false;
@@ -760,6 +858,7 @@
     }
 
     updateStats();
+    recordLearningProgress(state.current, remembered ? 'correct' : 'incorrect');
     el.reviewActions.classList.add('hidden');
     el.nextActions.classList.remove('hidden');
   }
@@ -781,6 +880,7 @@
     renderOptions(candidates, candidate => {
       const correct = candidate.token === state.current.token;
       recordScoredAnswer(correct);
+      recordLearningProgress(state.current, correct ? 'correct' : 'incorrect');
       if (!correct) addDifficultWord(state.current);
       markOptions(candidate.token, state.current.token);
       state.answered = true;
@@ -805,6 +905,7 @@
     renderOptions(options, candidate => {
       const correct = candidate.token === state.current.article;
       recordScoredAnswer(correct);
+      recordLearningProgress(state.current, correct ? 'correct' : 'incorrect');
       if (!correct) addDifficultWord(state.current);
       markOptions(candidate.token, state.current.article);
       state.answered = true;
@@ -898,6 +999,7 @@
     }
 
     state.answered = true;
+    recordLearningProgress(state.current, 'incorrect');
     setWritingFeedback(
       feedback,
       'wrong',
@@ -920,6 +1022,7 @@
       ? ((matched.article ? matched.article + ' ' : '') + matched.german)
       : germanDisplay(state.current);
 
+    recordLearningProgress(state.current, state.writingAttempt === 1 ? 'correct' : 'almost');
     setWritingFeedback(
       acceptedAlternative
         ? 'Correct alternative accepted.'
@@ -1427,6 +1530,13 @@
       state.streak = 0;
     }
     updateStats();
+  }
+
+  function recordLearningProgress(word, result) {
+    if (!word || !word.wordId || !window.DVAccount || typeof window.DVAccount.recordAnswer !== 'function') return;
+    window.DVAccount.recordAnswer(word, result).catch(() => {
+      // Progress sync is best effort and must never interrupt a study round.
+    });
   }
 
   function advance() {
@@ -2237,6 +2347,7 @@
 
   function cloneWord(word) {
     return {
+      wordId: String(word.wordId || ''),
       token: String(word.token || makeLocalToken()),
       deck: String(word.deck || 'General'),
       german: String(word.german || ''),
@@ -2268,6 +2379,7 @@
   }
 
   function wordKey(word) {
+    if (word && word.wordId) return 'id:' + String(word.wordId);
     return [
       normalizeSearch(word.german),
       normalizeSearch(word.english),
