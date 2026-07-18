@@ -111,11 +111,13 @@
       'playAgainButton', 'publicSearchForm', 'publicSearchInput',
       'publicSearchButton', 'publicSearchMessage', 'publicSearchResults',
       'wordSuggestionForm', 'suggestionName', 'suggestionEmail',
+      'suggestionIdentityFields', 'suggestionAccountIdentity', 'suggestionAccountName', 'suggestionAccountEmail',
       'suggestionItems', 'suggestionItemTemplate', 'addSuggestionItemButton',
       'suggestionNote', 'suggestionWebsite', 'suggestionConsent',
       'leaderboardOptIn', 'publicDisplayNameWrap', 'publicDisplayName',
       'submitSuggestionButton', 'suggestionMessage', 'suggestionBatchResults',
       'feedbackForm', 'feedbackName', 'feedbackEmail', 'feedbackText',
+      'feedbackIdentityFields', 'feedbackAccountIdentity', 'feedbackAccountName', 'feedbackAccountEmail',
       'feedbackWebsite', 'feedbackConsent', 'submitFeedbackButton',
       'feedbackMessage'
     ].forEach(id => {
@@ -125,11 +127,17 @@
     el.roundLengthInput.value = localStorage.getItem(ROUND_LENGTH_KEY) || '50';
     initializeTheme();
     document.addEventListener('dv-preferences-loaded', handleCloudPreferences);
+    document.addEventListener('dv-account-changed', syncContributorIdentity);
     if (window.DVAccount && window.DVAccount.ready && typeof window.DVAccount.ready.then === 'function') {
       window.DVAccount.ready.then(() => {
-        if (!window.DVAccount || typeof window.DVAccount.getPreferences !== 'function') return;
-        const preferences = window.DVAccount.getPreferences();
-        if (preferences) handleCloudPreferences({ detail: preferences });
+        if (!window.DVAccount) return;
+        if (typeof window.DVAccount.getPreferences === 'function') {
+          const preferences = window.DVAccount.getPreferences();
+          if (preferences) handleCloudPreferences({ detail: preferences });
+        }
+        if (typeof window.DVAccount.getIdentity === 'function') {
+          syncContributorIdentity(window.DVAccount.getIdentity());
+        }
       }).catch(() => {});
     }
     initializeMultiSelectControls();
@@ -439,6 +447,7 @@
     } else if (contribute) {
       state.wordFormStartedAt = Date.now();
       state.feedbackFormStartedAt = Date.now();
+      syncContributorIdentity();
       const firstGerman = el.suggestionItems.querySelector('[data-field="german"]');
       if (firstGerman) window.setTimeout(() => firstGerman.focus(), 50);
     }
@@ -632,6 +641,75 @@
         list.appendChild(row);
       });
     });
+  }
+
+  function syncContributorIdentity(eventOrIdentity) {
+    let identity = eventOrIdentity && eventOrIdentity.detail
+      ? eventOrIdentity.detail
+      : eventOrIdentity;
+
+    if ((!identity || typeof identity !== 'object') && window.DVAccount && typeof window.DVAccount.getIdentity === 'function') {
+      identity = window.DVAccount.getIdentity();
+    }
+
+    const signedIn = Boolean(identity && identity.signedIn);
+    const name = signedIn ? String(identity.name || 'Learner').trim() : '';
+    const email = signedIn ? String(identity.email || '').trim() : '';
+
+    applyContributorIdentity({
+      signedIn,
+      name,
+      email,
+      fields: el.suggestionIdentityFields,
+      panel: el.suggestionAccountIdentity,
+      panelName: el.suggestionAccountName,
+      panelEmail: el.suggestionAccountEmail,
+      nameInput: el.suggestionName,
+      emailInput: el.suggestionEmail
+    });
+
+    applyContributorIdentity({
+      signedIn,
+      name,
+      email,
+      fields: el.feedbackIdentityFields,
+      panel: el.feedbackAccountIdentity,
+      panelName: el.feedbackAccountName,
+      panelEmail: el.feedbackAccountEmail,
+      nameInput: el.feedbackName,
+      emailInput: el.feedbackEmail
+    });
+
+    if (signedIn && el.leaderboardOptIn && el.leaderboardOptIn.checked && el.publicDisplayName && !el.publicDisplayName.value.trim()) {
+      el.publicDisplayName.value = name;
+    }
+  }
+
+  function applyContributorIdentity(options) {
+    if (!options.nameInput || !options.emailInput) return;
+
+    if (options.signedIn) {
+      options.nameInput.value = options.name;
+      options.emailInput.value = options.email;
+      options.nameInput.dataset.accountFilled = 'true';
+      options.emailInput.dataset.accountFilled = 'true';
+      options.nameInput.readOnly = true;
+      options.emailInput.readOnly = true;
+      if (options.fields) options.fields.classList.add('hidden');
+      if (options.panel) options.panel.classList.remove('hidden');
+      if (options.panelName) options.panelName.textContent = options.name;
+      if (options.panelEmail) options.panelEmail.textContent = options.email;
+      return;
+    }
+
+    if (options.nameInput.dataset.accountFilled === 'true') options.nameInput.value = '';
+    if (options.emailInput.dataset.accountFilled === 'true') options.emailInput.value = '';
+    delete options.nameInput.dataset.accountFilled;
+    delete options.emailInput.dataset.accountFilled;
+    options.nameInput.readOnly = false;
+    options.emailInput.readOnly = false;
+    if (options.fields) options.fields.classList.remove('hidden');
+    if (options.panel) options.panel.classList.add('hidden');
   }
 
   function syncLeaderboardOptIn() {
@@ -2320,7 +2398,9 @@
     const raw = error && error.message ? error.message : '';
     let message = 'The app could not connect. Check your connection and retry.';
 
-    if (/permission|access denied/i.test(raw)) {
+    if (error && error.code === 'ORIGIN_NOT_ALLOWED') {
+      message = 'This local beta address is not allowed by the Cloudflare Worker yet. Deploy the supplied V4.1 Worker update and retry.';
+    } else if (/permission|access denied/i.test(raw)) {
       message = 'This web-app deployment is not publicly accessible. Open the production /exec link.';
     } else if (/configuration|spreadsheet|sheet.*not found/i.test(raw)) {
       message = 'The vocabulary service is temporarily unavailable because its server configuration needs attention.';
