@@ -5,19 +5,26 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/><meta content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://deutsche-vokabeltrainer-api.tushar-jejurkar592.workers.dev; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'" http-equiv="Content-Security-Policy"/>
 <meta content="#f1f0ec" name="theme-color"/>
+<meta content="light dark" name="color-scheme"/>
 <meta content="Learn German vocabulary with review, writing, quiz and article practice." name="description"/>
 <title>Deutsche Vokabeltrainer</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./styles.css?v=3.8.0" rel="stylesheet"/>
+<link href="./styles.css?v=3.9.0" rel="stylesheet"/>
 </head>
 <body>
 <div class="app-shell">
 <aside class="sidebar">
 <header class="brand-block">
+<div>
 <h1>Deutsche<br/>Vokabeltrainer</h1>
 <p>Lerne deutsche Wörter Schritt für Schritt.</p>
+</div>
+<button aria-label="Switch to dark mode" class="theme-toggle theme-toggle-sidebar" data-theme-toggle type="button">
+<span aria-hidden="true" class="theme-toggle-icon">☾</span>
+<span class="theme-toggle-label">Dark mode</span>
+</button>
 </header>
 <nav aria-label="Main sections" class="app-tabs" role="tablist">
 <button aria-controls="studyView" aria-selected="true" class="app-tab active" id="studyTabButton" role="tab" type="button"><span class="tab-icon">▣</span><span>Study</span></button>
@@ -28,8 +35,14 @@
 <footer class="sidebar-credit">Created by <strong>Tushar Jejurkar</strong></footer>
 </aside>
 <header class="mobile-header">
+<div>
 <h1>Deutsche Vokabeltrainer</h1>
 <p>Lerne deutsche Wörter Schritt für Schritt.</p>
+</div>
+<button aria-label="Switch to dark mode" class="theme-toggle theme-toggle-mobile" data-theme-toggle type="button">
+<span aria-hidden="true" class="theme-toggle-icon">☾</span>
+<span class="sr-only theme-toggle-label">Dark mode</span>
+</button>
 </header>
 <main class="main-content">
 <section aria-labelledby="studyTabButton" id="studyView" role="tabpanel">
@@ -118,30 +131,41 @@
 <p class="eyebrow">Study setup</p>
 <h2 id="study-settings-title">Choose your round</h2>
 </div>
-<button aria-controls="studySetupBody" aria-expanded="true" class="study-setup-toggle" id="studySetupToggleButton" type="button">
-<span class="study-setup-toggle-label">Hide setup</span>
-<span aria-hidden="true" class="study-setup-toggle-icon">⌃</span>
-</button>
 </div>
 <div class="study-setup-body" id="studySetupBody">
 <div class="controls">
 <div class="ctrl-group">
-<label class="lbl" for="deckSelect">Deck</label>
-<select id="deckSelect"><option>Loading…</option></select>
+<span class="lbl" id="deckFilterLabel">Deck</span>
+<div class="multi-select" id="deckMultiSelect">
+<button aria-controls="deckFilterMenu" aria-expanded="false" aria-haspopup="true" class="multi-select-button" id="deckFilterButton" type="button">
+<span id="deckFilterSummary">Loading…</span><span aria-hidden="true" class="multi-select-caret">⌄</span>
+</button>
+<div class="multi-select-menu" id="deckFilterMenu" hidden>
+<div class="multi-select-options" id="deckFilterOptions" role="group" aria-labelledby="deckFilterLabel"></div>
+</div>
+</div>
 </div>
 <div class="ctrl-group">
-<label class="lbl" for="levelSelect">Level</label>
-<select id="levelSelect"><option value="All">All levels</option></select>
+<span class="lbl" id="levelFilterLabel">Level</span>
+<div class="multi-select" id="levelMultiSelect">
+<button aria-controls="levelFilterMenu" aria-expanded="false" aria-haspopup="true" class="multi-select-button" id="levelFilterButton" type="button">
+<span id="levelFilterSummary">All levels</span><span aria-hidden="true" class="multi-select-caret">⌄</span>
+</button>
+<div class="multi-select-menu" id="levelFilterMenu" hidden>
+<div class="multi-select-options" id="levelFilterOptions" role="group" aria-labelledby="levelFilterLabel"></div>
+</div>
+</div>
 </div>
 <div class="ctrl-group">
-<label class="lbl" for="typeSelect">Show</label>
-<select id="typeSelect">
-<option value="all">All words</option>
-<option value="noun">Nouns</option>
-<option value="verb">Verbs</option>
-<option value="adjective">Adjectives</option>
-<option value="other">Other</option>
-</select>
+<span class="lbl" id="typeFilterLabel">Show</span>
+<div class="multi-select" id="typeMultiSelect">
+<button aria-controls="typeFilterMenu" aria-expanded="false" aria-haspopup="true" class="multi-select-button" id="typeFilterButton" type="button">
+<span id="typeFilterSummary">All words</span><span aria-hidden="true" class="multi-select-caret">⌄</span>
+</button>
+<div class="multi-select-menu" id="typeFilterMenu" hidden>
+<div class="multi-select-options" id="typeFilterOptions" role="group" aria-labelledby="typeFilterLabel"></div>
+</div>
+</div>
 </div>
 <div class="ctrl-group">
 <label class="lbl" for="directionSelect">Direction</label>
@@ -462,6 +486,6 @@
 </main>
 </div>
 <script src="./config.js?v=3.7.1"></script>
-<script defer="" src="./app.js?v=3.8.0"></script>
+<script defer="" src="./app.js?v=3.9.0"></script>
 </body>
 </html>
