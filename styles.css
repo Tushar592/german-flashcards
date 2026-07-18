@@ -2968,3 +2968,249 @@ body {
     animation: none;
   }
 }
+
+/* V3.7 Writing editing, wider study canvas and community placement */
+@media (min-width: 821px) {
+  .study-layout {
+    max-width: 1500px;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 310px);
+    grid-template-areas:
+      "study-main study-setup"
+      "study-community study-setup";
+    column-gap: clamp(18px, 2vw, 28px);
+    row-gap: 20px;
+  }
+
+  .study-main-column {
+    grid-area: study-main;
+  }
+
+  .study-side-column {
+    display: contents;
+  }
+
+  .study-side-column .study-setup {
+    grid-area: study-setup;
+    position: sticky;
+    top: 24px;
+  }
+
+  .study-side-column .leaderboard-card {
+    grid-area: study-community;
+    position: static;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .study-side-column .leaderboard-card .leaderboard-list {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  }
+
+  .stats,
+  .round-toolbar,
+  .card-area,
+  .quiz-opts,
+  .actions,
+  .result {
+    max-width: 960px;
+  }
+
+  .card-area.writing-mode .flashcard {
+    min-height: clamp(300px, 43vh, 460px);
+  }
+}
+
+.writing-slot-field {
+  overflow: hidden;
+}
+
+.writing-pattern {
+  --writing-slot-size: 32px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+  padding: 2px 2px 7px;
+}
+
+.writing-pattern::-webkit-scrollbar {
+  height: 5px;
+}
+
+.writing-pattern::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+}
+
+.writing-pattern.long-word {
+  --writing-slot-size: 25px;
+  gap: 4px;
+}
+
+.writing-pattern.very-long-word {
+  --writing-slot-size: 20px;
+  gap: 3px;
+}
+
+.writing-letter-input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 var(--writing-slot-size);
+  width: var(--writing-slot-size);
+  min-width: var(--writing-slot-size);
+  height: 44px;
+  min-height: 44px;
+  padding: 0 1px 6px;
+  border: 0;
+  border-bottom: 3px solid var(--accent);
+  border-radius: 5px 5px 0 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: clamp(22px, 2vw, 29px);
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  caret-color: var(--accent);
+  text-transform: none;
+}
+
+.writing-letter-input:hover:not(:disabled) {
+  background: rgba(13, 125, 99, 0.05);
+}
+
+.writing-letter-input:focus {
+  outline: none;
+  border-bottom-color: var(--accent-2);
+  background: var(--accent-soft);
+  box-shadow: none;
+}
+
+.writing-letter-input::selection {
+  background: rgba(13, 125, 99, 0.25);
+  color: var(--ink);
+}
+
+.writing-letter-input.pattern-extra {
+  border-bottom-color: var(--red);
+  color: var(--red);
+}
+
+.writing-letter-input:disabled {
+  opacity: 1;
+  color: var(--ink);
+  cursor: default;
+  -webkit-text-fill-color: var(--ink);
+}
+
+.writing-pattern .pattern-space {
+  flex: 0 0 12px;
+  width: 12px;
+  min-width: 12px;
+}
+
+.writing-pattern .pattern-mark {
+  flex: 0 0 14px;
+  width: 14px;
+  min-width: 14px;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.writing-feedback {
+  display: grid;
+  gap: 8px;
+  min-height: 20px;
+}
+
+.writing-feedback-message {
+  display: block;
+}
+
+.writing-answer-reveal {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 7px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 11px;
+  border: 1px solid rgba(13, 125, 99, 0.24);
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+}
+
+.writing-answer-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.writing-answer-value {
+  color: var(--accent-2);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+@media (max-width: 820px) {
+  .writing-pattern {
+    --writing-slot-size: 27px;
+    gap: 5px;
+  }
+
+  .writing-pattern.long-word {
+    --writing-slot-size: 22px;
+    gap: 4px;
+  }
+
+  .writing-pattern.very-long-word {
+    --writing-slot-size: 18px;
+    gap: 3px;
+  }
+
+  .writing-letter-input {
+    height: 41px;
+    min-height: 41px;
+    padding-bottom: 5px;
+    font-size: clamp(20px, 6.4vw, 27px);
+  }
+
+  .writing-pattern .pattern-space {
+    flex-basis: 9px;
+    width: 9px;
+    min-width: 9px;
+  }
+
+  .writing-answer-reveal {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .writing-pattern {
+    --writing-slot-size: 25px;
+    gap: 4px;
+  }
+
+  .writing-pattern.long-word {
+    --writing-slot-size: 20px;
+    gap: 3px;
+  }
+
+  .writing-pattern.very-long-word {
+    --writing-slot-size: 17px;
+    gap: 2px;
+  }
+}
