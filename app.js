@@ -37,6 +37,13 @@
   }
 
   const REVIEW_BANK_KEY = 'df_review_bank_v2';
+  const THEME_KEY = 'df_theme_v1';
+
+  const FILTER_DEFINITIONS = Object.freeze({
+    deck: { allValue: 'All', allLabel: 'All decks', singular: 'deck', plural: 'decks' },
+    level: { allValue: 'All', allLabel: 'All levels', singular: 'level', plural: 'levels' },
+    type: { allValue: 'all', allLabel: 'All words', singular: 'word type', plural: 'word types' }
+  });
 
   const state = {
     clientId: getOrCreateClientId(),
@@ -68,7 +75,9 @@
     availableDecks: [],
     availableLevels: [],
     suggestionItemCounter: 0,
-    hasStartedRound: false
+    hasStartedRound: false,
+    lastMode: 'review',
+    typeSelectionBeforeArticle: ['all']
   };
 
   const el = {};
@@ -79,9 +88,12 @@
     [
       'studyTabButton', 'searchTabButton', 'contributeTabButton', 'guideTabButton',
       'studyView', 'searchView', 'contributeView', 'guideView',
-      'deckSelect', 'levelSelect', 'typeSelect', 'directionSelect',
+      'deckFilterButton', 'deckFilterMenu', 'deckFilterOptions', 'deckFilterSummary',
+      'levelFilterButton', 'levelFilterMenu', 'levelFilterOptions', 'levelFilterSummary',
+      'typeFilterButton', 'typeFilterMenu', 'typeFilterOptions', 'typeFilterSummary',
+      'directionSelect',
       'modeSelect', 'roundLengthSelect', 'setupMessage', 'newRoundButton',
-      'studySetupToggleButton', 'studySetupBody', 'connectionActions', 'retryButton', 'reloadButton',
+      'studySetupBody', 'connectionActions', 'retryButton', 'reloadButton',
       'correctCount', 'wrongCount', 'streakCount',
       'correctLabel', 'wrongLabel', 'streakLabel',
       'progressText', 'progressBar', 'restartRoundButton',
@@ -106,10 +118,11 @@
       el[id] = document.getElementById(id);
     });
 
+    initializeTheme();
+    initializeMultiSelectControls();
     bindEvents();
     syncModeControls();
     updateStats();
-    setStudySetupCollapsed(false, { focus: false });
     loadMeta();
   }
 
@@ -119,9 +132,8 @@
     el.contributeTabButton.addEventListener('click', () => showView('contribute'));
     el.guideTabButton.addEventListener('click', () => showView('guide'));
     el.newRoundButton.addEventListener('click', startBackendRound);
-    el.studySetupToggleButton.addEventListener('click', () => {
-      const isCollapsed = document.querySelector('.study-setup').classList.contains('is-collapsed');
-      setStudySetupCollapsed(!isCollapsed);
+    document.querySelectorAll('[data-theme-toggle]').forEach(button => {
+      button.addEventListener('click', toggleTheme);
     });
     el.playAgainButton.addEventListener('click', startBackendRound);
     el.retryButton.addEventListener('click', loadMeta);
@@ -134,9 +146,6 @@
     el.modeSelect.addEventListener('change', () => {
       syncModeControls();
       updateRoundAvailability();
-    });
-    [el.deckSelect, el.levelSelect, el.typeSelect].forEach(select => {
-      select.addEventListener('change', updateRoundAvailability);
     });
     el.leaderboardOptIn.addEventListener('change', syncLeaderboardOptIn);
     el.writingSubmitButton.addEventListener('click', submitWritingAnswer);
@@ -164,20 +173,199 @@
     enableTabKeyboard('.app-tab');
   }
 
-  function setStudySetupCollapsed(collapsed, options = {}) {
-    const panel = document.querySelector('.study-setup');
-    if (!panel || !el.studySetupToggleButton || !el.studySetupBody) return;
 
-    panel.classList.toggle('is-collapsed', Boolean(collapsed));
-    el.studySetupBody.hidden = Boolean(collapsed);
-    el.studySetupToggleButton.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  function initializeTheme() {
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    const preferredTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
+    applyTheme(savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : preferredTheme, false);
+  }
 
-    const label = el.studySetupToggleButton.querySelector('.study-setup-toggle-label');
-    const icon = el.studySetupToggleButton.querySelector('.study-setup-toggle-icon');
-    if (label) label.textContent = collapsed ? 'Show setup' : 'Hide setup';
-    if (icon) icon.textContent = collapsed ? '⌄' : '⌃';
+  function toggleTheme() {
+    const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(nextTheme, true);
+  }
 
-    if (options.focus !== false) el.studySetupToggleButton.focus({ preventScroll: true });
+  function applyTheme(theme, persist) {
+    const normalized = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.dataset.theme = normalized;
+    document.documentElement.style.colorScheme = normalized;
+
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) themeColor.setAttribute('content', normalized === 'dark' ? '#111714' : '#f1f0ec');
+
+    document.querySelectorAll('[data-theme-toggle]').forEach(button => {
+      const darkActive = normalized === 'dark';
+      const icon = button.querySelector('.theme-toggle-icon');
+      const label = button.querySelector('.theme-toggle-label');
+      if (icon) icon.textContent = darkActive ? '☀' : '☾';
+      if (label) label.textContent = darkActive ? 'Light mode' : 'Dark mode';
+      button.setAttribute('aria-label', darkActive ? 'Switch to light mode' : 'Switch to dark mode');
+      button.setAttribute('aria-pressed', darkActive ? 'true' : 'false');
+    });
+
+    if (persist) localStorage.setItem(THEME_KEY, normalized);
+  }
+
+  function initializeMultiSelectControls() {
+    renderMultiSelectOptions('type', [
+      { value: 'all', label: 'All words' },
+      { value: 'noun', label: 'Nouns' },
+      { value: 'verb', label: 'Verbs' },
+      { value: 'adjective', label: 'Adjectives' },
+      { value: 'other', label: 'Other' }
+    ]);
+
+    ['deck', 'level', 'type'].forEach(kind => {
+      const refs = getMultiSelectRefs(kind);
+      refs.button.addEventListener('click', event => {
+        event.stopPropagation();
+        toggleMultiSelectMenu(kind);
+      });
+      refs.menu.addEventListener('click', event => event.stopPropagation());
+      refs.options.addEventListener('change', event => {
+        if (!event.target.matches('input[type="checkbox"]')) return;
+        handleMultiSelectChange(kind, event.target);
+      });
+    });
+
+    document.addEventListener('click', closeAllMultiSelectMenus);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeAllMultiSelectMenus();
+    });
+  }
+
+  function getMultiSelectRefs(kind) {
+    const prefix = kind === 'type' ? 'type' : kind;
+    return {
+      button: el[prefix + 'FilterButton'],
+      menu: el[prefix + 'FilterMenu'],
+      options: el[prefix + 'FilterOptions'],
+      summary: el[prefix + 'FilterSummary']
+    };
+  }
+
+  function renderMultiSelectOptions(kind, options) {
+    const refs = getMultiSelectRefs(kind);
+    if (!refs.options) return;
+    const previous = new Set(getMultiSelectValues(kind));
+    refs.options.replaceChildren();
+
+    options.forEach((option, index) => {
+      const label = document.createElement('label');
+      label.className = 'multi-select-option';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.value = option.value;
+      input.checked = previous.size
+        ? previous.has(option.value)
+        : option.value === FILTER_DEFINITIONS[kind].allValue;
+      const text = document.createElement('span');
+      text.textContent = option.label;
+      label.append(input, text);
+      refs.options.appendChild(label);
+    });
+
+    ensureMultiSelectHasValue(kind);
+    updateMultiSelectSummary(kind);
+  }
+
+  function handleMultiSelectChange(kind, changedInput) {
+    const refs = getMultiSelectRefs(kind);
+    const allValue = FILTER_DEFINITIONS[kind].allValue;
+    const inputs = Array.from(refs.options.querySelectorAll('input[type="checkbox"]'));
+
+    if (changedInput.value === allValue && changedInput.checked) {
+      inputs.forEach(input => {
+        if (input !== changedInput) input.checked = false;
+      });
+    } else if (changedInput.value !== allValue && changedInput.checked) {
+      const allInput = inputs.find(input => input.value === allValue);
+      if (allInput) allInput.checked = false;
+    }
+
+    ensureMultiSelectHasValue(kind);
+    updateMultiSelectSummary(kind);
+    updateRoundAvailability();
+  }
+
+  function ensureMultiSelectHasValue(kind) {
+    const refs = getMultiSelectRefs(kind);
+    const inputs = Array.from(refs.options.querySelectorAll('input[type="checkbox"]'));
+    if (inputs.some(input => input.checked)) return;
+    const allInput = inputs.find(input => input.value === FILTER_DEFINITIONS[kind].allValue);
+    if (allInput) allInput.checked = true;
+  }
+
+  function getMultiSelectValues(kind) {
+    const refs = getMultiSelectRefs(kind);
+    if (!refs.options) return [];
+    return Array.from(refs.options.querySelectorAll('input[type="checkbox"]:checked'))
+      .map(input => input.value);
+  }
+
+  function setMultiSelectValues(kind, values) {
+    const refs = getMultiSelectRefs(kind);
+    const selected = new Set(Array.isArray(values) ? values : [values]);
+    refs.options.querySelectorAll('input[type="checkbox"]').forEach(input => {
+      input.checked = selected.has(input.value);
+    });
+    ensureMultiSelectHasValue(kind);
+    updateMultiSelectSummary(kind);
+  }
+
+  function setMultiSelectDisabled(kind, disabled) {
+    const refs = getMultiSelectRefs(kind);
+    refs.button.disabled = Boolean(disabled);
+    refs.options.querySelectorAll('input[type="checkbox"]').forEach(input => {
+      input.disabled = Boolean(disabled);
+    });
+    if (disabled) closeMultiSelectMenu(kind);
+  }
+
+  function updateMultiSelectSummary(kind) {
+    const refs = getMultiSelectRefs(kind);
+    const definition = FILTER_DEFINITIONS[kind];
+    const selected = getMultiSelectValues(kind);
+    const allSelected = selected.includes(definition.allValue);
+
+    if (allSelected || !selected.length) {
+      refs.summary.textContent = definition.allLabel;
+      return;
+    }
+
+    const labels = selected.map(value => {
+      const input = Array.from(refs.options.querySelectorAll('input[type="checkbox"]'))
+        .find(item => item.value === value);
+      return input && input.parentElement ? input.parentElement.textContent.trim() : value;
+    });
+
+    refs.summary.textContent = labels.length <= 2
+      ? labels.join(' + ')
+      : labels.length + ' ' + definition.plural + ' selected';
+  }
+
+  function toggleMultiSelectMenu(kind) {
+    const refs = getMultiSelectRefs(kind);
+    const willOpen = refs.menu.hidden;
+    closeAllMultiSelectMenus();
+    refs.menu.hidden = !willOpen;
+    refs.button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    if (willOpen) {
+      const firstChecked = refs.options.querySelector('input:checked') || refs.options.querySelector('input');
+      if (firstChecked) window.setTimeout(() => firstChecked.focus(), 0);
+    }
+  }
+
+  function closeMultiSelectMenu(kind) {
+    const refs = getMultiSelectRefs(kind);
+    refs.menu.hidden = true;
+    refs.button.setAttribute('aria-expanded', 'false');
+  }
+
+  function closeAllMultiSelectMenus() {
+    ['deck', 'level', 'type'].forEach(closeMultiSelectMenu);
   }
 
   function enableTabKeyboard(selector) {
@@ -244,13 +432,13 @@
         throw new Error('The study options could not be loaded.');
       }
 
-      fillSelect(el.deckSelect, ['All'].concat(result.decks || []), value => {
-        return value === 'All' ? 'All decks' : value;
-      });
+      renderMultiSelectOptions('deck', [
+        { value: 'All', label: 'All decks' }
+      ].concat((result.decks || []).map(value => ({ value: value, label: value }))));
 
-      fillSelect(el.levelSelect, ['All'].concat(result.levels || []), value => {
-        return value === 'All' ? 'All levels' : value;
-      });
+      renderMultiSelectOptions('level', [
+        { value: 'All', label: 'All levels' }
+      ].concat((result.levels || []).map(value => ({ value: value, label: value }))));
 
       state.availableDecks = (result.decks || []).slice();
       state.availableLevels = (result.levels || ['Unassigned'])
@@ -269,15 +457,15 @@
   }
 
   async function updateRoundAvailability() {
-    if (!el.deckSelect.value || el.deckSelect.value === 'Loading…') return;
+    if (!getMultiSelectValues('deck').length) return;
 
     const previous = Number(el.roundLengthSelect.value || 0);
     try {
       const result = await apiCall('getRoundAvailability', {
         clientId: state.clientId,
-        deck: el.deckSelect.value,
-        level: el.levelSelect.value,
-        type: el.typeSelect.value,
+        decks: getMultiSelectValues('deck'),
+        levels: getMultiSelectValues('level'),
+        types: getMultiSelectValues('type'),
         mode: el.modeSelect.value
       });
 
@@ -382,16 +570,26 @@
     const writingMode = mode === 'writing';
 
     el.directionSelect.disabled = articleMode || writingMode;
-    el.typeSelect.disabled = articleMode;
 
-    if (articleMode) {
-      el.typeSelect.value = 'noun';
+    if (articleMode && state.lastMode !== 'article') {
+      state.typeSelectionBeforeArticle = getMultiSelectValues('type');
+      setMultiSelectValues('type', ['noun']);
+    } else if (!articleMode && state.lastMode === 'article') {
+      setMultiSelectValues(
+        'type',
+        state.typeSelectionBeforeArticle && state.typeSelectionBeforeArticle.length
+          ? state.typeSelectionBeforeArticle
+          : ['all']
+      );
     }
+
+    setMultiSelectDisabled('type', articleMode);
 
     if (writingMode) {
       el.directionSelect.value = 'en-de';
     }
 
+    state.lastMode = mode;
     updateStatLabels(mode);
   }
 
@@ -412,9 +610,9 @@
     try {
       const result = await apiCall('startStudy', {
         clientId: state.clientId,
-        deck: el.deckSelect.value,
-        level: el.levelSelect.value,
-        type: el.typeSelect.value,
+        decks: getMultiSelectValues('deck'),
+        levels: getMultiSelectValues('level'),
+        types: getMultiSelectValues('type'),
         mode: state.mode,
         roundLength: Number(el.roundLengthSelect.value)
       });
@@ -438,7 +636,6 @@
       state.source = 'backend';
 
       setMessage('Round ready.');
-      setStudySetupCollapsed(true, { focus: false });
       el.restartRoundButton.classList.remove('hidden');
       showNextCard();
       prefetchIfNeeded();
@@ -1301,7 +1498,6 @@
     state.hasMore = false;
     state.loadingBatch = false;
     el.restartRoundButton.classList.remove('hidden');
-    setStudySetupCollapsed(true, { focus: false });
     resetCardUi();
     setMessage('Practice round ready.');
     showNextCard();
