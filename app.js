@@ -81,7 +81,7 @@
       'studyView', 'searchView', 'contributeView', 'guideView',
       'deckSelect', 'levelSelect', 'typeSelect', 'directionSelect',
       'modeSelect', 'roundLengthSelect', 'setupMessage', 'newRoundButton',
-      'connectionActions', 'retryButton', 'reloadButton',
+      'studySetupToggleButton', 'studySetupBody', 'connectionActions', 'retryButton', 'reloadButton',
       'correctCount', 'wrongCount', 'streakCount',
       'correctLabel', 'wrongLabel', 'streakLabel',
       'progressText', 'progressBar', 'restartRoundButton',
@@ -109,6 +109,7 @@
     bindEvents();
     syncModeControls();
     updateStats();
+    setStudySetupCollapsed(false, { focus: false });
     loadMeta();
   }
 
@@ -118,6 +119,10 @@
     el.contributeTabButton.addEventListener('click', () => showView('contribute'));
     el.guideTabButton.addEventListener('click', () => showView('guide'));
     el.newRoundButton.addEventListener('click', startBackendRound);
+    el.studySetupToggleButton.addEventListener('click', () => {
+      const isCollapsed = document.querySelector('.study-setup').classList.contains('is-collapsed');
+      setStudySetupCollapsed(!isCollapsed);
+    });
     el.playAgainButton.addEventListener('click', startBackendRound);
     el.retryButton.addEventListener('click', loadMeta);
     el.reloadButton.addEventListener('click', () => window.location.reload());
@@ -157,6 +162,22 @@
     el.wordSuggestionForm.addEventListener('submit', submitWordSuggestionForm);
     el.feedbackForm.addEventListener('submit', submitFeedbackForm);
     enableTabKeyboard('.app-tab');
+  }
+
+  function setStudySetupCollapsed(collapsed, options = {}) {
+    const panel = document.querySelector('.study-setup');
+    if (!panel || !el.studySetupToggleButton || !el.studySetupBody) return;
+
+    panel.classList.toggle('is-collapsed', Boolean(collapsed));
+    el.studySetupBody.hidden = Boolean(collapsed);
+    el.studySetupToggleButton.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+
+    const label = el.studySetupToggleButton.querySelector('.study-setup-toggle-label');
+    const icon = el.studySetupToggleButton.querySelector('.study-setup-toggle-icon');
+    if (label) label.textContent = collapsed ? 'Show setup' : 'Hide setup';
+    if (icon) icon.textContent = collapsed ? '⌄' : '⌃';
+
+    if (options.focus !== false) el.studySetupToggleButton.focus({ preventScroll: true });
   }
 
   function enableTabKeyboard(selector) {
@@ -417,6 +438,7 @@
       state.source = 'backend';
 
       setMessage('Round ready.');
+      setStudySetupCollapsed(true, { focus: false });
       el.restartRoundButton.classList.remove('hidden');
       showNextCard();
       prefetchIfNeeded();
@@ -1279,6 +1301,7 @@
     state.hasMore = false;
     state.loadingBatch = false;
     el.restartRoundButton.classList.remove('hidden');
+    setStudySetupCollapsed(true, { focus: false });
     resetCardUi();
     setMessage('Practice round ready.');
     showNextCard();
