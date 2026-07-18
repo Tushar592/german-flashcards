@@ -3,9 +3,9 @@ window.DEUTSCHE_VOKABELTRAINER_CONFIG = Object.freeze({
 
   // Safe browser credentials from Supabase.
   // Supabase Dashboard → Integrations → Data API → Project URL
-  supabaseUrl: 'PASTE_YOUR_SUPABASE_PROJECT_URL_HERE',
+  supabaseUrl: 'https://beusdvfifjyfzmihvtxv.supabase.co/rest/v1/',
 
   // Supabase Dashboard → Project Settings → API Keys → Publishable key
   // Never place a secret key, service-role key or database password here.
-  supabasePublishableKey: 'PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE'
+  supabasePublishableKey: 'sb_publishable_lLMnEZjWrdTlVzAFuO3OgA_EtUr4yD4'
 });
