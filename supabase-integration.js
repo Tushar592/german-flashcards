@@ -2,7 +2,7 @@
   'use strict';
 
   const CONFIG = window.DEUTSCHE_VOKABELTRAINER_CONFIG || {};
-  const SUPABASE_URL = String(CONFIG.supabaseUrl || '').trim();
+  const SUPABASE_URL = normalizeSupabaseUrl(CONFIG.supabaseUrl);
   const SUPABASE_KEY = String(CONFIG.supabasePublishableKey || '').trim();
   const GUEST_PROGRESS_KEY = 'dv_guest_progress_v1';
   const USER_CACHE_PREFIX = 'dv_user_progress_cache_v1_';
@@ -39,6 +39,7 @@
     isConfigured: () => state.configured,
     isSignedIn: () => Boolean(state.user),
     getUser: () => state.user,
+    getIdentity,
     getPreferences: () => Object.assign({}, state.preferences),
     getProgressCount: () => state.progress.size,
     open: openAccountDialog,
@@ -90,10 +91,24 @@
     }
   }
 
+  function normalizeSupabaseUrl(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    try {
+      const url = new URL(raw);
+      if (!/^[a-z0-9-]+\.supabase\.co$/i.test(url.hostname)) return raw.replace(/\/$/, '');
+      return url.origin;
+    } catch (error) {
+      return raw
+        .replace(/\/(?:rest|auth|storage)\/v1\/?$/i, '')
+        .replace(/\/$/, '');
+    }
+  }
+
   function isConfigured() {
     if (!SUPABASE_URL || !SUPABASE_KEY) return false;
     if (/PASTE_|YOUR_|example/i.test(SUPABASE_URL + SUPABASE_KEY)) return false;
-    return /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(SUPABASE_URL) && SUPABASE_KEY.length > 30;
+    return /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(SUPABASE_URL) && SUPABASE_KEY.length > 30;
   }
 
   function cacheElements() {
@@ -356,7 +371,7 @@
       state.preferences = Object.assign({}, DEFAULT_PREFERENCES);
       state.progress = loadGuestProgressMap();
       renderAccountState();
-      document.dispatchEvent(new CustomEvent('dv-account-changed', { detail: { signedIn: false } }));
+      document.dispatchEvent(new CustomEvent('dv-account-changed', { detail: getIdentity() }));
       return;
     }
 
@@ -365,7 +380,7 @@
     await maybeMigrateGuestProgress();
     renderAccountState();
     document.dispatchEvent(new CustomEvent('dv-account-changed', {
-      detail: { signedIn: true, user: state.user }
+      detail: getIdentity()
     }));
   }
 
@@ -675,6 +690,19 @@
     localStorage.removeItem(PENDING_PREFIX + userId);
   }
 
+  function getIdentity() {
+    const signedIn = Boolean(state.user);
+    const displayName = state.profile && state.profile.display_name
+      ? state.profile.display_name
+      : (state.user && state.user.user_metadata && state.user.user_metadata.display_name) || '';
+    return {
+      signedIn,
+      user: state.user,
+      name: displayName || (signedIn ? 'Learner' : ''),
+      email: state.user ? String(state.user.email || '') : ''
+    };
+  }
+
   function renderAccountState() {
     const signedIn = Boolean(state.user);
     const configured = state.configured;
@@ -688,9 +716,8 @@
     if (el.authSignedInPanel) el.authSignedInPanel.classList.toggle('hidden', !signedIn || state.recoveryMode);
     if (el.authRecoveryPanel) el.authRecoveryPanel.classList.toggle('hidden', !state.recoveryMode);
 
-    const displayName = state.profile && state.profile.display_name
-      ? state.profile.display_name
-      : (state.user && state.user.user_metadata && state.user.user_metadata.display_name) || 'Learner';
+    const identity = getIdentity();
+    const displayName = identity.name || 'Learner';
 
     if (el.accountSidebarTitle) el.accountSidebarTitle.textContent = signedIn ? displayName : 'Guest mode';
     if (el.accountSidebarSubtitle) {
