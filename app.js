@@ -119,7 +119,6 @@
       'wordSuggestionForm', 'suggestionName', 'suggestionEmail',
       'suggestionItems', 'suggestionItemTemplate', 'addSuggestionItemButton',
       'suggestionNote', 'suggestionWebsite', 'suggestionConsent',
-      'leaderboardOptIn', 'publicDisplayNameWrap', 'publicDisplayName',
       'submitSuggestionButton', 'suggestionMessage', 'suggestionBatchResults',
       'feedbackForm', 'feedbackName', 'feedbackEmail', 'feedbackText',
       'feedbackWebsite', 'feedbackConsent', 'submitFeedbackButton',
@@ -183,7 +182,6 @@
       handleRoundLengthChange();
       el.newRoundButton.focus();
     });
-    el.leaderboardOptIn.addEventListener('change', syncLeaderboardOptIn);
     el.writingSubmitButton.addEventListener('click', submitWritingAnswer);
     el.writingPattern.addEventListener('input', handleWritingSlotInput);
     el.writingPattern.addEventListener('keydown', handleWritingSlotKeydown);
@@ -704,9 +702,6 @@
       emailInput: el.feedbackEmail
     });
 
-    if (signedIn && el.leaderboardOptIn && el.leaderboardOptIn.checked && el.publicDisplayName && !el.publicDisplayName.value.trim()) {
-      el.publicDisplayName.value = name;
-    }
   }
 
   function applyContributorIdentity(options) {
@@ -730,14 +725,6 @@
     options.emailInput.readOnly = false;
   }
 
-  function syncLeaderboardOptIn() {
-    const enabled = Boolean(el.leaderboardOptIn.checked);
-    el.publicDisplayNameWrap.classList.toggle('hidden', !enabled);
-    el.publicDisplayName.required = enabled;
-    if (enabled && !el.publicDisplayName.value.trim()) {
-      el.publicDisplayName.value = el.suggestionName.value.trim();
-    }
-  }
 
   function fillSelect(select, values, labelFormatter) {
     const previous = select.value;
@@ -2357,8 +2344,8 @@
       formStartedAt: state.wordFormStartedAt,
       name: el.suggestionName.value,
       email: el.suggestionEmail.value,
-      leaderboardOptIn: el.leaderboardOptIn.checked,
-      publicDisplayName: el.publicDisplayName.value,
+      leaderboardOptIn: true,
+      publicDisplayName: el.suggestionName.value.trim(),
       note: el.suggestionNote.value,
       website: el.suggestionWebsite.value,
       consent: el.suggestionConsent.checked,
@@ -2383,16 +2370,11 @@
       if (result.acceptedCount > 0) {
         const previousName = el.suggestionName.value;
         const previousEmail = el.suggestionEmail.value;
-        const previousDisplayName = el.publicDisplayName.value;
-        const previousOptIn = el.leaderboardOptIn.checked;
 
         if (result.rejectedCount === 0) {
           el.wordSuggestionForm.reset();
           el.suggestionName.value = previousName;
           el.suggestionEmail.value = previousEmail;
-          el.leaderboardOptIn.checked = previousOptIn;
-          el.publicDisplayName.value = previousDisplayName;
-          syncLeaderboardOptIn();
           el.suggestionItems.replaceChildren();
           addSuggestionItem();
         } else {
