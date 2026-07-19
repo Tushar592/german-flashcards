@@ -1,12 +1,14 @@
 (() => {
   'use strict';
 
-  const RELEASE = '4.6.5';
+  const RELEASE = '4.6.6';
   const AUTH_STORAGE_KEY = 'dv_supabase_auth_v1';
   let deferredPrompt = null;
   let previouslyFocusedElement = null;
   let feedbackPreviouslyFocusedElement = null;
   let feedbackReturnToAccount = false;
+  let changePasswordPreviouslyFocusedElement = null;
+  let changePasswordReturnToAccount = false;
 
   const isStandalone = () =>
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -611,29 +613,75 @@ ${raw}`;
     }
   }
 
+  function openChangePasswordDialog() {
+    const dialog = document.getElementById('changePasswordDialog');
+    if (!dialog) return;
+
+    const account = document.getElementById('accountDialog');
+    changePasswordPreviouslyFocusedElement = document.activeElement;
+    changePasswordReturnToAccount = Boolean(account && account.open);
+    closeDialog(account);
+    setChangePasswordMessage('');
+    showDialog(dialog);
+    dialog.scrollTop = 0;
+    window.setTimeout(() => document.getElementById('currentPassword')?.focus(), 40);
+  }
+
+  function closeChangePasswordDialog() {
+    const dialog = document.getElementById('changePasswordDialog');
+    const form = document.getElementById('changePasswordForm');
+    closeDialog(dialog);
+    form?.reset();
+    document.querySelectorAll('[data-password-requirements-for="changeNewPassword"]').forEach(updatePasswordChecklist);
+    setChangePasswordMessage('');
+
+    const account = document.getElementById('accountDialog');
+    if (changePasswordReturnToAccount && account) {
+      showDialog(account);
+    }
+
+    if (changePasswordPreviouslyFocusedElement && typeof changePasswordPreviouslyFocusedElement.focus === 'function') {
+      window.setTimeout(() => changePasswordPreviouslyFocusedElement?.focus({ preventScroll: true }), 30);
+    }
+    changePasswordPreviouslyFocusedElement = null;
+    changePasswordReturnToAccount = false;
+  }
+
   function bindChangePassword() {
     const open = document.getElementById('changePasswordOpenButton');
     const close = document.getElementById('changePasswordCloseButton');
-    const panel = document.getElementById('changePasswordPanel');
+    const dialog = document.getElementById('changePasswordDialog');
     const form = document.getElementById('changePasswordForm');
 
-    if (open && panel) {
-      open.addEventListener('click', () => {
-        panel.classList.remove('hidden');
-        setChangePasswordMessage('');
-        window.setTimeout(() => document.getElementById('currentPassword')?.focus(), 30);
-      });
-    }
+    if (open) open.addEventListener('click', openChangePasswordDialog);
+    if (close) close.addEventListener('click', closeChangePasswordDialog);
 
-    if (close && panel) {
-      close.addEventListener('click', () => {
-        panel.classList.add('hidden');
-        form?.reset();
-        setChangePasswordMessage('');
+    if (dialog) {
+      dialog.addEventListener('click', event => {
+        if (event.target === dialog) closeChangePasswordDialog();
+      });
+      dialog.addEventListener('cancel', event => {
+        event.preventDefault();
+        closeChangePasswordDialog();
       });
     }
 
     if (form) form.addEventListener('submit', changePassword);
+  }
+
+  function syncAccountAuthMessageVisibility() {
+    const signedInPanel = document.getElementById('authSignedInPanel');
+    const authMessage = document.getElementById('authMessage');
+    if (!signedInPanel || !authMessage) return;
+    authMessage.hidden = !signedInPanel.classList.contains('hidden');
+  }
+
+  function bindAccountMessageVisibility() {
+    const signedInPanel = document.getElementById('authSignedInPanel');
+    if (!signedInPanel) return;
+    syncAccountAuthMessageVisibility();
+    const observer = new MutationObserver(syncAccountAuthMessageVisibility);
+    observer.observe(signedInPanel, { attributes: true, attributeFilter: ['class'] });
   }
 
   function initializeInterfaceEnhancements() {
@@ -644,6 +692,7 @@ ${raw}`;
     bindAuthNavigation();
     bindFeedbackDialog();
     bindChangePassword();
+    bindAccountMessageVisibility();
 
     if ('serviceWorker' in navigator &&
         (location.protocol === 'https:' ||
