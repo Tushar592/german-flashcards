@@ -1,4 +1,4 @@
-const VERSION = '4.6.0-beta.1';
+const VERSION = '4.6.1-beta.1';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
