@@ -5,7 +5,10 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "background_color": "#f1f0ec",
   "theme_color": "#0d7d63",
   "icons": [
@@ -20,6 +23,22 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "id": "./",
+  "screenshots": [
+    {
+      "src": "./screenshots/desktop-wide.png",
+      "sizes": "2047x1034",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Deutsche Vokabeltrainer study dashboard on desktop"
+    },
+    {
+      "src": "./screenshots/mobile.png",
+      "sizes": "944x2048",
+      "type": "image/png",
+      "label": "Deutsche Vokabeltrainer study setup on mobile"
     }
   ]
 }
