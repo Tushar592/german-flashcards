@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const RELEASE = '4.6.7';
+  const RELEASE = '4.6.8';
   const AUTH_STORAGE_KEY = 'dv_supabase_auth_v1';
   let deferredPrompt = null;
   let previouslyFocusedElement = null;
@@ -668,18 +668,25 @@ ${raw}`;
     if (form) form.addEventListener('submit', changePassword);
   }
 
-  function syncAccountAuthMessageVisibility() {
+  function syncAccountState() {
+    const dialog = document.getElementById('accountDialog');
     const signedInPanel = document.getElementById('authSignedInPanel');
     const authMessage = document.getElementById('authMessage');
-    if (!signedInPanel || !authMessage) return;
-    authMessage.hidden = !signedInPanel.classList.contains('hidden');
+    if (!dialog || !signedInPanel) return;
+
+    const signedIn = !signedInPanel.classList.contains('hidden');
+    dialog.dataset.accountState = signedIn ? 'signed-in' : 'signed-out';
+
+    if (authMessage) {
+      authMessage.hidden = signedIn;
+    }
   }
 
-  function bindAccountMessageVisibility() {
+  function bindAccountState() {
     const signedInPanel = document.getElementById('authSignedInPanel');
     if (!signedInPanel) return;
-    syncAccountAuthMessageVisibility();
-    const observer = new MutationObserver(syncAccountAuthMessageVisibility);
+    syncAccountState();
+    const observer = new MutationObserver(syncAccountState);
     observer.observe(signedInPanel, { attributes: true, attributeFilter: ['class'] });
   }
 
@@ -691,7 +698,7 @@ ${raw}`;
     bindAuthNavigation();
     bindFeedbackDialog();
     bindChangePassword();
-    bindAccountMessageVisibility();
+    bindAccountState();
 
     if ('serviceWorker' in navigator &&
         (location.protocol === 'https:' ||
