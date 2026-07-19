@@ -1,9 +1,12 @@
 (() => {
   'use strict';
 
-  const RELEASE = '4.6.4';
+  const RELEASE = '4.6.5';
+  const AUTH_STORAGE_KEY = 'dv_supabase_auth_v1';
   let deferredPrompt = null;
   let previouslyFocusedElement = null;
+  let feedbackPreviouslyFocusedElement = null;
+  let feedbackReturnToAccount = false;
 
   const isStandalone = () =>
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -54,26 +57,26 @@
     if (p.isiOS) {
       return {
         title: 'Install on iPhone or iPad',
-        intro: 'Apple does not allow a website button to start installation directly. Use the browser Share menu:',
+        intro: 'Apple requires installation through the browser Share menu:',
         steps: [
+          'Open this page in Safari.',
           'Tap the Share button in the browser toolbar.',
-          'Choose Add to Home Screen.',
-          'Confirm by tapping Add.'
+          'Choose Add to Home Screen, then tap Add.'
         ],
-        note: 'If Add to Home Screen is not shown, open this page in Safari and repeat the steps.'
+        note: 'Other iPhone browsers may show an Open in Safari option first.'
       };
     }
 
     if (p.isAndroid) {
       return {
         title: 'Install on Android',
-        intro: 'Your browser has not exposed the automatic install prompt yet. You can still install from its menu:',
+        intro: 'Your browser has not exposed the automatic installation prompt yet. You can still install from its menu:',
         steps: [
-          'Open the browser menu (usually ⋮).',
+          'Open the browser menu, usually shown as ⋮.',
           'Choose Install app or Add to Home screen.',
           'Confirm the installation.'
         ],
-        note: 'The exact wording depends on the browser.'
+        note: 'The exact wording depends on the Android browser.'
       };
     }
 
@@ -86,7 +89,7 @@
           'Choose Add to Dock.',
           'Confirm the app name and add it.'
         ],
-        note: 'If Add to Dock is unavailable, open the app in Chrome or Edge and use that browser’s Install option.'
+        note: 'Chrome and Edge also provide an Install option in the address bar or browser menu.'
       };
     }
 
@@ -96,10 +99,10 @@
         intro: 'This browser did not provide a direct installation prompt.',
         steps: [
           'Open the browser menu and look for Install or Add to Home Screen.',
-          'If no installation option is available, open the same page in Chrome, Edge, or Safari.',
+          'When no installation option is available, open the same page in Chrome, Edge, or Safari.',
           'Use that browser’s Install app option.'
         ],
-        note: 'You can continue using the vocabulary trainer normally in this browser.'
+        note: 'The vocabulary trainer can still be used normally in this browser.'
       };
     }
 
@@ -112,7 +115,7 @@
           'Choose Install Deutsche Vokabeltrainer or Install app.',
           'Confirm the installation.'
         ],
-        note: 'If the option is missing, reload the page once and check that you are using the secure HTTPS website.'
+        note: 'Reload the secure HTTPS page once if the installation option has not appeared yet.'
       };
     }
 
@@ -250,7 +253,7 @@
       if (choice && choice.outcome === 'accepted') {
         setMessage('Installation started. Open Deutsche Vokabeltrainer from your home screen or app list.');
       } else {
-        setMessage('Installation was cancelled. You can install it later from the Guide or Account section.');
+        setMessage('Installation was cancelled. You can install it later from the Guide or Account menu.');
       }
     } catch (error) {
       deferredPrompt = null;
@@ -258,6 +261,398 @@
     }
 
     updateButtons();
+  }
+
+  function readSafeAreaInset(side) {
+    const test = document.createElement('div');
+    test.style.cssText = [
+      'position:fixed',
+      'visibility:hidden',
+      'pointer-events:none',
+      side === 'top'
+        ? 'padding-top:env(safe-area-inset-top,0px)'
+        : 'padding-bottom:env(safe-area-inset-bottom,0px)'
+    ].join(';');
+    document.body.append(test);
+    const value = parseFloat(
+      side === 'top'
+        ? getComputedStyle(test).paddingTop
+        : getComputedStyle(test).paddingBottom
+    ) || 0;
+    test.remove();
+    return value;
+  }
+
+  function estimatedIOSInsets() {
+    const width = Math.round(Math.min(screen.width || innerWidth, screen.height || innerHeight));
+    const dynamicIslandWidths = new Set([393, 402, 430, 440]);
+    const notchedWidths = new Set([375, 390, 414, 428]);
+
+    if (dynamicIslandWidths.has(width)) return { top: 59, bottom: 34 };
+    if (notchedWidths.has(width) || width >= 375) return { top: 47, bottom: 34 };
+    return { top: 20, bottom: 0 };
+  }
+
+  function updateSafeAreaFallback() {
+    const root = document.documentElement;
+    const p = platform();
+    const topInset = readSafeAreaInset('top');
+    const bottomInset = readSafeAreaInset('bottom');
+    let topFallback = 0;
+    let bottomFallback = 0;
+
+    if (isStandalone() && topInset < 1) {
+      if (p.isiOS) {
+        const estimate = estimatedIOSInsets();
+        topFallback = estimate.top;
+        bottomFallback = bottomInset < 1 ? estimate.bottom : 0;
+      } else if (p.isAndroid) {
+        topFallback = 24;
+        bottomFallback = bottomInset < 1 ? 24 : 0;
+      }
+    }
+
+    root.style.setProperty('--dv-safe-top-fallback', `${topFallback}px`);
+    root.style.setProperty('--dv-safe-bottom-fallback', `${bottomFallback}px`);
+    root.classList.toggle('dv-standalone', isStandalone());
+    root.classList.toggle('dv-ios', p.isiOS);
+    root.classList.toggle('dv-android', p.isAndroid);
+  }
+
+  const PASSWORD_RULES = Object.freeze({
+    length: value => value.length >= 8,
+    uppercase: value => /[A-Z]/.test(value),
+    lowercase: value => /[a-z]/.test(value),
+    number: value => /[0-9]/.test(value),
+    symbol: value => /[^A-Za-z0-9\s]/.test(value)
+  });
+
+  function passwordIsStrong(value) {
+    return Object.values(PASSWORD_RULES).every(rule => rule(value));
+  }
+
+  function bindPasswordToggles() {
+    document.querySelectorAll('[data-password-toggle]').forEach(button => {
+      button.addEventListener('click', () => {
+        const input = document.getElementById(button.dataset.passwordToggle || '');
+        if (!input) return;
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        button.textContent = show ? 'Hide' : 'Show';
+        button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        button.setAttribute('aria-pressed', show ? 'true' : 'false');
+        input.focus({ preventScroll: true });
+      });
+    });
+  }
+
+  function updatePasswordChecklist(list) {
+    const input = document.getElementById(list.dataset.passwordRequirementsFor || '');
+    if (!input) return;
+    const value = String(input.value || '');
+
+    Object.entries(PASSWORD_RULES).forEach(([name, rule]) => {
+      const item = list.querySelector(`[data-rule="${name}"]`);
+      if (!item) return;
+      const valid = rule(value);
+      item.classList.toggle('is-valid', valid);
+      item.classList.toggle('is-invalid', Boolean(value) && !valid);
+    });
+
+    const matchItem = list.querySelector('[data-rule="match"]');
+    if (matchItem) {
+      const confirmation = document.getElementById(matchItem.dataset.confirmPassword || '');
+      const matches = Boolean(value) && Boolean(confirmation && confirmation.value) && confirmation.value === value;
+      matchItem.classList.toggle('is-valid', matches);
+      matchItem.classList.toggle('is-invalid', Boolean(confirmation && confirmation.value) && !matches);
+      if (confirmation) {
+        confirmation.setCustomValidity(
+          confirmation.value && !matches ? 'The two passwords do not match.' : ''
+        );
+      }
+    }
+
+    input.setCustomValidity(
+      value && !passwordIsStrong(value)
+        ? 'Use at least 8 characters with an uppercase letter, lowercase letter, number and symbol.'
+        : ''
+    );
+  }
+
+  function bindPasswordValidation() {
+    document.querySelectorAll('[data-password-requirements-for]').forEach(list => {
+      const input = document.getElementById(list.dataset.passwordRequirementsFor || '');
+      if (!input) return;
+      const matchItem = list.querySelector('[data-rule="match"]');
+      const confirmation = matchItem
+        ? document.getElementById(matchItem.dataset.confirmPassword || '')
+        : null;
+
+      input.addEventListener('input', () => updatePasswordChecklist(list));
+      if (confirmation) confirmation.addEventListener('input', () => updatePasswordChecklist(list));
+      updatePasswordChecklist(list);
+    });
+  }
+
+  function bindAuthNavigation() {
+    const forgot = document.getElementById('forgotPasswordButton');
+    const resetMode = document.getElementById('authModeReset');
+    const back = document.getElementById('resetBackToSignIn');
+    const signInMode = document.getElementById('authModeSignIn');
+
+    if (forgot && resetMode) {
+      forgot.addEventListener('click', () => {
+        resetMode.click();
+        window.setTimeout(() => document.getElementById('resetEmail')?.focus(), 30);
+      });
+    }
+
+    if (back && signInMode) {
+      back.addEventListener('click', () => {
+        signInMode.click();
+        window.setTimeout(() => document.getElementById('signInEmail')?.focus(), 30);
+      });
+    }
+  }
+
+  function showDialog(dialog) {
+    if (!dialog) return;
+    if (typeof dialog.showModal === 'function') {
+      if (!dialog.open) dialog.showModal();
+    } else {
+      dialog.setAttribute('open', '');
+    }
+  }
+
+  function closeDialog(dialog) {
+    if (!dialog) return;
+    if (typeof dialog.close === 'function' && dialog.open) dialog.close();
+    else dialog.removeAttribute('open');
+  }
+
+  function openFeedbackDialog() {
+    const feedback = document.getElementById('feedbackDialog');
+    if (!feedback) return;
+    const account = document.getElementById('accountDialog');
+    feedbackPreviouslyFocusedElement = document.activeElement;
+    feedbackReturnToAccount = Boolean(account && account.open);
+    closeDialog(account);
+    showDialog(feedback);
+    window.setTimeout(() => document.getElementById('feedbackType')?.focus(), 30);
+  }
+
+  function closeFeedbackDialog() {
+    const feedback = document.getElementById('feedbackDialog');
+    closeDialog(feedback);
+    const account = document.getElementById('accountDialog');
+    if (feedbackReturnToAccount && account) {
+      showDialog(account);
+    }
+    const focusTarget = feedbackPreviouslyFocusedElement;
+    if (focusTarget && typeof focusTarget.focus === 'function') {
+      window.setTimeout(() => focusTarget.focus({ preventScroll: true }), 30);
+    }
+    feedbackPreviouslyFocusedElement = null;
+    feedbackReturnToAccount = false;
+  }
+
+  function bindFeedbackDialog() {
+    document.querySelectorAll('[data-open-feedback]').forEach(button => {
+      button.addEventListener('click', openFeedbackDialog);
+    });
+
+    const feedback = document.getElementById('feedbackDialog');
+    const close = document.getElementById('feedbackDialogClose');
+    if (close) close.addEventListener('click', closeFeedbackDialog);
+    if (feedback) {
+      feedback.addEventListener('click', event => {
+        if (event.target === feedback) closeFeedbackDialog();
+      });
+      feedback.addEventListener('cancel', event => {
+        event.preventDefault();
+        closeFeedbackDialog();
+      });
+    }
+
+    const form = document.getElementById('feedbackForm');
+    const type = document.getElementById('feedbackType');
+    const text = document.getElementById('feedbackText');
+    if (form && type && text) {
+      form.addEventListener('submit', () => {
+        const selectedLabel = type.options[type.selectedIndex]?.textContent?.trim() || 'Other';
+        const raw = String(text.value || '').replace(/^\[Feedback type: [^\]]+\]\s*/i, '');
+        text.value = `[Feedback type: ${selectedLabel}]
+${raw}`;
+      }, true);
+    }
+  }
+
+  function normalizeSupabaseUrl(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    try {
+      const url = new URL(raw);
+      if (/^[a-z0-9-]+\.supabase\.co$/i.test(url.hostname)) return url.origin;
+    } catch (error) {
+      // Fall through to path cleanup.
+    }
+    return raw
+      .replace(/\/(?:rest|auth|storage)\/v1\/?$/i, '')
+      .replace(/\/$/, '');
+  }
+
+  function getSupabaseConfig() {
+    const config = window.DEUTSCHE_VOKABELTRAINER_CONFIG || {};
+    return {
+      url: normalizeSupabaseUrl(
+        config.supabaseUrl || config.SUPABASE_URL || config.supabaseProjectUrl || ''
+      ),
+      key: String(
+        config.supabasePublishableKey ||
+        config.SUPABASE_PUBLISHABLE_KEY ||
+        config.supabaseAnonKey || ''
+      ).trim()
+    };
+  }
+
+  function setChangePasswordMessage(message, type = 'info') {
+    const target = document.getElementById('changePasswordMessage');
+    if (!target) return;
+    target.textContent = message || '';
+    target.className = `auth-message${message ? ` ${type}` : ''}`;
+  }
+
+  function setFormBusy(form, busy) {
+    if (!form) return;
+    form.querySelectorAll('button, input').forEach(control => {
+      control.disabled = Boolean(busy);
+    });
+  }
+
+  function friendlyPasswordError(error) {
+    const message = String(error && error.message || 'The password could not be changed.');
+    if (/current password|invalid login credentials|incorrect/i.test(message)) {
+      return 'The current password is incorrect.';
+    }
+    if (/weak_password|password/i.test(message) && /weak|least|short|characters/i.test(message)) {
+      return 'The new password does not meet the required strength rules.';
+    }
+    if (/same password|different from/i.test(message)) {
+      return 'Choose a new password that is different from the current password.';
+    }
+    if (/rate limit|too many/i.test(message)) {
+      return 'Too many password requests were made. Wait a moment and try again.';
+    }
+    if (/network|fetch/i.test(message)) {
+      return 'The account service could not be reached. Check the connection and retry.';
+    }
+    return message.slice(0, 220);
+  }
+
+  async function changePassword(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!form.reportValidity()) return;
+
+    const currentPassword = String(document.getElementById('currentPassword')?.value || '');
+    const newPassword = String(document.getElementById('changeNewPassword')?.value || '');
+    const confirmation = String(document.getElementById('changeConfirmPassword')?.value || '');
+
+    if (!passwordIsStrong(newPassword)) {
+      setChangePasswordMessage('Use at least 8 characters with an uppercase letter, lowercase letter, number and symbol.', 'error');
+      return;
+    }
+    if (newPassword !== confirmation) {
+      setChangePasswordMessage('The two new passwords do not match.', 'error');
+      return;
+    }
+    if (newPassword === currentPassword) {
+      setChangePasswordMessage('Choose a new password that is different from the current password.', 'error');
+      return;
+    }
+
+    const { url, key } = getSupabaseConfig();
+    if (!window.supabase || !url || !key) {
+      setChangePasswordMessage('Account sync is not configured in this app build.', 'error');
+      return;
+    }
+
+    setFormBusy(form, true);
+    setChangePasswordMessage('Updating your password…', 'info');
+
+    try {
+      const client = window.supabase.createClient(url, key, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+          storageKey: AUTH_STORAGE_KEY
+        }
+      });
+      const sessionResult = await client.auth.getSession();
+      if (sessionResult.error) throw sessionResult.error;
+      if (!sessionResult.data || !sessionResult.data.session) {
+        throw new Error('Your session has expired. Sign in again before changing the password.');
+      }
+
+      const result = await client.auth.updateUser({
+        current_password: currentPassword,
+        password: newPassword
+      });
+      if (result.error) throw result.error;
+
+      form.reset();
+      document.querySelectorAll('[data-password-requirements-for="changeNewPassword"]').forEach(updatePasswordChecklist);
+      setChangePasswordMessage('Password updated successfully.', 'success');
+    } catch (error) {
+      setChangePasswordMessage(friendlyPasswordError(error), 'error');
+    } finally {
+      setFormBusy(form, false);
+    }
+  }
+
+  function bindChangePassword() {
+    const open = document.getElementById('changePasswordOpenButton');
+    const close = document.getElementById('changePasswordCloseButton');
+    const panel = document.getElementById('changePasswordPanel');
+    const form = document.getElementById('changePasswordForm');
+
+    if (open && panel) {
+      open.addEventListener('click', () => {
+        panel.classList.remove('hidden');
+        setChangePasswordMessage('');
+        window.setTimeout(() => document.getElementById('currentPassword')?.focus(), 30);
+      });
+    }
+
+    if (close && panel) {
+      close.addEventListener('click', () => {
+        panel.classList.add('hidden');
+        form?.reset();
+        setChangePasswordMessage('');
+      });
+    }
+
+    if (form) form.addEventListener('submit', changePassword);
+  }
+
+  function initializeInterfaceEnhancements() {
+    updateButtons();
+    updateSafeAreaFallback();
+    bindPasswordToggles();
+    bindPasswordValidation();
+    bindAuthNavigation();
+    bindFeedbackDialog();
+    bindChangePassword();
+
+    if ('serviceWorker' in navigator &&
+        (location.protocol === 'https:' ||
+         location.hostname === 'localhost' ||
+         location.hostname === '127.0.0.1')) {
+      navigator.serviceWorker.register(`./service-worker.js?v=${RELEASE}`).catch(() => {
+        setMessage('The app can still be used normally. Installation support could not be initialized in this browser.');
+      });
+    }
   }
 
   window.addEventListener('beforeinstallprompt', event => {
@@ -273,6 +668,12 @@
     updateButtons();
   });
 
+  window.addEventListener('resize', updateSafeAreaFallback, { passive: true });
+  window.addEventListener('orientationchange', () => window.setTimeout(updateSafeAreaFallback, 120));
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateSafeAreaFallback, { passive: true });
+  }
+
   document.addEventListener('click', event => {
     const button = event.target.closest('[data-install-app]');
     if (!button) return;
@@ -282,24 +683,17 @@
   });
 
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeInstallHelp();
+    if (event.key !== 'Escape') return;
+    closeInstallHelp();
   });
 
-  document.addEventListener('DOMContentLoaded', () => {
-    updateButtons();
-
-    if ('serviceWorker' in navigator &&
-        (location.protocol === 'https:' ||
-         location.hostname === 'localhost' ||
-         location.hostname === '127.0.0.1')) {
-      navigator.serviceWorker.register(`./service-worker.js?v=${RELEASE}`).catch(() => {
-        setMessage('The app can still be used normally. Installation support could not be initialized in this browser.');
-      });
-    }
-  });
+  document.addEventListener('DOMContentLoaded', initializeInterfaceEnhancements);
 
   const standaloneQuery = window.matchMedia('(display-mode: standalone)');
   if (typeof standaloneQuery.addEventListener === 'function') {
-    standaloneQuery.addEventListener('change', updateButtons);
+    standaloneQuery.addEventListener('change', () => {
+      updateButtons();
+      updateSafeAreaFallback();
+    });
   }
 })();
