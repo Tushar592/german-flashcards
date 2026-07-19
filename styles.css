@@ -5181,3 +5181,220 @@ html[data-theme="dark"] .account-dialog[open]::before {
     min-height: 62px;
   }
 }
+/* =========================================================
+   Deutsche Vokabeltrainer V4.6.4 hotfix
+   - iPhone safe-area protection
+   - truly centered mobile title
+   - visible cross-browser install guidance
+   Paste this complete block at the END of styles.css.
+   ========================================================= */
+
+html.pwa-install-open,
+html.pwa-install-open body {
+  overflow: hidden;
+}
+
+/* A fixed safe-area cover prevents scrolling content from becoming visible
+   behind the iPhone time, Dynamic Island, Wi-Fi and battery indicators. */
+@supports (padding-top: env(safe-area-inset-top)) {
+  html::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: env(safe-area-inset-top);
+    background: var(--bg);
+    pointer-events: none;
+    z-index: 2147483000;
+  }
+}
+
+@media (max-width: 820px) {
+  body {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  /* Equal left and right columns keep the brand mathematically centered,
+     regardless of the account and theme buttons on the right. */
+  .mobile-header {
+    position: relative;
+    display: grid;
+    grid-template-columns: 94px minmax(0, 1fr) 94px;
+    align-items: center;
+    width: 100%;
+    min-height: 112px;
+    padding:
+      4px
+      max(4px, env(safe-area-inset-right))
+      8px
+      max(4px, env(safe-area-inset-left));
+  }
+
+  .mobile-header > div:first-child {
+    grid-column: 2;
+    width: 100%;
+    min-width: 0;
+    padding: 0 !important;
+    text-align: center;
+  }
+
+  .mobile-header h1 {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    color: var(--accent-2);
+    font-size: clamp(28px, 7.2vw, 34px);
+    line-height: 0.98;
+    text-align: center;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .mobile-header p {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    text-align: center;
+  }
+
+  .mobile-header-actions {
+    grid-column: 3;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    display: flex;
+    justify-self: end;
+    align-items: center;
+    justify-content: flex-end;
+    transform: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .mobile-header {
+    grid-template-columns: 86px minmax(0, 1fr) 86px;
+  }
+
+  .mobile-header h1 {
+    font-size: clamp(27px, 7.1vw, 30px);
+  }
+}
+
+/* Installation help shown whenever a browser cannot open a native prompt. */
+.pwa-install-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482000;
+  display: grid;
+  place-items: center;
+  padding:
+    max(18px, env(safe-area-inset-top))
+    max(14px, env(safe-area-inset-right))
+    max(18px, env(safe-area-inset-bottom))
+    max(14px, env(safe-area-inset-left));
+  background: rgba(23, 24, 28, 0.58);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.pwa-install-card {
+  width: min(100%, 470px);
+  max-height: min(720px, calc(100dvh - 36px));
+  overflow-y: auto;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--sh-lg);
+  overscroll-behavior: contain;
+}
+
+.pwa-install-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pwa-install-header h2 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.pwa-install-icon-close {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  font-size: 27px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pwa-install-icon-close:focus-visible {
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 3px;
+}
+
+.pwa-install-intro {
+  margin-top: 16px;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.pwa-install-steps {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+  padding-left: 24px;
+}
+
+.pwa-install-steps li {
+  padding-left: 4px;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.pwa-install-steps li::marker {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.pwa-install-note {
+  padding: 12px 13px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.pwa-install-done {
+  width: 100%;
+  margin-top: 16px;
+}
+
+html[data-theme='dark'] .pwa-install-overlay {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+@media (max-width: 480px) {
+  .pwa-install-card {
+    padding: 19px 16px;
+    border-radius: 18px;
+  }
+
+  .pwa-install-header h2 {
+    font-size: 23px;
+  }
+}
