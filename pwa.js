@@ -85,7 +85,7 @@
 
     if ('serviceWorker' in navigator &&
         (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-      navigator.serviceWorker.register('./service-worker.js?v=4.6.1-beta.1').catch(() => {
+      navigator.serviceWorker.register('./service-worker.js?v=4.6.3').catch(() => {
         setMessage('The app can still be used normally. Installation support could not be initialized in this browser.');
       });
     }
