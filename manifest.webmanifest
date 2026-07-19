@@ -1,0 +1,44 @@
+{
+  "name": "Deutsche Vokabeltrainer",
+  "short_name": "Vokabeltrainer",
+  "description": "Learn German vocabulary with guided learning, review, writing, quiz and article modes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#f1f0ec",
+  "theme_color": "#0d7d63",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "./",
+  "screenshots": [
+    {
+      "src": "./screenshots/desktop-wide.png",
+      "sizes": "2047x1034",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Deutsche Vokabeltrainer study dashboard on desktop"
+    },
+    {
+      "src": "./screenshots/mobile.png",
+      "sizes": "944x2048",
+      "type": "image/png",
+      "label": "Deutsche Vokabeltrainer study setup on mobile"
+    }
+  ]
+}

@@ -3697,3 +3697,1450 @@ html[data-theme="dark"] .restart-round-button:focus-visible {
     min-height: 40px;
   }
 }
+
+/* V4.0 Supabase beta: account sync and manual round length */
+.round-length-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.round-length-input-wrap input {
+  padding-right: 64px;
+  font-weight: 800;
+}
+
+.round-length-input-wrap span {
+  position: absolute;
+  right: 13px;
+  color: var(--ink-faint);
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.account-sidebar-card {
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: 16px;
+  min-height: 66px;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--sh-sm);
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.account-sidebar-card:hover,
+.account-sidebar-card:focus-visible,
+.account-mobile-button:hover,
+.account-mobile-button:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.account-avatar,
+.signed-in-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.account-sidebar-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.account-sidebar-copy strong,
+.account-sidebar-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-sidebar-copy strong {
+  font-size: 13px;
+}
+
+.account-sidebar-copy small {
+  color: var(--ink-faint);
+  font-size: 10.5px;
+}
+
+.account-chevron {
+  color: var(--ink-faint);
+  font-size: 22px;
+}
+
+.sidebar-credit {
+  margin-top: 0;
+}
+
+.mobile-header-actions {
+  display: none;
+}
+
+.account-mobile-button {
+  width: 42px;
+  min-height: 42px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  box-shadow: var(--sh-sm);
+  font-size: 19px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.account-dialog {
+  width: min(520px, calc(100% - 24px));
+  max-height: min(760px, calc(100dvh - 24px));
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  color: var(--ink);
+  overflow: visible;
+}
+
+.account-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.account-dialog-card {
+  max-height: min(760px, calc(100dvh - 24px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--sh-lg);
+}
+
+.account-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.account-dialog-header h2 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: clamp(25px, 5vw, 34px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+
+.dialog-close {
+  flex: 0 0 auto;
+  width: 40px;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialog-close:hover,
+.dialog-close:focus-visible {
+  border-color: var(--accent);
+  color: var(--ink);
+  outline: none;
+}
+
+.auth-config-notice {
+  margin-bottom: 16px;
+  padding: 13px 14px;
+  border: 1px solid var(--gold);
+  border-radius: 13px;
+  background: var(--gold-bg);
+  color: var(--ink);
+}
+
+.auth-config-notice p {
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.auth-config-notice code {
+  font-weight: 800;
+}
+
+.auth-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  padding: 5px;
+  margin-bottom: 16px;
+  border-radius: 13px;
+  background: var(--surface-2);
+}
+
+.auth-mode-tabs button {
+  min-height: 40px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.auth-mode-tabs button.active {
+  background: var(--surface);
+  color: var(--accent-2);
+  box-shadow: var(--sh-sm);
+}
+
+.auth-form {
+  display: grid;
+  gap: 13px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.auth-form .btn {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.auth-help {
+  color: var(--ink-faint);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.auth-clear-guest {
+  margin-top: 16px;
+}
+
+.auth-message {
+  min-height: 20px;
+  margin-top: 15px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.auth-message.info { color: var(--ink-soft); }
+.auth-message.success { color: var(--green); font-weight: 700; }
+.auth-message.error { color: var(--red); font-weight: 700; }
+
+.signed-in-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--surface-2);
+}
+
+.signed-in-summary strong {
+  display: block;
+  font-size: 17px;
+}
+
+.signed-in-summary p {
+  margin-top: 2px;
+  color: var(--ink-faint);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.account-stat {
+  margin: 14px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.account-stat span {
+  color: var(--accent-2);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.account-stat small {
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+.auth-account-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-bottom: 10px;
+}
+
+html[data-theme="dark"] .account-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.74);
+}
+
+@media (max-width: 820px) {
+  .account-sidebar-card { display: none; }
+
+  .mobile-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    position: absolute;
+    top: 50%;
+    right: max(7px, env(safe-area-inset-right));
+    transform: translateY(-50%);
+    z-index: 3;
+  }
+
+  .theme-toggle-mobile {
+    display: inline-flex;
+    position: static;
+    transform: none;
+  }
+
+  .theme-toggle-mobile:active {
+    transform: scale(0.98);
+  }
+
+  .mobile-header > div:first-child {
+    padding-left: 10px;
+    padding-right: 104px;
+  }
+
+  .round-start-row {
+    grid-template-columns: minmax(0, 1fr) minmax(132px, 0.85fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .account-dialog-card {
+    padding: 19px 16px;
+    border-radius: 18px;
+  }
+
+  .auth-mode-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-account-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-header > div:first-child {
+    padding-right: 96px;
+  }
+
+  .account-mobile-button,
+  .theme-toggle-mobile {
+    width: 39px;
+    min-height: 39px;
+  }
+}
+
+/* =========================================================
+   V4.1 beta fixes: account, contribution identity and mobile
+   community placement
+   ========================================================= */
+
+.sidebar-credit {
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+}
+
+.account-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+}
+
+.account-dialog-header {
+  align-items: center;
+}
+
+.account-brand-title {
+  margin: 0;
+  color: var(--accent-2);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.signed-contributor-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--surface-2);
+}
+
+.signed-contributor-identity.hidden {
+  display: none !important;
+}
+
+.signed-contributor-icon {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.signed-contributor-identity > div {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.signed-contributor-identity small {
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.signed-contributor-identity strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.signed-contributor-identity span:last-child {
+  color: var(--ink-faint);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 820px) {
+  #studyView .leaderboard-card,
+  #searchView .leaderboard-card,
+  #guideView .leaderboard-card,
+  .study-side-column > .leaderboard-card {
+    display: none !important;
+  }
+
+  #contributeView .leaderboard-card {
+    display: block !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-dialog {
+    width: calc(100% - 18px);
+    max-height: calc(100dvh - 18px);
+  }
+
+  .account-dialog-card {
+    max-height: calc(100dvh - 18px);
+  }
+
+  .account-brand-title {
+    max-width: calc(100% - 48px);
+    font-size: 29px;
+  }
+}
+
+/* =========================================================
+   V4.2 learning paths, reliable account centering and
+   restored navigation sizing
+   ========================================================= */
+
+/* The dialog itself fills the viewport and centers the card reliably in
+   Safari, Chrome and Firefox. */
+.account-dialog[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  inset: 0;
+  margin: 0;
+  padding: 12px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.account-dialog-card {
+  width: min(520px, 100%);
+  margin: 0 auto;
+}
+
+.sidebar-credit {
+  display: block;
+  align-self: stretch;
+  width: 100%;
+  text-align: center !important;
+}
+
+/* Restore the more substantial navigation treatment used before account sync. */
+@media (min-width: 821px) {
+  .sidebar .app-tabs {
+    width: 100%;
+    gap: 9px;
+  }
+
+  .sidebar .app-tab {
+    width: 100%;
+    min-height: 58px;
+    padding: 0 17px;
+    gap: 14px;
+    border-radius: 14px;
+    font-size: 16.5px;
+    font-weight: 750;
+  }
+
+  .sidebar .tab-icon {
+    width: 33px;
+    height: 33px;
+    flex: 0 0 33px;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+}
+
+.btn.almost {
+  border-color: color-mix(in srgb, var(--gold) 58%, var(--line));
+  background: var(--gold-bg);
+  color: var(--gold);
+}
+
+.btn.almost:hover,
+.btn.almost:focus-visible {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 18%, transparent);
+}
+
+.review-rating-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.learn-actions {
+  justify-content: center;
+}
+
+.learn-actions .btn {
+  min-width: min(260px, 100%);
+}
+
+.card-area.learning-phase .flashcard {
+  cursor: default;
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--accent-soft) 72%, transparent), transparent 52%),
+    var(--surface);
+}
+
+.card-area.learning-phase .tap-hint {
+  display: none;
+}
+
+.card-area.learning-phase .card-hint {
+  max-width: 720px;
+  color: var(--ink-soft);
+  font-size: clamp(16px, 1.8vw, 20px);
+  line-height: 1.55;
+}
+
+
+@media (max-width: 820px) {
+  .review-rating-actions {
+    grid-template-columns: 1fr;
+  }
+
+  /* Community belongs only to Contribute on mobile. */
+  #studyView .leaderboard-card,
+  #searchView .leaderboard-card,
+  #guideView .leaderboard-card,
+  .study-side-column > .leaderboard-card {
+    display: none !important;
+  }
+
+  #contributeView .leaderboard-card {
+    display: block !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-dialog[open] {
+    padding: 9px;
+  }
+
+  .account-dialog-card {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   V4.3 guided learning flow, opaque account screen and
+   restored large-format desktop controls
+   ========================================================= */
+
+/* Account is a real full-screen view, not a transparent overlay. */
+.account-dialog[open] {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  padding: clamp(18px, 4vw, 48px);
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  border: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.account-dialog::backdrop,
+html[data-theme="dark"] .account-dialog::backdrop {
+  background: var(--bg);
+  opacity: 1;
+}
+
+.account-dialog-card {
+  width: min(560px, 100%);
+  max-height: none;
+  margin: auto;
+  padding: clamp(24px, 4vw, 38px);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: var(--sh-lg);
+  overflow: visible;
+}
+
+.account-dialog-header {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 54px;
+  margin-bottom: 22px;
+  padding: 0 52px;
+  text-align: center;
+}
+
+.account-brand-title,
+.account-dialog-header h2 {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  color: var(--accent);
+  font-size: clamp(31px, 5vw, 43px);
+  line-height: 1;
+  text-align: center;
+}
+
+.account-dialog-header .dialog-close {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.auth-mode-tabs button {
+  min-height: 48px;
+  font-size: 13px;
+}
+
+.auth-form {
+  gap: 16px;
+}
+
+.auth-form label {
+  gap: 8px;
+  font-size: 13px;
+}
+
+.auth-form input {
+  min-height: 54px;
+  font-size: 17px;
+}
+
+.auth-form .btn {
+  min-height: 54px;
+  font-size: 16px;
+}
+
+/* Writing gets one simple source choice only when Writing is selected. */
+.writing-source-group {
+  grid-column: 1 / -1;
+}
+
+.source-segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.source-segmented label {
+  position: relative;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.source-segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.source-segmented span {
+  min-height: 46px;
+  padding: 0 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.source-segmented input:checked + span {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--sh-sm);
+}
+
+.source-segmented input:focus-visible + span {
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 2px;
+}
+
+.completion-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.completion-actions .btn {
+  min-height: 50px;
+  white-space: normal;
+  line-height: 1.25;
+}
+
+@media (min-width: 821px) {
+  .app-shell {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding: 34px 26px max(28px, env(safe-area-inset-bottom));
+  }
+
+  .brand-block {
+    text-align: center;
+  }
+
+  .brand-block h1 {
+    font-size: 38px;
+  }
+
+  .brand-block p {
+    max-width: 220px;
+    margin: 13px auto 0;
+    font-size: 14px;
+  }
+
+  .sidebar .app-tabs {
+    margin-top: 38px;
+    gap: 11px;
+  }
+
+  .sidebar .app-tab {
+    min-height: 66px;
+    padding: 0 18px;
+    gap: 15px;
+    border-radius: 16px;
+    font-size: 18px;
+  }
+
+  .sidebar .tab-icon {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+    border-radius: 11px;
+    font-size: 20px;
+  }
+
+  .account-sidebar-card {
+    min-height: 66px;
+    padding: 11px 13px;
+  }
+
+  .sidebar-credit {
+    font-size: 13px;
+  }
+
+  .main-content {
+    padding: 30px clamp(28px, 3vw, 54px) 54px;
+  }
+
+  .study-layout {
+    max-width: 1500px;
+    grid-template-columns: minmax(580px, 1fr) minmax(380px, 420px);
+    gap: clamp(26px, 3vw, 44px);
+  }
+
+  .study-setup,
+  .side-card {
+    padding: 26px;
+    border-radius: 22px;
+  }
+
+  .study-setup .section-heading {
+    margin-bottom: 20px;
+  }
+
+  .study-setup .section-heading h2 {
+    font-size: 28px;
+  }
+
+  .study-setup .eyebrow,
+  .study-setup .lbl {
+    font-size: 12.5px;
+  }
+
+  .study-setup .controls {
+    gap: 15px;
+    margin-bottom: 16px;
+  }
+
+  .study-setup select,
+  .study-setup input,
+  .study-setup .multi-select-button,
+  .study-setup .round-length-input-wrap {
+    min-height: 58px;
+    border-radius: 15px;
+    font-size: 17px;
+  }
+
+  .study-setup .multi-select-button,
+  .study-setup select {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .round-start-row {
+    gap: 14px;
+  }
+
+  .round-start-row #newRoundButton {
+    min-height: 58px;
+    font-size: 17px;
+    border-radius: 15px;
+  }
+
+  .study-setup .status {
+    min-height: 48px;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .stats {
+    gap: 14px;
+  }
+
+  .stat {
+    min-height: 108px;
+  }
+
+  .stat .n {
+    font-size: 38px;
+  }
+
+  .stat .l {
+    font-size: 13px;
+  }
+
+  .flashcard {
+    min-height: clamp(390px, 48vh, 560px);
+  }
+
+  .card-word {
+    font-size: clamp(48px, 5.4vw, 78px);
+  }
+
+  .page-layout {
+    max-width: 1500px;
+    gap: clamp(26px, 3vw, 44px);
+  }
+
+  .browse-panel,
+  .contribute-intro,
+  .contribution-card,
+  .guide-panel {
+    padding: 30px;
+  }
+
+  .page-main h2,
+  .browse-panel h2,
+  .contribute-intro h2,
+  .guide-panel h2 {
+    font-size: clamp(28px, 3vw, 38px);
+  }
+}
+
+@media (max-width: 820px) {
+  .account-dialog[open] {
+    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+  }
+
+  .account-dialog-card {
+    width: min(520px, 100%);
+    padding: 23px 17px;
+    border-radius: 20px;
+  }
+
+  .account-dialog-header {
+    padding: 0 45px;
+  }
+
+  .account-brand-title,
+  .account-dialog-header h2 {
+    font-size: clamp(29px, 8vw, 38px);
+  }
+
+  .completion-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .source-segmented {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 1100px) {
+  .study-layout {
+    grid-template-columns: minmax(560px, 1fr) minmax(420px, 440px);
+  }
+
+  .study-setup select,
+  .study-setup .multi-select-button {
+    font-size: 16.5px;
+  }
+}
+
+/* =========================================================
+   V4.4 mandatory accounts, stronger card glow and restored
+   wide desktop proportions
+   ========================================================= */
+
+/* The application stays inaccessible until Supabase restores a signed-in
+   session. The account screen remains visible and usable. */
+body.auth-required {
+  overflow: hidden;
+}
+
+body.auth-required .app-shell {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Full, opaque account canvas with a subtle vocabulary-inspired pattern. */
+.account-dialog[open] {
+  isolation: isolate;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 16% 18%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 31%),
+    radial-gradient(circle at 84% 78%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 32%),
+    radial-gradient(circle, color-mix(in srgb, var(--accent) 14%, transparent) 1.2px, transparent 1.5px);
+  background-size: auto, auto, 34px 34px;
+  background-position: center, center, 0 0;
+}
+
+html[data-theme="dark"] .account-dialog[open] {
+  background-color: #09090a;
+  background-image:
+    radial-gradient(circle at 16% 18%, rgba(22, 163, 127, 0.22), transparent 32%),
+    radial-gradient(circle at 84% 78%, rgba(22, 163, 127, 0.13), transparent 34%),
+    radial-gradient(circle, rgba(53, 196, 156, 0.12) 1.1px, transparent 1.5px);
+}
+
+.account-dialog-card {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.18),
+    0 0 0 1px color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.account-dialog-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.9;
+}
+
+.account-dialog-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 48px;
+  text-align: center;
+}
+
+.account-brand-title,
+.account-dialog-header h2 {
+  width: 100%;
+  text-align: center !important;
+}
+
+.account-dialog-tagline {
+  max-width: 390px;
+  color: var(--ink-faint);
+  font-size: 13.5px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.theme-toggle-auth {
+  min-height: 38px;
+  margin-top: 2px;
+  padding-inline: 14px;
+}
+
+.account-dialog-header .dialog-close {
+  top: 0;
+  right: 0;
+  transform: none;
+}
+
+/* Keep the flashcard's green ambient glow in both themes and in every mode. */
+.flashcard {
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent-soft) 78%, transparent), transparent 57%),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 3%, var(--surface)), var(--surface) 56%);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+}
+
+.flashcard.revealed {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(13, 125, 99, 0.24), transparent 58%),
+    var(--ink-dark);
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--ink-dark));
+}
+
+html[data-theme="dark"] .flashcard {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(22, 163, 127, 0.2), transparent 58%),
+    linear-gradient(180deg, #151919, var(--surface) 58%);
+  border-color: rgba(53, 196, 156, 0.35);
+}
+
+html[data-theme="dark"] .flashcard.revealed {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(22, 163, 127, 0.27), transparent 58%),
+    #08090a;
+  border-color: rgba(53, 196, 156, 0.48);
+}
+
+.card-area.learning-phase .flashcard {
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent-soft) 100%, transparent), transparent 58%),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 5%, var(--surface)), var(--surface) 60%);
+}
+
+html[data-theme="dark"] .card-area.learning-phase .flashcard {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(22, 163, 127, 0.28), transparent 58%),
+    linear-gradient(180deg, #151b19, var(--surface) 60%);
+}
+
+/* Restore the wider sidebar and denser content proportions from the earlier
+   desktop design while allowing the study area to use the full viewport. */
+@media (min-width: 1181px) {
+  .app-shell {
+    grid-template-columns: 340px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding: 32px 34px max(28px, env(safe-area-inset-bottom));
+  }
+
+  .brand-block {
+    width: 100%;
+    max-width: 272px;
+    margin-inline: auto;
+  }
+
+  .brand-block h1 {
+    font-size: 36px;
+  }
+
+  .sidebar .app-tabs {
+    margin-top: 34px;
+    gap: 9px;
+  }
+
+  .sidebar .app-tab {
+    min-height: 62px;
+    padding-inline: 17px;
+    font-size: 17px;
+  }
+
+  .main-content {
+    padding: 24px 28px 40px;
+  }
+
+  .study-layout,
+  .page-layout {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    gap: 24px;
+  }
+
+  .study-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 390px);
+  }
+
+  .study-side-column,
+  .page-layout > aside {
+    gap: 16px;
+  }
+
+  .stats,
+  .round-toolbar,
+  .card-area,
+  .writing-panel,
+  .quiz-opts,
+  .actions,
+  .result {
+    width: 100%;
+    max-width: none;
+  }
+
+  .stats {
+    gap: 12px;
+    margin-bottom: 13px;
+  }
+
+  .stat {
+    min-height: 96px;
+    padding: 14px 10px;
+  }
+
+  .round-toolbar {
+    margin-bottom: 12px;
+  }
+
+  .card-area {
+    margin-bottom: 14px;
+  }
+
+  .flashcard {
+    min-height: clamp(430px, 56vh, 620px);
+  }
+
+  .study-setup,
+  .side-card {
+    padding: 22px;
+  }
+
+  .study-setup .controls {
+    gap: 12px;
+    margin-bottom: 13px;
+  }
+
+  .study-setup select,
+  .study-setup input,
+  .study-setup .multi-select-button,
+  .study-setup .round-length-input-wrap,
+  .round-start-row #newRoundButton {
+    min-height: 54px;
+  }
+}
+
+@media (min-width: 821px) and (max-width: 1180px) {
+  .app-shell {
+    grid-template-columns: 276px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding-inline: 24px;
+  }
+
+  .main-content {
+    padding: 22px 22px 38px;
+  }
+
+  .study-layout,
+  .page-layout {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    gap: 18px;
+  }
+
+  .study-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 360px);
+  }
+
+  .stats,
+  .round-toolbar,
+  .card-area,
+  .writing-panel,
+  .quiz-opts,
+  .actions,
+  .result {
+    max-width: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .account-dialog[open] {
+    background-size: auto, auto, 28px 28px;
+  }
+
+  .account-dialog-header {
+    padding-inline: 42px;
+  }
+
+  .account-dialog-tagline {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-dialog-header {
+    padding-inline: 36px;
+  }
+
+  .account-brand-title,
+  .account-dialog-header h2 {
+    font-size: clamp(27px, 8vw, 34px);
+  }
+
+  .theme-toggle-auth .theme-toggle-label {
+    display: inline;
+  }
+}
+
+
+/* =========================================================
+   V4.5 authentication clarity and contribution-form cleanup
+   ========================================================= */
+
+/* Alphabet-pattern account background inspired by German-learning print
+   materials. The pattern stays subtle so the form remains easy to read. */
+.account-dialog[open] {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%);
+}
+
+.account-dialog[open]::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22330%22%20height%3D%22230%22%20viewBox%3D%220%200%20330%20230%22%3E%0A%3Cg%20fill%3D%22%23111111%22%20font-family%3D%22Arial%2CHelvetica%2Csans-serif%22%20font-size%3D%2231%22%20font-weight%3D%22800%22%20text-anchor%3D%22middle%22%3E%0A%3Ctext%20x%3D%2222%22%20y%3D%2234%22%20transform%3D%22rotate%28-18%2022%2034%29%22%3EA%3C%2Ftext%3E%3Ctext%20x%3D%2272%22%20y%3D%2228%22%20transform%3D%22rotate%2814%2072%2028%29%22%3EF%3C%2Ftext%3E%3Ctext%20x%3D%22120%22%20y%3D%2238%22%20transform%3D%22rotate%28-8%20120%2038%29%22%3E%C3%96%3C%2Ftext%3E%3Ctext%20x%3D%22170%22%20y%3D%2228%22%20transform%3D%22rotate%2818%20170%2028%29%22%3EC%3C%2Ftext%3E%3Ctext%20x%3D%22220%22%20y%3D%2238%22%20transform%3D%22rotate%28-15%20220%2038%29%22%3EJ%3C%2Ftext%3E%3Ctext%20x%3D%22278%22%20y%3D%2229%22%20transform%3D%22rotate%2810%20278%2029%29%22%3ER%3C%2Ftext%3E%3Ctext%20x%3D%22320%22%20y%3D%2248%22%20transform%3D%22rotate%28-18%20320%2048%29%22%3EZ%3C%2Ftext%3E%0A%3Ctext%20x%3D%2214%22%20y%3D%2287%22%20transform%3D%22rotate%2818%2014%2087%29%22%3EK%3C%2Ftext%3E%3Ctext%20x%3D%2258%22%20y%3D%2275%22%20transform%3D%22rotate%28-12%2058%2075%29%22%3EM%3C%2Ftext%3E%3Ctext%20x%3D%22108%22%20y%3D%2288%22%20transform%3D%22rotate%289%20108%2088%29%22%3EB%3C%2Ftext%3E%3Ctext%20x%3D%22157%22%20y%3D%2276%22%20transform%3D%22rotate%28-18%20157%2076%29%22%3EE%3C%2Ftext%3E%3Ctext%20x%3D%22208%22%20y%3D%2288%22%20transform%3D%22rotate%2812%20208%2088%29%22%3EG%3C%2Ftext%3E%3Ctext%20x%3D%22257%22%20y%3D%2274%22%20transform%3D%22rotate%28-8%20257%2074%29%22%3ER%3C%2Ftext%3E%3Ctext%20x%3D%22306%22%20y%3D%2292%22%20transform%3D%22rotate%2817%20306%2092%29%22%3EK%3C%2Ftext%3E%0A%3Ctext%20x%3D%2229%22%20y%3D%22130%22%20transform%3D%22rotate%28-14%2029%20130%29%22%3ET%3C%2Ftext%3E%3Ctext%20x%3D%2278%22%20y%3D%22142%22%20transform%3D%22rotate%2810%2078%20142%29%22%3ES%3C%2Ftext%3E%3Ctext%20x%3D%22128%22%20y%3D%22127%22%20transform%3D%22rotate%28-9%20128%20127%29%22%3EL%3C%2Ftext%3E%3Ctext%20x%3D%22176%22%20y%3D%22143%22%20transform%3D%22rotate%2815%20176%20143%29%22%3EA%3C%2Ftext%3E%3Ctext%20x%3D%22226%22%20y%3D%22130%22%20transform%3D%22rotate%28-13%20226%20130%29%22%3EN%3C%2Ftext%3E%3Ctext%20x%3D%22276%22%20y%3D%22144%22%20transform%3D%22rotate%288%20276%20144%29%22%3EP%3C%2Ftext%3E%3Ctext%20x%3D%22323%22%20y%3D%22130%22%20transform%3D%22rotate%28-10%20323%20130%29%22%3EJ%3C%2Ftext%3E%0A%3Ctext%20x%3D%2212%22%20y%3D%22194%22%20transform%3D%22rotate%28-17%2012%20194%29%22%3EX%3C%2Ftext%3E%3Ctext%20x%3D%2258%22%20y%3D%22183%22%20transform%3D%22rotate%2812%2058%20183%29%22%3EI%3C%2Ftext%3E%3Ctext%20x%3D%22104%22%20y%3D%22199%22%20transform%3D%22rotate%28-8%20104%20199%29%22%3EU%3C%2Ftext%3E%3Ctext%20x%3D%22153%22%20y%3D%22183%22%20transform%3D%22rotate%2816%20153%20183%29%22%3EV%3C%2Ftext%3E%3Ctext%20x%3D%22202%22%20y%3D%22199%22%20transform%3D%22rotate%28-13%20202%20199%29%22%3EQ%3C%2Ftext%3E%3Ctext%20x%3D%22252%22%20y%3D%22184%22%20transform%3D%22rotate%2810%20252%20184%29%22%3EM%3C%2Ftext%3E%3Ctext%20x%3D%22303%22%20y%3D%22201%22%20transform%3D%22rotate%28-16%20303%20201%29%22%3EW%3C%2Ftext%3E%0A%3C%2Fg%3E%3C%2Fsvg%3E");
+  background-repeat: repeat;
+  background-size: 330px 230px;
+  background-position: center;
+  opacity: 0.075;
+}
+
+html[data-theme="dark"] .account-dialog[open] {
+  background-color: #09090a;
+  background-image:
+    radial-gradient(circle at 50% 42%, rgba(22, 163, 127, 0.12), transparent 44%);
+}
+
+html[data-theme="dark"] .account-dialog[open]::before {
+  filter: invert(1);
+  opacity: 0.09;
+}
+
+.account-dialog-card {
+  z-index: 2;
+}
+
+.auth-confirmation-panel {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 8px 4px 2px;
+  text-align: center;
+}
+
+.auth-confirmation-panel.hidden {
+  display: none !important;
+}
+
+.auth-confirmation-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--line));
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.auth-confirmation-panel h3 {
+  margin: 2px 0 0;
+  color: var(--ink);
+  font-size: 25px;
+  line-height: 1.15;
+}
+
+.auth-confirmation-panel p {
+  max-width: 430px;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.auth-confirmation-panel > strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--accent);
+  font-size: 15px;
+}
+
+.auth-confirmation-panel .btn {
+  width: min(100%, 330px);
+  margin-top: 6px;
+}
+
+/* Account identity is supplied in the background from the signed-in profile.
+   The contribution forms only show fields that the learner needs to edit. */
+.feedback-message-field {
+  width: 100%;
+}
+
+#feedbackText {
+  display: block;
+  width: 100%;
+  min-height: 190px;
+  padding: 16px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+#feedbackText::placeholder {
+  color: var(--ink-faint);
+}
+
+@media (max-width: 820px) {
+  .account-dialog[open]::before {
+    background-size: 270px 188px;
+    opacity: 0.06;
+  }
+
+  html[data-theme="dark"] .account-dialog[open]::before {
+    opacity: 0.075;
+  }
+
+  #feedbackText {
+    min-height: 165px;
+  }
+}
+
+
+/* V4.6: installable full-screen web app support */
+.install-app-message {
+  min-height: 1.4em;
+}
+
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
+  body {
+    min-height: 100dvh;
+  }
+
+  .app-shell {
+    min-height: 100dvh;
+  }
+}
+
+@media (max-width: 820px) {
+  html,
+  body {
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  .app-shell {
+    min-height: 100dvh;
+  }
+}

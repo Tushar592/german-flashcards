@@ -1,0 +1,823 @@
+(() => {
+  'use strict';
+
+  const CONFIG = window.DEUTSCHE_VOKABELTRAINER_CONFIG || {};
+  const SUPABASE_URL = normalizeSupabaseUrl(
+    CONFIG.supabaseUrl ||
+    CONFIG.SUPABASE_URL ||
+    CONFIG.supabaseProjectUrl ||
+    ''
+  );
+  const SUPABASE_KEY = String(
+    CONFIG.supabasePublishableKey ||
+    CONFIG.SUPABASE_PUBLISHABLE_KEY ||
+    CONFIG.supabaseAnonKey ||
+    ''
+  ).trim();
+  const USER_CACHE_PREFIX = 'dv_user_progress_cache_v1_';
+  const PENDING_PREFIX = 'dv_user_progress_pending_v1_';
+  const DEFAULT_PREFERENCES = Object.freeze({
+    theme: 'system',
+    round_length: 50,
+    selected_decks: [],
+    selected_levels: [],
+    selected_types: []
+  });
+
+  const state = {
+    configured: isConfigured(),
+    client: null,
+    session: null,
+    user: null,
+    profile: null,
+    preferences: Object.assign({}, DEFAULT_PREFERENCES),
+    progress: new Map(),
+    initialized: false,
+    sessionHandledFor: '',
+    preferenceTimer: 0,
+    pendingPreferencePatch: {},
+    recoveryMode: false
+  };
+
+  const el = {};
+  let readyResolve;
+  const ready = new Promise(resolve => { readyResolve = resolve; });
+
+  window.DVAccount = Object.freeze({
+    ready,
+    isConfigured: () => state.configured,
+    isSignedIn: () => Boolean(state.user),
+    getUser: () => state.user,
+    getIdentity,
+    getPreferences: () => Object.assign({}, state.preferences),
+    getProgressCount: () => state.progress.size,
+    getSeenWordIds,
+    getDifficultWordIds,
+    getWordProgress,
+    isWordSeen,
+    open: openAccountDialog,
+    recordExposure,
+    recordAnswer,
+    savePreferences,
+    refresh: refreshAccountData
+  });
+
+  document.addEventListener('DOMContentLoaded', initialize);
+
+  async function initialize() {
+    cacheElements();
+    bindEvents();
+    state.progress = new Map();
+    renderAccountState();
+
+    if (!state.configured) {
+      setAuthMessage('Account setup is incomplete. Add the Supabase Project URL and publishable key to config.js, then reload the app.', 'error');
+      state.initialized = true;
+      readyResolve();
+      return;
+    }
+
+    try {
+      state.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storageKey: 'dv_supabase_auth_v1'
+        }
+      });
+
+      state.client.auth.onAuthStateChange((event, session) => {
+        window.setTimeout(() => handleAuthEvent(event, session), 0);
+      });
+
+      const result = await state.client.auth.getSession();
+      if (result.error) throw result.error;
+      await handleSession(result.data.session, 'INITIAL_SESSION');
+    } catch (error) {
+      console.error('Supabase initialization failed:', error);
+      state.configured = false;
+      setAuthMessage('The account service could not start. Check the Supabase URL and publishable key, then reload the app.', 'error');
+      renderAccountState();
+    } finally {
+      state.initialized = true;
+      readyResolve();
+    }
+  }
+
+  function normalizeSupabaseUrl(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    try {
+      const url = new URL(raw);
+      if (!/^[a-z0-9-]+\.supabase\.co$/i.test(url.hostname)) return raw.replace(/\/$/, '');
+      return url.origin;
+    } catch (error) {
+      return raw
+        .replace(/\/(?:rest|auth|storage)\/v1\/?$/i, '')
+        .replace(/\/$/, '');
+    }
+  }
+
+  function isConfigured() {
+    if (!SUPABASE_URL || !SUPABASE_KEY) return false;
+    if (/PASTE_|YOUR_|example/i.test(SUPABASE_URL + SUPABASE_KEY)) return false;
+    return /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(SUPABASE_URL) && SUPABASE_KEY.length > 30;
+  }
+
+  function cacheElements() {
+    [
+      'accountDialog', 'accountDialogClose', 'accountOpenButton', 'accountOpenMobileButton',
+      'accountSidebarTitle', 'accountSidebarSubtitle', 'accountMobileLabel',
+      'authSignedOutPanel', 'authSignedInPanel', 'authRecoveryPanel',
+      'authModeTabs', 'authModeSignIn', 'authModeCreate', 'authModeReset',
+      'authConfirmationPanel', 'authConfirmationEmail', 'confirmationBackToSignIn',
+      'signInForm', 'signInEmail', 'signInPassword',
+      'createAccountForm', 'createDisplayName', 'createEmail', 'createPassword',
+      'resetPasswordForm', 'resetEmail',
+      'recoveryPasswordForm', 'recoveryNewPassword', 'recoveryConfirmPassword',
+      'authMessage', 'signedInEmail', 'signedInDisplayName', 'signedInProgressCount',
+      'signOutButton', 'deleteAccountButton'
+    ].forEach(id => { el[id] = document.getElementById(id); });
+  }
+
+  function bindEvents() {
+    if (el.accountOpenButton) el.accountOpenButton.addEventListener('click', openAccountDialog);
+    if (el.accountOpenMobileButton) el.accountOpenMobileButton.addEventListener('click', openAccountDialog);
+    if (el.accountDialogClose) el.accountDialogClose.addEventListener('click', () => closeAccountDialog());
+
+    if (el.accountDialog) {
+      el.accountDialog.addEventListener('click', event => {
+        if (event.target === el.accountDialog && state.user && !state.recoveryMode) {
+          closeAccountDialog();
+        }
+      });
+      el.accountDialog.addEventListener('cancel', event => {
+        event.preventDefault();
+        if (state.user && !state.recoveryMode) closeAccountDialog();
+      });
+    }
+
+    if (el.authModeSignIn) el.authModeSignIn.addEventListener('click', () => setAuthMode('signin'));
+    if (el.authModeCreate) el.authModeCreate.addEventListener('click', () => setAuthMode('create'));
+    if (el.authModeReset) el.authModeReset.addEventListener('click', () => setAuthMode('reset'));
+    if (el.confirmationBackToSignIn) {
+      el.confirmationBackToSignIn.addEventListener('click', () => {
+        setAuthMode('signin');
+        setAuthMessage('Confirm your email address, then sign in with the same email and password.', 'info');
+        if (el.signInEmail) el.signInEmail.focus();
+      });
+    }
+    if (el.signInForm) el.signInForm.addEventListener('submit', signIn);
+    if (el.createAccountForm) el.createAccountForm.addEventListener('submit', createAccount);
+    if (el.resetPasswordForm) el.resetPasswordForm.addEventListener('submit', sendPasswordReset);
+    if (el.recoveryPasswordForm) el.recoveryPasswordForm.addEventListener('submit', updateRecoveredPassword);
+    if (el.signOutButton) el.signOutButton.addEventListener('click', signOut);
+    if (el.deleteAccountButton) el.deleteAccountButton.addEventListener('click', deleteAccount);
+  }
+
+  function openAccountDialog() {
+    if (!el.accountDialog) return;
+    renderAccountState(false);
+    ensureAccountDialogOpen();
+    window.setTimeout(() => {
+      const focusTarget = state.user
+        ? el.signOutButton
+        : (state.recoveryMode ? el.recoveryNewPassword : el.signInEmail);
+      if (focusTarget) focusTarget.focus();
+    }, 30);
+  }
+
+  function ensureAccountDialogOpen() {
+    if (!el.accountDialog || el.accountDialog.open) return;
+    if (typeof el.accountDialog.showModal === 'function') {
+      el.accountDialog.showModal();
+    } else {
+      el.accountDialog.setAttribute('open', '');
+    }
+  }
+
+  function closeAccountDialog(force) {
+    if (!el.accountDialog) return;
+    if (!force && (!state.user || state.recoveryMode)) return;
+    if (typeof el.accountDialog.close === 'function' && el.accountDialog.open) {
+      el.accountDialog.close();
+    } else {
+      el.accountDialog.removeAttribute('open');
+    }
+  }
+
+  function setAuthMode(mode) {
+    const normalized = ['signin', 'create', 'reset', 'confirmation'].includes(mode) ? mode : 'signin';
+    el.signInForm.classList.toggle('hidden', normalized !== 'signin');
+    el.createAccountForm.classList.toggle('hidden', normalized !== 'create');
+    el.resetPasswordForm.classList.toggle('hidden', normalized !== 'reset');
+    if (el.authConfirmationPanel) el.authConfirmationPanel.classList.toggle('hidden', normalized !== 'confirmation');
+    if (el.authModeTabs) el.authModeTabs.classList.toggle('hidden', normalized === 'confirmation');
+    [
+      [el.authModeSignIn, normalized === 'signin'],
+      [el.authModeCreate, normalized === 'create'],
+      [el.authModeReset, normalized === 'reset']
+    ].forEach(([button, active]) => {
+      if (!button) return;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    setAuthMessage('', 'info');
+  }
+
+  async function signIn(event) {
+    event.preventDefault();
+    if (!requireConfigured()) return;
+    setFormBusy(el.signInForm, true);
+    setAuthMessage('Signing in…', 'info');
+    try {
+      const result = await state.client.auth.signInWithPassword({
+        email: String(el.signInEmail.value || '').trim(),
+        password: String(el.signInPassword.value || '')
+      });
+      if (result.error) throw result.error;
+      setAuthMessage('Signed in. Your progress is being synchronized.', 'success');
+    } catch (error) {
+      setAuthMessage(friendlyAuthError(error), 'error');
+    } finally {
+      setFormBusy(el.signInForm, false);
+    }
+  }
+
+  async function createAccount(event) {
+    event.preventDefault();
+    if (!requireConfigured()) return;
+    setFormBusy(el.createAccountForm, true);
+    setAuthMessage('Creating your account…', 'info');
+    try {
+      const email = String(el.createEmail.value || '').trim();
+      const password = String(el.createPassword.value || '');
+      const displayName = String(el.createDisplayName.value || '').trim() || 'Learner';
+      const result = await state.client.auth.signUp({
+        email,
+        password,
+        options: { data: { display_name: displayName } }
+      });
+      if (result.error) throw result.error;
+      if (result.data && result.data.session) {
+        setAuthMessage('Account created and signed in.', 'success');
+      } else {
+        if (el.authConfirmationEmail) el.authConfirmationEmail.textContent = email;
+        if (el.signInEmail) el.signInEmail.value = email;
+        setAuthMode('confirmation');
+        setAuthMessage('', 'info');
+      }
+    } catch (error) {
+      setAuthMessage(friendlyAuthError(error), 'error');
+    } finally {
+      setFormBusy(el.createAccountForm, false);
+    }
+  }
+
+  async function sendPasswordReset(event) {
+    event.preventDefault();
+    if (!requireConfigured()) return;
+    setFormBusy(el.resetPasswordForm, true);
+    setAuthMessage('Sending the password-reset email…', 'info');
+    try {
+      const redirectTo = window.location.origin + window.location.pathname;
+      const result = await state.client.auth.resetPasswordForEmail(
+        String(el.resetEmail.value || '').trim(),
+        { redirectTo }
+      );
+      if (result.error) throw result.error;
+      setAuthMessage('Password-reset email sent. Open the link in that email on this browser.', 'success');
+    } catch (error) {
+      setAuthMessage(friendlyAuthError(error), 'error');
+    } finally {
+      setFormBusy(el.resetPasswordForm, false);
+    }
+  }
+
+  async function updateRecoveredPassword(event) {
+    event.preventDefault();
+    if (!requireConfigured()) return;
+    const password = String(el.recoveryNewPassword.value || '');
+    const confirmation = String(el.recoveryConfirmPassword.value || '');
+    if (password.length < 8) {
+      setAuthMessage('Use a password with at least 8 characters.', 'error');
+      return;
+    }
+    if (password !== confirmation) {
+      setAuthMessage('The two passwords do not match.', 'error');
+      return;
+    }
+    setFormBusy(el.recoveryPasswordForm, true);
+    try {
+      const result = await state.client.auth.updateUser({ password });
+      if (result.error) throw result.error;
+      state.recoveryMode = false;
+      el.recoveryPasswordForm.reset();
+      renderAccountState();
+      setAuthMessage('Password updated successfully.', 'success');
+    } catch (error) {
+      setAuthMessage(friendlyAuthError(error), 'error');
+    } finally {
+      setFormBusy(el.recoveryPasswordForm, false);
+    }
+  }
+
+  async function signOut() {
+    if (!requireConfigured()) return;
+    setAuthMessage('Signing out…', 'info');
+    const result = await state.client.auth.signOut();
+    if (result.error) {
+      setAuthMessage(friendlyAuthError(result.error), 'error');
+      return;
+    }
+  }
+
+  async function deleteAccount() {
+    if (!state.user || !state.client) return;
+    const confirmation = window.prompt('Type DELETE to permanently delete this learner account and all synchronized progress.');
+    if (confirmation !== 'DELETE') return;
+
+    setAuthMessage('Deleting your account…', 'info');
+    try {
+      const deletingUserId = state.user.id;
+      const result = await state.client.rpc('delete_own_account');
+      if (result.error) throw result.error;
+      await state.client.auth.signOut({ scope: 'local' });
+      clearUserCache(deletingUserId);
+      state.user = null;
+      state.session = null;
+      state.profile = null;
+      state.progress = new Map();
+      renderAccountState();
+      ensureAccountDialogOpen();
+    } catch (error) {
+      setAuthMessage(
+        /function.*does not exist|schema cache/i.test(String(error.message || ''))
+          ? 'Account deletion is not enabled yet. Run the supplied Supabase migration SQL first.'
+          : friendlyAuthError(error),
+        'error'
+      );
+    }
+  }
+
+  async function handleAuthEvent(event, session) {
+    if (event === 'PASSWORD_RECOVERY') {
+      state.recoveryMode = true;
+      await handleSession(session, event);
+      openAccountDialog();
+      return;
+    }
+    await handleSession(session, event);
+  }
+
+  async function handleSession(session, event) {
+    const userId = session && session.user ? session.user.id : '';
+    if (userId && state.sessionHandledFor === userId && state.session && event !== 'USER_UPDATED') {
+      state.session = session;
+      state.user = session.user;
+      renderAccountState();
+      return;
+    }
+
+    state.session = session || null;
+    state.user = session && session.user ? session.user : null;
+
+    if (!state.user) {
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_OUT') setAuthMode('signin');
+      state.sessionHandledFor = '';
+      state.profile = null;
+      state.preferences = Object.assign({}, DEFAULT_PREFERENCES);
+      state.progress = new Map();
+      renderAccountState();
+      document.dispatchEvent(new CustomEvent('dv-account-changed', { detail: getIdentity() }));
+      return;
+    }
+
+    state.sessionHandledFor = state.user.id;
+    await refreshAccountData();
+    renderAccountState();
+    if (!state.recoveryMode && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN')) {
+      closeAccountDialog(true);
+    }
+    document.dispatchEvent(new CustomEvent('dv-account-changed', {
+      detail: getIdentity()
+    }));
+  }
+
+  async function refreshAccountData() {
+    if (!state.user || !state.client) return;
+    await Promise.allSettled([
+      loadProfile(),
+      loadPreferences(),
+      loadProgress()
+    ]);
+    await flushPendingProgress();
+    renderAccountState();
+  }
+
+  async function loadProfile() {
+    const result = await state.client
+      .from('profiles')
+      .select('display_name')
+      .eq('user_id', state.user.id)
+      .maybeSingle();
+    if (result.error) throw result.error;
+    state.profile = result.data || null;
+  }
+
+  async function loadPreferences() {
+    const result = await state.client
+      .from('user_preferences')
+      .select('theme, round_length, selected_decks, selected_levels, selected_types')
+      .eq('user_id', state.user.id)
+      .maybeSingle();
+    if (result.error) throw result.error;
+    state.preferences = Object.assign({}, DEFAULT_PREFERENCES, result.data || {});
+    document.dispatchEvent(new CustomEvent('dv-preferences-loaded', {
+      detail: Object.assign({}, state.preferences)
+    }));
+  }
+
+  async function loadProgress() {
+    const cacheKey = USER_CACHE_PREFIX + state.user.id;
+    const cached = loadMapFromStorage(cacheKey);
+    if (cached.size) state.progress = cached;
+
+    const result = await state.client
+      .from('word_progress')
+      .select('word_id,status,times_seen,correct_count,wrong_count,current_streak,mastery_score,last_result,last_studied_at,next_review_at,updated_at');
+    if (result.error) {
+      if (cached.size) {
+        setAuthMessage('Showing the most recently cached progress. Cloud synchronization will retry later.', 'info');
+        return;
+      }
+      throw result.error;
+    }
+
+    const cloudRows = Array.isArray(result.data) ? result.data : [];
+    const merged = new Map(cloudRows.map(row => [row.word_id, sanitizeProgressRow(row)]));
+    loadPendingRows().forEach(row => {
+      const wordId = String(row.word_id || '');
+      if (!wordId) return;
+      merged.set(wordId, mergeProgressRows(merged.get(wordId), row));
+    });
+    state.progress = merged;
+    saveMapToStorage(cacheKey, state.progress);
+  }
+
+  function mergeProgressRows(left, right) {
+    if (!left) return sanitizeProgressRow(right);
+    if (!right) return sanitizeProgressRow(left);
+    const newest = Date.parse(left.last_studied_at || 0) >= Date.parse(right.last_studied_at || 0) ? left : right;
+    return Object.assign({}, sanitizeProgressRow(newest), {
+      word_id: String(left.word_id || right.word_id),
+      times_seen: Math.max(Number(left.times_seen || 0), Number(right.times_seen || 0)),
+      correct_count: Math.max(Number(left.correct_count || 0), Number(right.correct_count || 0)),
+      wrong_count: Math.max(Number(left.wrong_count || 0), Number(right.wrong_count || 0)),
+      mastery_score: Math.max(Number(left.mastery_score || 0), Number(right.mastery_score || 0))
+    });
+  }
+
+  function getSeenWordIds() {
+    return Array.from(state.progress.keys()).filter(Boolean);
+  }
+
+  function getDifficultWordIds() {
+    return Array.from(state.progress.values())
+      .filter(row => row && row.status === 'difficult' && row.word_id)
+      .map(row => String(row.word_id));
+  }
+
+  function getWordProgress(wordOrId) {
+    const wordId = typeof wordOrId === 'string'
+      ? wordOrId
+      : String(wordOrId && wordOrId.wordId || '');
+    const row = state.progress.get(String(wordId || '').trim());
+    return row ? Object.assign({}, sanitizeProgressRow(row)) : null;
+  }
+
+  function isWordSeen(wordOrId) {
+    return Boolean(getWordProgress(wordOrId));
+  }
+
+  function recordExposure(word) {
+    const wordId = String(word && word.wordId || '').trim();
+    if (!wordId) return Promise.resolve(false);
+
+    const current = sanitizeProgressRow(state.progress.get(wordId) || { word_id: wordId });
+    const now = new Date();
+    const updated = Object.assign({}, current, {
+      word_id: wordId,
+      status: current.times_seen > 0 ? current.status : 'introduced',
+      times_seen: current.times_seen + 1,
+      last_studied_at: now.toISOString(),
+      next_review_at: current.next_review_at || new Date(now.getTime() + 86400000).toISOString()
+    });
+
+    state.progress.set(wordId, updated);
+    return persistProgressRow(updated);
+  }
+
+  function recordAnswer(word, result) {
+    const wordId = String(word && word.wordId || '').trim();
+    if (!wordId) return Promise.resolve(false);
+    const details = result && typeof result === 'object'
+      ? result
+      : { outcome: result };
+    const outcome = ['correct', 'almost', 'incorrect'].includes(details.outcome)
+      ? details.outcome
+      : 'incorrect';
+    const context = {
+      activity: ['review', 'writing', 'quiz', 'article'].includes(details.activity)
+        ? details.activity
+        : 'review',
+      attempt: Math.max(1, Math.min(2, Number(details.attempt || 1)))
+    };
+    const current = sanitizeProgressRow(state.progress.get(wordId) || { word_id: wordId });
+    const updated = calculateProgress(current, outcome, context);
+    state.progress.set(wordId, updated);
+
+    return persistProgressRow(updated);
+  }
+
+  function persistProgressRow(updated) {
+    const wordId = String(updated && updated.word_id || '').trim();
+    if (!wordId) return Promise.resolve(false);
+
+    if (!state.user || !state.client) {
+      setAuthMessage('Sign in to save learning progress.', 'error');
+      renderAccountState();
+      ensureAccountDialogOpen();
+      return Promise.resolve(false);
+    }
+
+    updated.user_id = state.user.id;
+    saveMapToStorage(USER_CACHE_PREFIX + state.user.id, state.progress);
+    renderAccountState();
+    dispatchAccountChanged();
+
+    return state.client
+      .from('word_progress')
+      .upsert(updated, { onConflict: 'user_id,word_id' })
+      .then(response => {
+        if (response.error) {
+          savePendingRows([updated]);
+          return false;
+        }
+        removePendingRow(wordId);
+        return true;
+      })
+      .catch(() => {
+        savePendingRows([updated]);
+        return false;
+      });
+  }
+
+  function calculateProgress(row, outcome, context) {
+    const now = new Date();
+    const next = sanitizeProgressRow(row);
+    const activity = context && context.activity || 'review';
+    const attempt = context && Number(context.attempt || 1) || 1;
+    const wasDifficult = next.status === 'difficult';
+
+    const weights = {
+      review: { correct: 12, almost: 3, incorrect: -20 },
+      writing: { correct: attempt === 1 ? 18 : 7, almost: 7, incorrect: -24 },
+      quiz: { correct: 12, almost: 4, incorrect: -18 },
+      article: { correct: 5, almost: 2, incorrect: -8 }
+    };
+    const activityWeights = weights[activity] || weights.review;
+    const delta = Number(activityWeights[outcome] || 0);
+
+    next.times_seen += 1;
+    next.last_result = outcome;
+    next.last_studied_at = now.toISOString();
+
+    if (outcome === 'correct') {
+      next.correct_count += 1;
+      next.current_streak += 1;
+    } else if (outcome === 'almost') {
+      next.correct_count += 1;
+      next.current_streak = 0;
+    } else {
+      next.wrong_count += 1;
+      next.current_streak = 0;
+    }
+
+    next.mastery_score = Math.max(0, Math.min(100, next.mastery_score + delta));
+
+    if (outcome === 'incorrect') {
+      const articleMistakeNeedsRepetition = activity === 'article' && next.wrong_count < 2 && next.mastery_score > 15;
+      next.status = articleMistakeNeedsRepetition ? 'learning' : 'difficult';
+    } else if (outcome === 'almost') {
+      next.status = wasDifficult ? 'difficult' : 'learning';
+    } else if (next.mastery_score >= 80 && next.correct_count >= 3 && next.current_streak >= 3) {
+      next.status = 'mastered';
+    } else if (next.mastery_score >= 45 && next.current_streak >= 2) {
+      next.status = 'remembered';
+    } else {
+      next.status = 'learning';
+    }
+
+    const reviewDays = next.status === 'mastered'
+      ? 14
+      : next.status === 'remembered'
+        ? 7
+        : next.status === 'difficult'
+          ? 1
+          : 3;
+    next.next_review_at = new Date(now.getTime() + reviewDays * 86400000).toISOString();
+    return next;
+  }
+
+  function sanitizeProgressRow(row) {
+    return {
+      word_id: String(row.word_id || ''),
+      status: ['introduced', 'learning', 'remembered', 'difficult', 'mastered'].includes(row.status)
+        ? row.status
+        : 'introduced',
+      times_seen: Math.max(0, Number(row.times_seen || 0)),
+      correct_count: Math.max(0, Number(row.correct_count || 0)),
+      wrong_count: Math.max(0, Number(row.wrong_count || 0)),
+      current_streak: Math.max(0, Number(row.current_streak || 0)),
+      mastery_score: Math.max(0, Math.min(100, Number(row.mastery_score || 0))),
+      last_result: ['correct', 'almost', 'incorrect'].includes(row.last_result) ? row.last_result : null,
+      last_studied_at: row.last_studied_at || null,
+      next_review_at: row.next_review_at || null
+    };
+  }
+
+  function savePreferences(patch) {
+    if (!patch || typeof patch !== 'object') return;
+    state.preferences = Object.assign({}, state.preferences, normalizePreferencePatch(patch));
+    state.pendingPreferencePatch = Object.assign({}, state.pendingPreferencePatch, normalizePreferencePatch(patch));
+
+    window.clearTimeout(state.preferenceTimer);
+    state.preferenceTimer = window.setTimeout(flushPreferences, 450);
+  }
+
+  async function flushPreferences() {
+    const patch = state.pendingPreferencePatch;
+    state.pendingPreferencePatch = {};
+    if (!state.user || !state.client || !Object.keys(patch).length) return;
+
+    const row = Object.assign({ user_id: state.user.id }, state.preferences);
+    const result = await state.client
+      .from('user_preferences')
+      .upsert(row, { onConflict: 'user_id' });
+    if (result.error) {
+      state.pendingPreferencePatch = Object.assign({}, patch, state.pendingPreferencePatch);
+    }
+  }
+
+  function normalizePreferencePatch(patch) {
+    const result = {};
+    if (['system', 'light', 'dark'].includes(patch.theme)) result.theme = patch.theme;
+    if (Number.isFinite(Number(patch.round_length))) {
+      result.round_length = Math.max(1, Math.min(5000, Math.floor(Number(patch.round_length))));
+    }
+    ['selected_decks', 'selected_levels', 'selected_types'].forEach(key => {
+      if (Array.isArray(patch[key])) {
+        result[key] = patch[key].map(value => String(value).slice(0, 80)).slice(0, 80);
+      }
+    });
+    return result;
+  }
+
+  async function flushPendingProgress() {
+    if (!state.user || !state.client) return;
+    const rows = loadPendingRows();
+    if (!rows.length) return;
+    const result = await state.client
+      .from('word_progress')
+      .upsert(rows, { onConflict: 'user_id,word_id' });
+    if (!result.error) localStorage.removeItem(PENDING_PREFIX + state.user.id);
+  }
+
+  function savePendingRows(rows) {
+    if (!state.user) return;
+    const existing = new Map(loadPendingRows().map(row => [row.word_id, row]));
+    rows.forEach(row => existing.set(row.word_id, row));
+    localStorage.setItem(PENDING_PREFIX + state.user.id, JSON.stringify(Array.from(existing.values())));
+  }
+
+  function loadPendingRows() {
+    if (!state.user) return [];
+    try {
+      const parsed = JSON.parse(localStorage.getItem(PENDING_PREFIX + state.user.id) || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function removePendingRow(wordId) {
+    if (!state.user) return;
+    const rows = loadPendingRows().filter(row => row.word_id !== wordId);
+    if (rows.length) localStorage.setItem(PENDING_PREFIX + state.user.id, JSON.stringify(rows));
+    else localStorage.removeItem(PENDING_PREFIX + state.user.id);
+  }
+
+  function loadMapFromStorage(key) {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return new Map();
+      return new Map(Object.keys(parsed).map(wordId => [wordId, sanitizeProgressRow(parsed[wordId])]));
+    } catch (error) {
+      return new Map();
+    }
+  }
+
+  function saveMapToStorage(key, map) {
+    try {
+      const object = {};
+      map.forEach((row, wordId) => { object[wordId] = sanitizeProgressRow(row); });
+      localStorage.setItem(key, JSON.stringify(object));
+    } catch (error) {
+      // Local cache is best effort only.
+    }
+  }
+
+  function clearUserCache(userId) {
+    if (!userId) return;
+    localStorage.removeItem(USER_CACHE_PREFIX + userId);
+    localStorage.removeItem(PENDING_PREFIX + userId);
+  }
+
+  function dispatchAccountChanged() {
+    document.dispatchEvent(new CustomEvent('dv-account-changed', { detail: getIdentity() }));
+  }
+
+  function getIdentity() {
+    const signedIn = Boolean(state.user);
+    const displayName = state.profile && state.profile.display_name
+      ? state.profile.display_name
+      : (state.user && state.user.user_metadata && state.user.user_metadata.display_name) || '';
+    return {
+      signedIn,
+      user: state.user,
+      name: displayName || (signedIn ? 'Learner' : ''),
+      email: state.user ? String(state.user.email || '') : ''
+    };
+  }
+
+  function renderAccountState(manageDialog = true) {
+    const signedIn = Boolean(state.user);
+    const progressCount = signedIn ? state.progress.size : 0;
+    const authRequired = !signedIn || state.recoveryMode;
+
+    if (el.authSignedOutPanel) el.authSignedOutPanel.classList.toggle('hidden', signedIn || state.recoveryMode);
+    if (el.authSignedInPanel) el.authSignedInPanel.classList.toggle('hidden', !signedIn || state.recoveryMode);
+    if (el.authRecoveryPanel) el.authRecoveryPanel.classList.toggle('hidden', !state.recoveryMode);
+    if (el.accountDialogClose) el.accountDialogClose.classList.toggle('hidden', authRequired);
+
+    document.body.classList.toggle('auth-required', authRequired);
+
+    const identity = getIdentity();
+    const displayName = identity.name || 'Learner';
+
+    if (el.accountSidebarTitle) el.accountSidebarTitle.textContent = signedIn ? displayName : 'Account';
+    if (el.accountSidebarSubtitle) {
+      el.accountSidebarSubtitle.textContent = signedIn
+        ? progressCount + ' studied word' + (progressCount === 1 ? '' : 's') + ' synced'
+        : 'Sign in required';
+    }
+    if (el.accountMobileLabel) el.accountMobileLabel.textContent = signedIn ? 'Account' : 'Sign in';
+    if (el.signedInEmail) el.signedInEmail.textContent = state.user ? state.user.email || '' : '';
+    if (el.signedInDisplayName) el.signedInDisplayName.textContent = displayName;
+    if (el.signedInProgressCount) el.signedInProgressCount.textContent = String(progressCount);
+
+    if (manageDialog && authRequired) ensureAccountDialogOpen();
+  }
+
+  function setAuthMessage(message, type) {
+    if (!el.authMessage) return;
+    el.authMessage.textContent = message || '';
+    el.authMessage.className = 'auth-message' + (message ? ' ' + (type || 'info') : '');
+  }
+
+  function setFormBusy(form, busy) {
+    if (!form) return;
+    form.querySelectorAll('button, input').forEach(control => { control.disabled = Boolean(busy); });
+  }
+
+  function requireConfigured() {
+    if (state.configured && state.client) return true;
+    setAuthMessage('Account setup is incomplete. Add the Supabase Project URL and publishable key to config.js, then reload the app.', 'error');
+    return false;
+  }
+
+  function friendlyAuthError(error) {
+    const message = String(error && error.message || 'The account request failed.');
+    if (/email[^.]*not[^.]*confirm|email not confirmed|not confirmed/i.test(message)) {
+      return 'Your email address is not confirmed yet. Open the verification email, select Confirm email address, and then sign in again. Check Spam or Promotions if needed.';
+    }
+    if (/invalid login credentials/i.test(message)) return 'The email or password is incorrect.';
+    if (/already registered|already been registered|user already exists/i.test(message)) return 'An account already exists for this email.';
+    if (/password/i.test(message) && /least|short|weak/i.test(message)) return 'Use a stronger password with at least 8 characters.';
+    if (/rate limit|too many/i.test(message)) return 'Too many account requests were made. Wait a moment and try again.';
+    if (/network|fetch/i.test(message)) return 'The account service could not be reached. Check the connection and retry.';
+    return message.slice(0, 220);
+  }
+})();

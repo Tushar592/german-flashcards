@@ -3,17 +3,24 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/><meta content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://deutsche-vokabeltrainer-api.tushar-jejurkar592.workers.dev; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'" http-equiv="Content-Security-Policy"/>
-<meta content="#f1f0ec" name="theme-color"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/><meta content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://deutsche-vokabeltrainer-api.tushar-jejurkar592.workers.dev https://*.supabase.co wss://*.supabase.co; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'self'; object-src 'none'" http-equiv="Content-Security-Policy"/>
+<meta content="#0d7d63" name="theme-color"/>
+<meta content="yes" name="mobile-web-app-capable"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="Deutsche Vokabeltrainer" name="apple-mobile-web-app-title"/>
 <meta content="light dark" name="color-scheme"/>
-<meta content="Learn German vocabulary with review, writing, quiz and article practice." name="description"/>
+<meta content="Learn German vocabulary with guided learning, review, writing, quiz and article modes." name="description"/>
 <title>Deutsche Vokabeltrainer</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./styles.css?v=3.10.0" rel="stylesheet"/>
+<link href="./manifest.webmanifest?v=4.6.1-beta.1" rel="manifest"/>
+<link href="./icons/apple-touch-icon.png?v=4.6.0-beta.1" rel="apple-touch-icon"/>
+<link href="./icons/icon-192.png?v=4.6.0-beta.1" rel="icon" sizes="192x192" type="image/png"/>
+<link href="./styles.css?v=4.6.0-beta.1" rel="stylesheet"/>
 </head>
-<body>
+<body class="auth-required">
 <div class="app-shell">
 <aside class="sidebar">
 <header class="brand-block">
@@ -32,6 +39,14 @@
 <button aria-controls="contributeView" aria-selected="false" class="app-tab" id="contributeTabButton" role="tab" tabindex="-1" type="button"><span class="tab-icon">＋</span><span>Contribute</span></button>
 <button aria-controls="guideView" aria-selected="false" class="app-tab" id="guideTabButton" role="tab" tabindex="-1" type="button"><span class="tab-icon">?</span><span>Guide</span></button>
 </nav>
+<button class="account-sidebar-card" id="accountOpenButton" type="button">
+<span aria-hidden="true" class="account-avatar">◎</span>
+<span class="account-sidebar-copy">
+<strong id="accountSidebarTitle">Account</strong>
+<small id="accountSidebarSubtitle">Sign in required</small>
+</span>
+<span aria-hidden="true" class="account-chevron">›</span>
+</button>
 <footer class="sidebar-credit">Created by <strong>Tushar Jejurkar</strong></footer>
 </aside>
 <header class="mobile-header">
@@ -39,10 +54,16 @@
 <h1>Deutsche Vokabeltrainer</h1>
 <p>Lerne deutsche Wörter Schritt für Schritt.</p>
 </div>
+<div class="mobile-header-actions">
+<button aria-label="Open learner account" class="account-mobile-button" id="accountOpenMobileButton" type="button">
+<span aria-hidden="true">◎</span>
+<span class="sr-only" id="accountMobileLabel">Sign in</span>
+</button>
 <button aria-label="Switch to dark mode" class="theme-toggle theme-toggle-mobile" data-theme-toggle type="button">
 <span aria-hidden="true" class="theme-toggle-icon">☾</span>
 <span class="sr-only theme-toggle-label">Dark mode</span>
 </button>
+</div>
 </header>
 <main class="main-content">
 <section aria-labelledby="studyTabButton" id="studyView" role="tabpanel">
@@ -106,8 +127,12 @@
 </div>
 </div>
 <div class="quiz-opts hidden" id="quizOptions"></div>
-<div class="actions hidden" id="reviewActions">
+<div class="actions learn-actions hidden" id="learnActions">
+<button class="btn primary" id="learnContinueButton" type="button">Continue</button>
+</div>
+<div class="actions review-rating-actions hidden" id="reviewActions">
 <button class="btn danger" id="practiceButton" type="button">Need practice</button>
+<button class="btn almost" id="almostButton" type="button">Almost</button>
 <button class="btn primary" id="rememberedButton" type="button">I remembered it</button>
 </div>
 <div class="actions hidden" id="nextActions">
@@ -118,9 +143,14 @@
 <div class="big" id="completeScore">0 of 0</div>
 <p class="rmsg" id="completeMessage">Good work.</p>
 <div class="completion-actions" id="completeActions">
-<button class="btn primary hidden" id="reviewWritingButton" type="button">Test difficult words in Writing</button>
-<button class="btn hidden" id="reviewQuizButton" type="button">Test difficult words in Quiz</button>
-<button class="btn hidden" id="fullReviewWritingButton" type="button">Test this Review round in Writing</button>
+<button class="btn primary hidden" id="reviewLearnedSetButton" type="button">Review these words</button>
+<button class="btn hidden" id="writeLearnedSetButton" type="button">Practice writing these words</button>
+<button class="btn primary hidden" id="repeatReviewSetButton" type="button">Review these words again</button>
+<button class="btn hidden" id="learnMoreButton" type="button">Learn more new words</button>
+<button class="btn hidden" id="reviewWritingButton" type="button">Practice difficult words in Writing</button>
+<button class="btn hidden" id="reviewQuizButton" type="button">Practice difficult words in Quiz</button>
+<button class="btn hidden" id="fullReviewWritingButton" type="button">Write this reviewed set</button>
+<button class="btn" id="backToSetupButton" type="button">Back to Study Setup</button>
 <button class="btn primary" id="playAgainButton" type="button">New round</button>
 </div>
 </div>
@@ -177,16 +207,27 @@
 <div class="ctrl-group">
 <label class="lbl" for="modeSelect">Mode</label>
 <select id="modeSelect">
-<option value="review">Review</option>
+<option value="learn">Learn new words</option>
+<option value="review">Review learned words</option>
 <option value="writing">Writing</option>
 <option value="quiz">Quiz</option>
 <option value="article">der / die / das</option>
 </select>
 </div>
+<div class="ctrl-group writing-source-group hidden" id="writingSourceGroup">
+<span class="lbl" id="writingSourceLabel">Words to practise</span>
+<div aria-labelledby="writingSourceLabel" class="source-segmented" role="radiogroup">
+<label><input checked name="writingSource" type="radio" value="learned"/><span>My learned words</span></label>
+<label><input name="writingSource" type="radio" value="all"/><span>All vocabulary</span></label>
+</div>
+</div>
 
 </div><div class="round-start-row"><div class="ctrl-group">
-<label class="lbl" for="roundLengthSelect">Round length</label>
-<select id="roundLengthSelect"><option value="50">50 words</option></select>
+<label class="lbl" for="roundLengthInput">Round length</label>
+<div class="round-length-input-wrap">
+<input id="roundLengthInput" inputmode="numeric" min="1" pattern="[0-9]*" step="1" type="number" value="50"/>
+<span>words</span>
+</div>
 </div><button class="btn primary compact" id="newRoundButton" type="button">Start round</button></div>
 <p class="status info" id="setupMessage" role="status"></p>
 <div class="connection-actions hidden" id="connectionActions">
@@ -205,7 +246,7 @@
 <ol class="leaderboard-list" data-leaderboard-list="">
 <li class="leaderboard-empty">No approved public contributions yet.</li>
 </ol>
-<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+<p class="leaderboard-note">Only approved words count. Email addresses are never shown publicly.</p>
 </section>
 </aside>
 </div>
@@ -235,7 +276,7 @@
 <ol class="leaderboard-list" data-leaderboard-list="">
 <li class="leaderboard-empty">No approved public contributions yet.</li>
 </ol>
-<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+<p class="leaderboard-note">Only approved words count. Email addresses are never shown publicly.</p>
 </section>
 </aside>
 </div>
@@ -262,27 +303,8 @@
 <h2 id="word-suggestion-title">Suggest one or several German words</h2>
 
 <form class="contribution-form" id="wordSuggestionForm">
-<div class="form-grid contributor-details">
-<div class="form-field">
-<label for="suggestionName">Name</label>
-<input autocomplete="name" id="suggestionName" maxlength="80" name="name" required="" type="text"/>
-</div>
-<div class="form-field">
-<label for="suggestionEmail">Email</label>
-<input autocomplete="email" id="suggestionEmail" maxlength="160" name="email" required="" type="email"/>
-</div>
-</div>
-<div class="leaderboard-consent-card form-wide">
-<label class="consent-row leaderboard-consent-row">
-<input id="leaderboardOptIn" type="checkbox"/>
-<span>Show my approved-word total on the public Top Contributors list.</span>
-</label>
-<div class="form-field hidden" id="publicDisplayNameWrap">
-<label for="publicDisplayName">Public display name</label>
-<input autocomplete="nickname" id="publicDisplayName" maxlength="50" placeholder="Example: Anna S." type="text"/>
-<small>Your email address is never shown publicly.</small>
-</div>
-</div>
+<input id="suggestionName" name="name" type="hidden"/>
+<input id="suggestionEmail" name="email" type="hidden"/>
 <div class="batch-heading">
 <div>
 <p class="eyebrow">Words in this request</p>
@@ -383,19 +405,11 @@
 <h2 id="feedback-title">Share an idea or report a problem</h2>
 <p class="contribution-copy">Tell us what would make the learning experience better.</p>
 <form class="contribution-form" id="feedbackForm">
-<div class="form-grid">
-<div class="form-field">
-<label for="feedbackName">Name</label>
-<input autocomplete="name" id="feedbackName" maxlength="80" name="name" required="" type="text"/>
-</div>
-<div class="form-field">
-<label for="feedbackEmail">Email</label>
-<input autocomplete="email" id="feedbackEmail" maxlength="160" name="email" required="" type="email"/>
-</div>
-<div class="form-field form-wide">
+<input id="feedbackName" name="name" type="hidden"/>
+<input id="feedbackEmail" name="email" type="hidden"/>
+<div class="form-field feedback-message-field">
 <label for="feedbackText">Suggestion or feedback</label>
-<textarea id="feedbackText" maxlength="2000" minlength="10" name="feedback" required="" rows="6"></textarea>
-</div>
+<textarea id="feedbackText" maxlength="2000" minlength="10" name="feedback" placeholder="Describe your idea, suggestion, or the problem you found…" required="" rows="8"></textarea>
 </div>
 <div aria-hidden="true" class="honeypot">
 <label for="feedbackWebsite">Website</label>
@@ -422,7 +436,7 @@
 <ol class="leaderboard-list" data-leaderboard-list="">
 <li class="leaderboard-empty">No approved public contributions yet.</li>
 </ol>
-<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+<p class="leaderboard-note">Only approved words count. Email addresses are never shown publicly.</p>
 </section>
 </aside>
 </div>
@@ -432,17 +446,17 @@
 <div class="page-main"><section class="guide-panel">
 <p class="eyebrow">User guide</p>
 <h2 id="guide-title">How to use Deutsche Vokabeltrainer</h2>
-<p class="guide-intro">Choose a deck and CEFR level, select a learning mode, and start a round. Your study progress remains on your device.</p>
+<p class="guide-intro">Choose a deck and CEFR level, select a learning mode, and start a round. Every learner signs in so progress, difficult words, preferences and study history can synchronize across devices.</p>
 <div class="guide-grid">
 <article class="guide-card">
 <span class="guide-number">1</span>
 <h3>Choose your study setup</h3>
-<p>Select a deck, A1–B2 level, word type, direction, mode and round length. Unassigned contains words whose CEFR level has not been reviewed yet.</p>
+<p>Select one or more decks, A1–B2 levels and word types, then choose the learning path, direction and any whole-number round length. Unassigned contains words whose CEFR level has not been reviewed yet.</p>
 </article>
 <article class="guide-card">
 <span class="guide-number">2</span>
-<h3>Review mode</h3>
-<p>Think of the answer before revealing the card. Select <strong>I remembered it</strong> or <strong>Need practice</strong>. Review mode is self-assessment and is not presented as a test score.</p>
+<h3>Learn and Review</h3>
+<p><strong>Learn new words</strong> introduces only unseen words without a score. Enter any available round length manually. When the round ends, continue directly with Review or Writing using the same set. <strong>Review learned words</strong> uses only words you have already encountered and offers Remembered, Almost and Need practice.</p>
 </article>
 <article class="guide-card">
 <span class="guide-number">3</span>
@@ -452,7 +466,7 @@
 <article class="guide-card">
 <span class="guide-number">4</span>
 <h3>Quiz and article modes</h3>
-<p>Quiz asks you to select the translation. The der/die/das mode tests noun articles. Incorrect words are added to the temporary difficult-word review bank.</p>
+<p>Writing uses learned words by default, with an optional All vocabulary source for experienced learners. Quiz asks you to select the translation. The der/die/das mode tests noun articles. Weak answers update the learner’s difficult-word status automatically.</p>
 </article>
 <article class="guide-card">
 <span class="guide-number">5</span>
@@ -462,7 +476,14 @@
 <article class="guide-card">
 <span class="guide-number">6</span>
 <h3>Search and contribute</h3>
-<p>Search before suggesting vocabulary. Submit up to 20 words in one request, request a new deck, opt in to the Top Contributors list, or send private feedback. Suggestions are added only after admin approval.</p>
+<p>Search before suggesting vocabulary. Submit up to 20 words in one request, request a new deck, or send private feedback. Approved vocabulary contributions are counted automatically under the learner’s account name; email addresses are never shown publicly.</p>
+</article>
+<article class="guide-card">
+<span class="guide-number">7</span>
+<h3>Use it like a full-screen app</h3>
+<p>Install Deutsche Vokabeltrainer on your phone or computer to open it without the normal browser address bar and navigation controls.</p>
+<button class="btn compact" data-install-app type="button">Install app</button>
+<p class="install-app-message" data-install-app-message></p>
 </article>
 </div>
 
@@ -478,14 +499,86 @@
 <ol class="leaderboard-list" data-leaderboard-list="">
 <li class="leaderboard-empty">No approved public contributions yet.</li>
 </ol>
-<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+<p class="leaderboard-note">Only approved words count. Email addresses are never shown publicly.</p>
 </section>
 </aside>
 </div>
 </section>
 </main>
 </div>
-<script src="./config.js?v=3.7.1"></script>
-<script defer="" src="./app.js?v=3.10.0"></script>
+
+<dialog aria-labelledby="accountDialogTitle" class="account-dialog" id="accountDialog">
+<div class="account-dialog-card">
+<header class="account-dialog-header">
+<h2 class="account-brand-title" id="accountDialogTitle">Deutsche Vokabeltrainer</h2>
+<p class="account-dialog-tagline">Sign in to continue learning and keep your progress synchronized.</p>
+<button aria-label="Switch to dark mode" class="theme-toggle theme-toggle-auth" data-theme-toggle type="button">
+<span aria-hidden="true" class="theme-toggle-icon">☾</span>
+<span class="theme-toggle-label">Dark mode</span>
+</button>
+<button aria-label="Close account window" class="dialog-close hidden" id="accountDialogClose" type="button">×</button>
+</header>
+<section id="authSignedOutPanel">
+<div aria-label="Account actions" class="auth-mode-tabs" id="authModeTabs">
+<button aria-pressed="true" class="active" id="authModeSignIn" type="button">Sign in</button>
+<button aria-pressed="false" id="authModeCreate" type="button">Create account</button>
+<button aria-pressed="false" id="authModeReset" type="button">Reset password</button>
+</div>
+<form class="auth-form" id="signInForm">
+<label>Email<input autocomplete="email" id="signInEmail" required type="email"/></label>
+<label>Password<input autocomplete="current-password" id="signInPassword" minlength="8" required type="password"/></label>
+<button class="btn primary" type="submit">Sign in</button>
+</form>
+<form class="auth-form hidden" id="createAccountForm">
+<label>Name<input autocomplete="name" id="createDisplayName" maxlength="60" required type="text"/></label>
+<label>Email<input autocomplete="email" id="createEmail" required type="email"/></label>
+<label>Password<input autocomplete="new-password" id="createPassword" minlength="8" required type="password"/></label>
+<p class="auth-help">Your name and email will prefill contribution forms. Approved vocabulary contributions may be counted under your account name, but your email address is never shown publicly. Use a password with at least 8 characters.</p>
+<button class="btn primary" type="submit">Create account</button>
+</form>
+<form class="auth-form hidden" id="resetPasswordForm">
+<label>Email<input autocomplete="email" id="resetEmail" required type="email"/></label>
+<p class="auth-help">A secure password-reset link will be sent to this address.</p>
+<button class="btn primary" type="submit">Send reset email</button>
+</form>
+<section class="auth-confirmation-panel hidden" id="authConfirmationPanel">
+<div aria-hidden="true" class="auth-confirmation-icon">✓</div>
+<h3>Check your email</h3>
+<p>We sent a confirmation link to:</p>
+<strong id="authConfirmationEmail"></strong>
+<p>Open the email and select <strong>Confirm email address</strong>. Check Spam or Promotions if it does not appear in your inbox.</p>
+<button class="btn primary" id="confirmationBackToSignIn" type="button">Back to sign in</button>
+</section>
+</section>
+<section class="hidden" id="authSignedInPanel">
+<div class="signed-in-summary">
+<span aria-hidden="true" class="signed-in-avatar">◎</span>
+<div><strong id="signedInDisplayName">Learner</strong><p id="signedInEmail"></p></div>
+</div>
+<div class="account-stat"><span id="signedInProgressCount">0</span><small>studied words synchronized</small></div>
+<div class="auth-account-actions">
+<button class="btn" data-install-app type="button">Install app</button>
+<button class="btn" id="signOutButton" type="button">Sign out</button>
+<button class="btn danger" id="deleteAccountButton" type="button">Delete account</button>
+</div>
+<p class="auth-help install-app-message" data-install-app-message>Install the app for a full-screen experience without normal browser controls.</p>
+<p class="auth-help">Deleting the account permanently removes the login and synchronized learning progress.</p>
+</section>
+<section class="hidden" id="authRecoveryPanel">
+<p class="auth-help">Enter a new password for your account.</p>
+<form class="auth-form" id="recoveryPasswordForm">
+<label>New password<input autocomplete="new-password" id="recoveryNewPassword" minlength="8" required type="password"/></label>
+<label>Confirm new password<input autocomplete="new-password" id="recoveryConfirmPassword" minlength="8" required type="password"/></label>
+<button class="btn primary" type="submit">Update password</button>
+</form>
+</section>
+<p aria-live="polite" class="auth-message" id="authMessage"></p>
+</div>
+</dialog>
+<script src="./vendor/supabase.js?v=2.110.7"></script>
+<script src="./config.js?v=4.6.0-beta.1"></script>
+<script defer src="./supabase-integration.js?v=4.6.0-beta.1"></script>
+<script defer src="./pwa.js?v=4.6.1-beta.1"></script>
+<script defer src="./app.js?v=4.6.0-beta.1"></script>
 </body>
 </html>
