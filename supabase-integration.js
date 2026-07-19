@@ -14,7 +14,6 @@
     CONFIG.supabaseAnonKey ||
     ''
   ).trim();
-  const GUEST_PROGRESS_KEY = 'dv_guest_progress_v1';
   const USER_CACHE_PREFIX = 'dv_user_progress_cache_v1_';
   const PENDING_PREFIX = 'dv_user_progress_pending_v1_';
   const DEFAULT_PREFERENCES = Object.freeze({
@@ -68,11 +67,11 @@
   async function initialize() {
     cacheElements();
     bindEvents();
-    state.progress = loadGuestProgressMap();
+    state.progress = new Map();
     renderAccountState();
 
     if (!state.configured) {
-      setAuthMessage('', 'info');
+      setAuthMessage('Account setup is incomplete. Add the Supabase Project URL and publishable key to config.js, then reload the app.', 'error');
       state.initialized = true;
       readyResolve();
       return;
@@ -98,7 +97,7 @@
     } catch (error) {
       console.error('Supabase initialization failed:', error);
       state.configured = false;
-      setAuthMessage('Account sync could not start. Guest mode remains available.', 'error');
+      setAuthMessage('The account service could not start. Check the Supabase URL and publishable key, then reload the app.', 'error');
       renderAccountState();
     } finally {
       state.initialized = true;
@@ -130,29 +129,31 @@
     [
       'accountDialog', 'accountDialogClose', 'accountOpenButton', 'accountOpenMobileButton',
       'accountSidebarTitle', 'accountSidebarSubtitle', 'accountMobileLabel',
-      'authGuestPanel', 'authSignedInPanel', 'authRecoveryPanel',
+      'authSignedOutPanel', 'authSignedInPanel', 'authRecoveryPanel',
       'authModeSignIn', 'authModeCreate', 'authModeReset',
       'signInForm', 'signInEmail', 'signInPassword',
       'createAccountForm', 'createDisplayName', 'createEmail', 'createPassword',
       'resetPasswordForm', 'resetEmail',
       'recoveryPasswordForm', 'recoveryNewPassword', 'recoveryConfirmPassword',
       'authMessage', 'signedInEmail', 'signedInDisplayName', 'signedInProgressCount',
-      'signOutButton', 'deleteAccountButton', 'clearGuestProgressButton'
+      'signOutButton', 'deleteAccountButton'
     ].forEach(id => { el[id] = document.getElementById(id); });
   }
 
   function bindEvents() {
     if (el.accountOpenButton) el.accountOpenButton.addEventListener('click', openAccountDialog);
     if (el.accountOpenMobileButton) el.accountOpenMobileButton.addEventListener('click', openAccountDialog);
-    if (el.accountDialogClose) el.accountDialogClose.addEventListener('click', closeAccountDialog);
+    if (el.accountDialogClose) el.accountDialogClose.addEventListener('click', () => closeAccountDialog());
 
     if (el.accountDialog) {
       el.accountDialog.addEventListener('click', event => {
-        if (event.target === el.accountDialog) closeAccountDialog();
+        if (event.target === el.accountDialog && state.user && !state.recoveryMode) {
+          closeAccountDialog();
+        }
       });
       el.accountDialog.addEventListener('cancel', event => {
         event.preventDefault();
-        closeAccountDialog();
+        if (state.user && !state.recoveryMode) closeAccountDialog();
       });
     }
 
@@ -165,17 +166,12 @@
     if (el.recoveryPasswordForm) el.recoveryPasswordForm.addEventListener('submit', updateRecoveredPassword);
     if (el.signOutButton) el.signOutButton.addEventListener('click', signOut);
     if (el.deleteAccountButton) el.deleteAccountButton.addEventListener('click', deleteAccount);
-    if (el.clearGuestProgressButton) el.clearGuestProgressButton.addEventListener('click', clearGuestProgress);
   }
 
   function openAccountDialog() {
     if (!el.accountDialog) return;
-    renderAccountState();
-    if (typeof el.accountDialog.showModal === 'function') {
-      if (!el.accountDialog.open) el.accountDialog.showModal();
-    } else {
-      el.accountDialog.setAttribute('open', '');
-    }
+    renderAccountState(false);
+    ensureAccountDialogOpen();
     window.setTimeout(() => {
       const focusTarget = state.user
         ? el.signOutButton
@@ -184,8 +180,18 @@
     }, 30);
   }
 
-  function closeAccountDialog() {
+  function ensureAccountDialogOpen() {
+    if (!el.accountDialog || el.accountDialog.open) return;
+    if (typeof el.accountDialog.showModal === 'function') {
+      el.accountDialog.showModal();
+    } else {
+      el.accountDialog.setAttribute('open', '');
+    }
+  }
+
+  function closeAccountDialog(force) {
     if (!el.accountDialog) return;
+    if (!force && (!state.user || state.recoveryMode)) return;
     if (typeof el.accountDialog.close === 'function' && el.accountDialog.open) {
       el.accountDialog.close();
     } else {
@@ -314,7 +320,6 @@
       setAuthMessage(friendlyAuthError(result.error), 'error');
       return;
     }
-    closeAccountDialog();
   }
 
   async function deleteAccount() {
@@ -332,9 +337,9 @@
       state.user = null;
       state.session = null;
       state.profile = null;
-      state.progress = loadGuestProgressMap();
+      state.progress = new Map();
       renderAccountState();
-      closeAccountDialog();
+      ensureAccountDialogOpen();
     } catch (error) {
       setAuthMessage(
         /function.*does not exist|schema cache/i.test(String(error.message || ''))
@@ -343,19 +348,6 @@
         'error'
       );
     }
-  }
-
-  function clearGuestProgress() {
-    const count = loadGuestProgressMap().size;
-    if (!count) {
-      setAuthMessage('There is no guest progress stored on this device.', 'info');
-      return;
-    }
-    if (!window.confirm('Clear all guest learning progress stored on this device?')) return;
-    localStorage.removeItem(GUEST_PROGRESS_KEY);
-    if (!state.user) state.progress = new Map();
-    renderAccountState();
-    setAuthMessage('Guest progress cleared.', 'success');
   }
 
   async function handleAuthEvent(event, session) {
@@ -384,7 +376,7 @@
       state.sessionHandledFor = '';
       state.profile = null;
       state.preferences = Object.assign({}, DEFAULT_PREFERENCES);
-      state.progress = loadGuestProgressMap();
+      state.progress = new Map();
       renderAccountState();
       document.dispatchEvent(new CustomEvent('dv-account-changed', { detail: getIdentity() }));
       return;
@@ -392,8 +384,10 @@
 
     state.sessionHandledFor = state.user.id;
     await refreshAccountData();
-    await maybeMigrateGuestProgress();
     renderAccountState();
+    if (!state.recoveryMode && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN')) {
+      closeAccountDialog(true);
+    }
     document.dispatchEvent(new CustomEvent('dv-account-changed', {
       detail: getIdentity()
     }));
@@ -458,43 +452,6 @@
     });
     state.progress = merged;
     saveMapToStorage(cacheKey, state.progress);
-  }
-
-  async function maybeMigrateGuestProgress() {
-    const guest = loadGuestProgressMap();
-    if (!guest.size || !state.user) return;
-    const migrationKey = 'dv_guest_migration_prompted_v1_' + state.user.id;
-    if (sessionStorage.getItem(migrationKey)) return;
-    sessionStorage.setItem(migrationKey, '1');
-
-    const accepted = window.confirm(
-      'Guest progress was found on this device. Add it to this account so it can synchronize across devices?'
-    );
-    if (!accepted) return;
-
-    const mergedRows = [];
-    guest.forEach((guestRow, wordId) => {
-      const cloudRow = state.progress.get(wordId);
-      const merged = mergeProgressRows(cloudRow, guestRow);
-      merged.user_id = state.user.id;
-      mergedRows.push(merged);
-      state.progress.set(wordId, merged);
-    });
-
-    if (mergedRows.length) {
-      const result = await state.client
-        .from('word_progress')
-        .upsert(mergedRows, { onConflict: 'user_id,word_id' });
-      if (result.error) {
-        savePendingRows(mergedRows);
-        setAuthMessage('Your guest progress is kept safely and will synchronize when the connection is available.', 'info');
-        return;
-      }
-    }
-
-    localStorage.removeItem(GUEST_PROGRESS_KEY);
-    saveMapToStorage(USER_CACHE_PREFIX + state.user.id, state.progress);
-    renderAccountState();
   }
 
   function mergeProgressRows(left, right) {
@@ -577,10 +534,10 @@
     if (!wordId) return Promise.resolve(false);
 
     if (!state.user || !state.client) {
-      saveMapToStorage(GUEST_PROGRESS_KEY, state.progress);
+      setAuthMessage('Sign in to save learning progress.', 'error');
       renderAccountState();
-      dispatchAccountChanged();
-      return Promise.resolve(true);
+      ensureAccountDialogOpen();
+      return Promise.resolve(false);
     }
 
     updated.user_id = state.user.id;
@@ -750,10 +707,6 @@
     else localStorage.removeItem(PENDING_PREFIX + state.user.id);
   }
 
-  function loadGuestProgressMap() {
-    return loadMapFromStorage(GUEST_PROGRESS_KEY);
-  }
-
   function loadMapFromStorage(key) {
     try {
       const parsed = JSON.parse(localStorage.getItem(key) || '{}');
@@ -797,29 +750,33 @@
     };
   }
 
-  function renderAccountState() {
+  function renderAccountState(manageDialog = true) {
     const signedIn = Boolean(state.user);
-    const configured = state.configured;
-    const guestCount = signedIn ? 0 : loadGuestProgressMap().size;
-    const progressCount = signedIn ? state.progress.size : guestCount;
+    const progressCount = signedIn ? state.progress.size : 0;
+    const authRequired = !signedIn || state.recoveryMode;
 
-    if (el.authGuestPanel) el.authGuestPanel.classList.toggle('hidden', signedIn || state.recoveryMode);
+    if (el.authSignedOutPanel) el.authSignedOutPanel.classList.toggle('hidden', signedIn || state.recoveryMode);
     if (el.authSignedInPanel) el.authSignedInPanel.classList.toggle('hidden', !signedIn || state.recoveryMode);
     if (el.authRecoveryPanel) el.authRecoveryPanel.classList.toggle('hidden', !state.recoveryMode);
+    if (el.accountDialogClose) el.accountDialogClose.classList.toggle('hidden', authRequired);
+
+    document.body.classList.toggle('auth-required', authRequired);
 
     const identity = getIdentity();
     const displayName = identity.name || 'Learner';
 
-    if (el.accountSidebarTitle) el.accountSidebarTitle.textContent = signedIn ? displayName : 'Guest mode';
+    if (el.accountSidebarTitle) el.accountSidebarTitle.textContent = signedIn ? displayName : 'Account';
     if (el.accountSidebarSubtitle) {
       el.accountSidebarSubtitle.textContent = signedIn
         ? progressCount + ' studied word' + (progressCount === 1 ? '' : 's') + ' synced'
-        : (configured ? 'Sign in to sync progress' : 'Progress stays on this device');
+        : 'Sign in required';
     }
     if (el.accountMobileLabel) el.accountMobileLabel.textContent = signedIn ? 'Account' : 'Sign in';
     if (el.signedInEmail) el.signedInEmail.textContent = state.user ? state.user.email || '' : '';
     if (el.signedInDisplayName) el.signedInDisplayName.textContent = displayName;
     if (el.signedInProgressCount) el.signedInProgressCount.textContent = String(progressCount);
+
+    if (manageDialog && authRequired) ensureAccountDialogOpen();
   }
 
   function setAuthMessage(message, type) {
@@ -835,7 +792,7 @@
 
   function requireConfigured() {
     if (state.configured && state.client) return true;
-    setAuthMessage('Add the Supabase Project URL and publishable key to config.js first.', 'error');
+    setAuthMessage('Account setup is incomplete. Add the Supabase Project URL and publishable key to config.js, then reload the app.', 'error');
     return false;
   }
 
