@@ -4,14 +4,21 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/><meta content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://deutsche-vokabeltrainer-api.tushar-jejurkar592.workers.dev https://*.supabase.co; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'" http-equiv="Content-Security-Policy"/>
-<meta content="#f1f0ec" name="theme-color"/>
+<meta content="#0d7d63" name="theme-color"/>
+<meta content="yes" name="mobile-web-app-capable"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="Deutsche Vokabeltrainer" name="apple-mobile-web-app-title"/>
 <meta content="light dark" name="color-scheme"/>
 <meta content="Learn German vocabulary with guided learning, review, writing, quiz and article modes." name="description"/>
 <title>Deutsche Vokabeltrainer</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./styles.css?v=4.5.0-beta.1" rel="stylesheet"/>
+<link href="./manifest.webmanifest?v=4.6.0-beta.1" rel="manifest"/>
+<link href="./icons/apple-touch-icon.png?v=4.6.0-beta.1" rel="apple-touch-icon"/>
+<link href="./icons/icon-192.png?v=4.6.0-beta.1" rel="icon" sizes="192x192" type="image/png"/>
+<link href="./styles.css?v=4.6.0-beta.1" rel="stylesheet"/>
 </head>
 <body class="auth-required">
 <div class="app-shell">
@@ -239,7 +246,7 @@
 <ol class="leaderboard-list" data-leaderboard-list="">
 <li class="leaderboard-empty">No approved public contributions yet.</li>
 </ol>
-<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+<p class="leaderboard-note">Only approved words count. Email addresses are never shown publicly.</p>
 </section>
 </aside>
 </div>
@@ -269,7 +276,7 @@
 <ol class="leaderboard-list" data-leaderboard-list="">
 <li class="leaderboard-empty">No approved public contributions yet.</li>
 </ol>
-<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+<p class="leaderboard-note">Only approved words count. Email addresses are never shown publicly.</p>
 </section>
 </aside>
 </div>
@@ -298,17 +305,6 @@
 <form class="contribution-form" id="wordSuggestionForm">
 <input id="suggestionName" name="name" type="hidden"/>
 <input id="suggestionEmail" name="email" type="hidden"/>
-<div class="leaderboard-consent-card form-wide">
-<label class="consent-row leaderboard-consent-row">
-<input id="leaderboardOptIn" type="checkbox"/>
-<span>Show my approved-word total on the public Top Contributors list.</span>
-</label>
-<div class="form-field hidden" id="publicDisplayNameWrap">
-<label for="publicDisplayName">Public display name</label>
-<input autocomplete="nickname" id="publicDisplayName" maxlength="50" placeholder="Example: Anna S." type="text"/>
-<small>Your email address is never shown publicly.</small>
-</div>
-</div>
 <div class="batch-heading">
 <div>
 <p class="eyebrow">Words in this request</p>
@@ -440,7 +436,7 @@
 <ol class="leaderboard-list" data-leaderboard-list="">
 <li class="leaderboard-empty">No approved public contributions yet.</li>
 </ol>
-<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+<p class="leaderboard-note">Only approved words count. Email addresses are never shown publicly.</p>
 </section>
 </aside>
 </div>
@@ -480,7 +476,14 @@
 <article class="guide-card">
 <span class="guide-number">6</span>
 <h3>Search and contribute</h3>
-<p>Search before suggesting vocabulary. Submit up to 20 words in one request, request a new deck, opt in to the Top Contributors list, or send private feedback. Suggestions are added only after admin approval.</p>
+<p>Search before suggesting vocabulary. Submit up to 20 words in one request, request a new deck, or send private feedback. Approved vocabulary contributions are counted automatically under the learner’s account name; email addresses are never shown publicly.</p>
+</article>
+<article class="guide-card">
+<span class="guide-number">7</span>
+<h3>Use it like a full-screen app</h3>
+<p>Install Deutsche Vokabeltrainer on your phone or computer to open it without the normal browser address bar and navigation controls.</p>
+<button class="btn compact" data-install-app type="button">Install app</button>
+<p class="install-app-message" data-install-app-message></p>
 </article>
 </div>
 
@@ -496,7 +499,7 @@
 <ol class="leaderboard-list" data-leaderboard-list="">
 <li class="leaderboard-empty">No approved public contributions yet.</li>
 </ol>
-<p class="leaderboard-note">Only approved words count. Participation is optional.</p>
+<p class="leaderboard-note">Only approved words count. Email addresses are never shown publicly.</p>
 </section>
 </aside>
 </div>
@@ -530,7 +533,7 @@
 <label>Name<input autocomplete="name" id="createDisplayName" maxlength="60" required type="text"/></label>
 <label>Email<input autocomplete="email" id="createEmail" required type="email"/></label>
 <label>Password<input autocomplete="new-password" id="createPassword" minlength="8" required type="password"/></label>
-<p class="auth-help">Your name and email will prefill contribution forms. They are not shown publicly unless you separately opt in to the leaderboard. Use a password with at least 8 characters.</p>
+<p class="auth-help">Your name and email will prefill contribution forms. Approved vocabulary contributions may be counted under your account name, but your email address is never shown publicly. Use a password with at least 8 characters.</p>
 <button class="btn primary" type="submit">Create account</button>
 </form>
 <form class="auth-form hidden" id="resetPasswordForm">
@@ -554,9 +557,11 @@
 </div>
 <div class="account-stat"><span id="signedInProgressCount">0</span><small>studied words synchronized</small></div>
 <div class="auth-account-actions">
+<button class="btn" data-install-app type="button">Install app</button>
 <button class="btn" id="signOutButton" type="button">Sign out</button>
 <button class="btn danger" id="deleteAccountButton" type="button">Delete account</button>
 </div>
+<p class="auth-help install-app-message" data-install-app-message>Install the app for a full-screen experience without normal browser controls.</p>
 <p class="auth-help">Deleting the account permanently removes the login and synchronized learning progress.</p>
 </section>
 <section class="hidden" id="authRecoveryPanel">
@@ -571,8 +576,9 @@
 </div>
 </dialog>
 <script src="./vendor/supabase.js?v=2.110.7"></script>
-<script src="./config.js?v=4.5.0-beta.1"></script>
-<script defer src="./supabase-integration.js?v=4.5.0-beta.1"></script>
-<script defer="" src="./app.js?v=4.5.0-beta.1"></script>
+<script src="./config.js?v=4.6.0-beta.1"></script>
+<script defer src="./supabase-integration.js?v=4.6.0-beta.1"></script>
+<script defer src="./pwa.js?v=4.6.0-beta.1"></script>
+<script defer src="./app.js?v=4.6.0-beta.1"></script>
 </body>
 </html>
