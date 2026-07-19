@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const RELEASE = '4.6.6';
+  const RELEASE = '4.6.7';
   const AUTH_STORAGE_KEY = 'dv_supabase_auth_v1';
   let deferredPrompt = null;
   let previouslyFocusedElement = null;
@@ -298,23 +298,22 @@
   function updateSafeAreaFallback() {
     const root = document.documentElement;
     const p = platform();
-    const topInset = readSafeAreaInset('top');
     const bottomInset = readSafeAreaInset('bottom');
-    let topFallback = 0;
     let bottomFallback = 0;
 
-    if (isStandalone() && topInset < 1) {
+    /* Do not estimate a top inset. Installed iOS and Android web apps may
+       already receive a viewport below the status bar. Adding a guessed top
+       inset in that case creates a second status-bar-sized blank area. The
+       actual CSS env(safe-area-inset-top) value remains the source of truth. */
+    if (isStandalone() && bottomInset < 1) {
       if (p.isiOS) {
-        const estimate = estimatedIOSInsets();
-        topFallback = estimate.top;
-        bottomFallback = bottomInset < 1 ? estimate.bottom : 0;
+        bottomFallback = estimatedIOSInsets().bottom;
       } else if (p.isAndroid) {
-        topFallback = 24;
-        bottomFallback = bottomInset < 1 ? 24 : 0;
+        bottomFallback = 24;
       }
     }
 
-    root.style.setProperty('--dv-safe-top-fallback', `${topFallback}px`);
+    root.style.setProperty('--dv-safe-top-fallback', '0px');
     root.style.setProperty('--dv-safe-bottom-fallback', `${bottomFallback}px`);
     root.classList.toggle('dv-standalone', isStandalone());
     root.classList.toggle('dv-ios', p.isiOS);
