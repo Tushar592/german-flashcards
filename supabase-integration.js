@@ -130,7 +130,8 @@
       'accountDialog', 'accountDialogClose', 'accountOpenButton', 'accountOpenMobileButton',
       'accountSidebarTitle', 'accountSidebarSubtitle', 'accountMobileLabel',
       'authSignedOutPanel', 'authSignedInPanel', 'authRecoveryPanel',
-      'authModeSignIn', 'authModeCreate', 'authModeReset',
+      'authModeTabs', 'authModeSignIn', 'authModeCreate', 'authModeReset',
+      'authConfirmationPanel', 'authConfirmationEmail', 'confirmationBackToSignIn',
       'signInForm', 'signInEmail', 'signInPassword',
       'createAccountForm', 'createDisplayName', 'createEmail', 'createPassword',
       'resetPasswordForm', 'resetEmail',
@@ -160,6 +161,13 @@
     if (el.authModeSignIn) el.authModeSignIn.addEventListener('click', () => setAuthMode('signin'));
     if (el.authModeCreate) el.authModeCreate.addEventListener('click', () => setAuthMode('create'));
     if (el.authModeReset) el.authModeReset.addEventListener('click', () => setAuthMode('reset'));
+    if (el.confirmationBackToSignIn) {
+      el.confirmationBackToSignIn.addEventListener('click', () => {
+        setAuthMode('signin');
+        setAuthMessage('Confirm your email address, then sign in with the same email and password.', 'info');
+        if (el.signInEmail) el.signInEmail.focus();
+      });
+    }
     if (el.signInForm) el.signInForm.addEventListener('submit', signIn);
     if (el.createAccountForm) el.createAccountForm.addEventListener('submit', createAccount);
     if (el.resetPasswordForm) el.resetPasswordForm.addEventListener('submit', sendPasswordReset);
@@ -200,10 +208,12 @@
   }
 
   function setAuthMode(mode) {
-    const normalized = ['signin', 'create', 'reset'].includes(mode) ? mode : 'signin';
+    const normalized = ['signin', 'create', 'reset', 'confirmation'].includes(mode) ? mode : 'signin';
     el.signInForm.classList.toggle('hidden', normalized !== 'signin');
     el.createAccountForm.classList.toggle('hidden', normalized !== 'create');
     el.resetPasswordForm.classList.toggle('hidden', normalized !== 'reset');
+    if (el.authConfirmationPanel) el.authConfirmationPanel.classList.toggle('hidden', normalized !== 'confirmation');
+    if (el.authModeTabs) el.authModeTabs.classList.toggle('hidden', normalized === 'confirmation');
     [
       [el.authModeSignIn, normalized === 'signin'],
       [el.authModeCreate, normalized === 'create'],
@@ -253,9 +263,10 @@
       if (result.data && result.data.session) {
         setAuthMessage('Account created and signed in.', 'success');
       } else {
-        setAuthMessage('Account created. Check your email to confirm the account before signing in.', 'success');
-        setAuthMode('signin');
-        el.signInEmail.value = email;
+        if (el.authConfirmationEmail) el.authConfirmationEmail.textContent = email;
+        if (el.signInEmail) el.signInEmail.value = email;
+        setAuthMode('confirmation');
+        setAuthMessage('', 'info');
       }
     } catch (error) {
       setAuthMessage(friendlyAuthError(error), 'error');
@@ -373,6 +384,7 @@
     state.user = session && session.user ? session.user : null;
 
     if (!state.user) {
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_OUT') setAuthMode('signin');
       state.sessionHandledFor = '';
       state.profile = null;
       state.preferences = Object.assign({}, DEFAULT_PREFERENCES);
@@ -798,6 +810,9 @@
 
   function friendlyAuthError(error) {
     const message = String(error && error.message || 'The account request failed.');
+    if (/email[^.]*not[^.]*confirm|email not confirmed|not confirmed/i.test(message)) {
+      return 'Your email address is not confirmed yet. Open the verification email, select Confirm email address, and then sign in again. Check Spam or Promotions if needed.';
+    }
     if (/invalid login credentials/i.test(message)) return 'The email or password is incorrect.';
     if (/already registered|already been registered|user already exists/i.test(message)) return 'An account already exists for this email.';
     if (/password/i.test(message) && /least|short|weak/i.test(message)) return 'Use a stronger password with at least 8 characters.';
