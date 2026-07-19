@@ -1,4 +1,3 @@
-
 (() => {
   'use strict';
 
@@ -118,13 +117,11 @@
       'playAgainButton', 'publicSearchForm', 'publicSearchInput',
       'publicSearchButton', 'publicSearchMessage', 'publicSearchResults',
       'wordSuggestionForm', 'suggestionName', 'suggestionEmail',
-      'suggestionIdentityFields', 'suggestionAccountIdentity', 'suggestionAccountName', 'suggestionAccountEmail',
       'suggestionItems', 'suggestionItemTemplate', 'addSuggestionItemButton',
       'suggestionNote', 'suggestionWebsite', 'suggestionConsent',
       'leaderboardOptIn', 'publicDisplayNameWrap', 'publicDisplayName',
       'submitSuggestionButton', 'suggestionMessage', 'suggestionBatchResults',
       'feedbackForm', 'feedbackName', 'feedbackEmail', 'feedbackText',
-      'feedbackIdentityFields', 'feedbackAccountIdentity', 'feedbackAccountName', 'feedbackAccountEmail',
       'feedbackWebsite', 'feedbackConsent', 'submitFeedbackButton',
       'feedbackMessage'
     ].forEach(id => {
@@ -695,10 +692,6 @@
       signedIn,
       name,
       email,
-      fields: el.suggestionIdentityFields,
-      panel: el.suggestionAccountIdentity,
-      panelName: el.suggestionAccountName,
-      panelEmail: el.suggestionAccountEmail,
       nameInput: el.suggestionName,
       emailInput: el.suggestionEmail
     });
@@ -707,10 +700,6 @@
       signedIn,
       name,
       email,
-      fields: el.feedbackIdentityFields,
-      panel: el.feedbackAccountIdentity,
-      panelName: el.feedbackAccountName,
-      panelEmail: el.feedbackAccountEmail,
       nameInput: el.feedbackName,
       emailInput: el.feedbackEmail
     });
@@ -730,10 +719,6 @@
       options.emailInput.dataset.accountFilled = 'true';
       options.nameInput.readOnly = true;
       options.emailInput.readOnly = true;
-      if (options.fields) options.fields.classList.add('hidden');
-      if (options.panel) options.panel.classList.remove('hidden');
-      if (options.panelName) options.panelName.textContent = options.name;
-      if (options.panelEmail) options.panelEmail.textContent = options.email;
       return;
     }
 
@@ -743,8 +728,6 @@
     delete options.emailInput.dataset.accountFilled;
     options.nameInput.readOnly = false;
     options.emailInput.readOnly = false;
-    if (options.fields) options.fields.classList.remove('hidden');
-    if (options.panel) options.panel.classList.add('hidden');
   }
 
   function syncLeaderboardOptIn() {
