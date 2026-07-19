@@ -11,9 +11,9 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./styles.css?v=4.3.0-beta.1" rel="stylesheet"/>
+<link href="./styles.css?v=4.4.0-beta.1" rel="stylesheet"/>
 </head>
-<body>
+<body class="auth-required">
 <div class="app-shell">
 <aside class="sidebar">
 <header class="brand-block">
@@ -35,8 +35,8 @@
 <button class="account-sidebar-card" id="accountOpenButton" type="button">
 <span aria-hidden="true" class="account-avatar">◎</span>
 <span class="account-sidebar-copy">
-<strong id="accountSidebarTitle">Guest mode</strong>
-<small id="accountSidebarSubtitle">Sign in to sync progress</small>
+<strong id="accountSidebarTitle">Account</strong>
+<small id="accountSidebarSubtitle">Sign in required</small>
 </span>
 <span aria-hidden="true" class="account-chevron">›</span>
 </button>
@@ -474,7 +474,7 @@
 <div class="page-main"><section class="guide-panel">
 <p class="eyebrow">User guide</p>
 <h2 id="guide-title">How to use Deutsche Vokabeltrainer</h2>
-<p class="guide-intro">Choose a deck and CEFR level, select a learning mode, and start a round. Guest progress remains on the current device. Signed-in learners can synchronize progress across devices.</p>
+<p class="guide-intro">Choose a deck and CEFR level, select a learning mode, and start a round. Every learner signs in so progress, difficult words, preferences and study history can synchronize across devices.</p>
 <div class="guide-grid">
 <article class="guide-card">
 <span class="guide-number">1</span>
@@ -532,9 +532,14 @@
 <div class="account-dialog-card">
 <header class="account-dialog-header">
 <h2 class="account-brand-title" id="accountDialogTitle">Deutsche Vokabeltrainer</h2>
-<button aria-label="Close account window" class="dialog-close" id="accountDialogClose" type="button">×</button>
+<p class="account-dialog-tagline">Sign in to continue learning and keep your progress synchronized.</p>
+<button aria-label="Switch to dark mode" class="theme-toggle theme-toggle-auth" data-theme-toggle type="button">
+<span aria-hidden="true" class="theme-toggle-icon">☾</span>
+<span class="theme-toggle-label">Dark mode</span>
+</button>
+<button aria-label="Close account window" class="dialog-close hidden" id="accountDialogClose" type="button">×</button>
 </header>
-<section id="authGuestPanel">
+<section id="authSignedOutPanel">
 <div aria-label="Account actions" class="auth-mode-tabs">
 <button aria-pressed="true" class="active" id="authModeSignIn" type="button">Sign in</button>
 <button aria-pressed="false" id="authModeCreate" type="button">Create account</button>
@@ -557,7 +562,6 @@
 <p class="auth-help">A secure password-reset link will be sent to this address.</p>
 <button class="btn primary" type="submit">Send reset email</button>
 </form>
-<button class="text-button auth-clear-guest" id="clearGuestProgressButton" type="button">Clear guest progress on this device</button>
 </section>
 <section class="hidden" id="authSignedInPanel">
 <div class="signed-in-summary">
@@ -583,8 +587,8 @@
 </div>
 </dialog>
 <script src="./vendor/supabase.js?v=2.110.7"></script>
-<script src="./config.js?v=4.3.0-beta.1"></script>
-<script defer src="./supabase-integration.js?v=4.3.0-beta.1"></script>
-<script defer="" src="./app.js?v=4.3.0-beta.1"></script>
+<script src="./config.js?v=4.4.0-beta.1"></script>
+<script defer src="./supabase-integration.js?v=4.4.0-beta.1"></script>
+<script defer="" src="./app.js?v=4.4.0-beta.1"></script>
 </body>
 </html>
