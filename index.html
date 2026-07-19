@@ -15,10 +15,10 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./manifest.webmanifest?v=4.6.7" rel="manifest"/>
-<link href="./icons/apple-touch-icon.png?v=4.6.7" rel="apple-touch-icon"/>
-<link href="./icons/icon-192.png?v=4.6.7" rel="icon" sizes="192x192" type="image/png"/>
-<link href="./styles.css?v=4.6.7" rel="stylesheet"/>
+<link href="./manifest.webmanifest?v=4.6.8" rel="manifest"/>
+<link href="./icons/apple-touch-icon.png?v=4.6.8" rel="apple-touch-icon"/>
+<link href="./icons/icon-192.png?v=4.6.8" rel="icon" sizes="192x192" type="image/png"/>
+<link href="./styles.css?v=4.6.8" rel="stylesheet"/>
 </head>
 <body class="auth-required">
 <div aria-hidden="true" class="system-safe-area"></div>
@@ -321,10 +321,7 @@
 <label for="suggestionWebsite">Website</label>
 <input autocomplete="off" id="suggestionWebsite" name="website" tabindex="-1" type="text"/>
 </div>
-<label class="consent-row">
-<input id="suggestionConsent" required="" type="checkbox"/>
-<span>I understand that my name and email will be used to review these suggestions and to notify me when an approved word is added.</span>
-</label>
+<input checked hidden id="suggestionConsent" type="checkbox"/>
 <div class="form-actions">
 <button class="btn primary" id="submitSuggestionButton" type="submit">Send all suggestions</button>
 </div>
@@ -533,7 +530,7 @@
 <span aria-hidden="true" class="theme-toggle-icon">☾</span>
 <span class="sr-only theme-toggle-label">Dark mode</span>
 </button>
-<button aria-label="Close account menu" class="dialog-close" id="accountDialogClose" type="button"><span aria-hidden="true">×</span></button>
+<button aria-label="Back to main app" class="account-back-button" id="accountDialogClose" type="button"><span aria-hidden="true">←</span></button>
 </header>
 <section id="authSignedOutPanel">
 <div aria-label="Account actions" class="auth-mode-tabs" id="authModeTabs">
@@ -671,9 +668,9 @@
 </section>
 </dialog>
 <script src="./vendor/supabase.js?v=2.110.7"></script>
-<script src="./config.js?v=4.6.7"></script>
-<script defer src="./supabase-integration.js?v=4.6.7"></script>
-<script defer src="./pwa.js?v=4.6.7"></script>
-<script defer src="./app.js?v=4.6.7"></script>
+<script src="./config.js?v=4.6.8"></script>
+<script defer src="./supabase-integration.js?v=4.6.8"></script>
+<script defer src="./pwa.js?v=4.6.8"></script>
+<script defer src="./app.js?v=4.6.8"></script>
 </body>
 </html>
