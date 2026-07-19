@@ -7,7 +7,7 @@
 <meta content="#0d7d63" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
-<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="default" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="Deutsche Vokabeltrainer" name="apple-mobile-web-app-title"/>
 <meta content="light dark" name="color-scheme"/>
 <meta content="Learn German vocabulary with guided learning, review, writing, quiz and article modes." name="description"/>
@@ -15,10 +15,10 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./manifest.webmanifest?v=4.6.5" rel="manifest"/>
-<link href="./icons/apple-touch-icon.png?v=4.6.5" rel="apple-touch-icon"/>
-<link href="./icons/icon-192.png?v=4.6.5" rel="icon" sizes="192x192" type="image/png"/>
-<link href="./styles.css?v=4.6.5" rel="stylesheet"/>
+<link href="./manifest.webmanifest?v=4.6.6" rel="manifest"/>
+<link href="./icons/apple-touch-icon.png?v=4.6.6" rel="apple-touch-icon"/>
+<link href="./icons/icon-192.png?v=4.6.6" rel="icon" sizes="192x192" type="image/png"/>
+<link href="./styles.css?v=4.6.6" rel="stylesheet"/>
 </head>
 <body class="auth-required">
 <div aria-hidden="true" class="system-safe-area"></div>
@@ -456,7 +456,7 @@
 <h3>Search and contribute</h3>
 <p>Search before suggesting vocabulary. Submit up to 20 words in one request or request a new deck. Approved vocabulary contributions are counted automatically under the learner’s account name; email addresses are never shown publicly.</p>
 </article>
-<article class="guide-card">
+<article class="guide-card install-guide-card">
 <span class="guide-number">7</span>
 <h3>Use it like a full-screen app</h3>
 <p>Install Deutsche Vokabeltrainer on your phone or computer to open it without the normal browser address bar and navigation controls.</p>
@@ -513,18 +513,15 @@
 </div>
 <div class="form-field feedback-message-field">
 <label for="feedbackText">Your feedback</label>
-<textarea id="feedbackText" maxlength="1900" minlength="10" name="feedback" placeholder="Describe your idea, suggestion, or the problem you found…" required rows="8"></textarea>
+<textarea id="feedbackText" maxlength="2000" minlength="10" name="feedback" placeholder="Describe your idea, suggestion, or the problem you found…" required rows="8"></textarea>
 </div>
 <div aria-hidden="true" class="honeypot">
 <label for="feedbackWebsite">Website</label>
 <input autocomplete="off" id="feedbackWebsite" name="website" tabindex="-1" type="text"/>
 </div>
-<label class="consent-row">
-<input id="feedbackConsent" required type="checkbox"/>
-<span>I understand that my name and email will be used only to review this feedback.</span>
-</label>
+<input checked hidden id="feedbackConsent" type="checkbox"/>
 <button class="btn primary" id="submitFeedbackButton" type="submit">Send feedback</button>
-<p class="status info" id="feedbackMessage" role="status">Your message will be stored privately for admin review.</p>
+<p aria-live="polite" class="status info" id="feedbackMessage" role="status"></p>
 </form>
 </section>
 </dialog>
@@ -532,7 +529,6 @@
 <div class="account-dialog-card">
 <header class="account-dialog-header">
 <h2 class="account-brand-title" id="accountDialogTitle">Deutsche Vokabeltrainer</h2>
-<p class="account-dialog-tagline">Manage your learner account, password, installation and feedback.</p>
 <button aria-label="Switch to dark mode" class="theme-toggle theme-toggle-auth" data-theme-toggle type="button">
 <span aria-hidden="true" class="theme-toggle-icon">☾</span>
 <span class="theme-toggle-label">Dark mode</span>
@@ -599,44 +595,11 @@
 <div class="account-stat"><span id="signedInProgressCount">0</span><small>studied words synchronized</small></div>
 <nav aria-label="Account menu" class="account-menu-list">
 <button class="account-menu-item" id="changePasswordOpenButton" type="button"><span>Change password</span><span aria-hidden="true">›</span></button>
-<button class="account-menu-item" data-install-app type="button"><span>Install app</span><span aria-hidden="true">›</span></button>
+<button class="account-menu-item account-install-item" data-install-app type="button"><span>Install app</span><span aria-hidden="true">›</span></button>
 <button class="account-menu-item" data-open-feedback type="button"><span>Feedback</span><span aria-hidden="true">›</span></button>
 <button class="account-menu-item" id="signOutButton" type="button"><span>Sign out</span><span aria-hidden="true">›</span></button>
 </nav>
 <p class="auth-help install-app-message" data-install-app-message>Install the app for a full-screen experience without normal browser controls.</p>
-<section class="change-password-panel hidden" id="changePasswordPanel">
-<div class="change-password-heading"><div><p class="eyebrow">Account security</p><h3>Change password</h3></div><button aria-label="Close change password form" class="dialog-close compact-close" id="changePasswordCloseButton" type="button">×</button></div>
-<form class="auth-form" id="changePasswordForm">
-<label>Current password
-<div class="password-control">
-<input autocomplete="current-password" id="currentPassword" minlength="8" required type="password"/>
-<button aria-controls="currentPassword" aria-label="Show password" class="password-toggle" data-password-toggle="currentPassword" type="button">Show</button>
-</div>
-</label>
-<label>New password
-<div class="password-control">
-<input autocomplete="new-password" id="changeNewPassword" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s]).{8,}" required title="Use at least 8 characters with an uppercase letter, lowercase letter, number and symbol." type="password"/>
-<button aria-controls="changeNewPassword" aria-label="Show password" class="password-toggle" data-password-toggle="changeNewPassword" type="button">Show</button>
-</div>
-</label>
-<label>Confirm new password
-<div class="password-control">
-<input autocomplete="new-password" id="changeConfirmPassword" minlength="8" required type="password"/>
-<button aria-controls="changeConfirmPassword" aria-label="Show password" class="password-toggle" data-password-toggle="changeConfirmPassword" type="button">Show</button>
-</div>
-</label>
-<ul aria-live="polite" class="password-requirements" data-password-requirements-for="changeNewPassword">
-<li data-rule="length">At least 8 characters</li>
-<li data-rule="uppercase">One uppercase letter</li>
-<li data-rule="lowercase">One lowercase letter</li>
-<li data-rule="number">One number</li>
-<li data-rule="symbol">One symbol</li>
-<li data-rule="match" data-confirm-password="changeConfirmPassword">Both new passwords match</li>
-</ul>
-<button class="btn primary" type="submit">Update password</button>
-<p aria-live="polite" class="auth-message" id="changePasswordMessage"></p>
-</form>
-</section>
 <div class="account-danger-zone">
 <p class="auth-help">Deleting the account permanently removes the login and synchronized learning progress.</p>
 <button class="btn danger" id="deleteAccountButton" type="button">Delete account</button>
@@ -671,10 +634,46 @@
 <p aria-live="polite" class="auth-message" id="authMessage"></p>
 </div>
 </dialog>
+
+<dialog aria-labelledby="changePasswordDialogTitle" class="change-password-dialog" id="changePasswordDialog">
+<section class="change-password-dialog-card">
+<header class="change-password-dialog-header"><div><p class="eyebrow">Account security</p><h2 id="changePasswordDialogTitle">Change password</h2><p>Update your password in a separate secure section.</p></div><button aria-label="Close change password" class="dialog-close" id="changePasswordCloseButton" type="button">×</button></header>
+<form class="auth-form" id="changePasswordForm">
+<label>Current password
+<div class="password-control">
+<input autocomplete="current-password" id="currentPassword" minlength="8" required type="password"/>
+<button aria-controls="currentPassword" aria-label="Show password" class="password-toggle" data-password-toggle="currentPassword" type="button">Show</button>
+</div>
+</label>
+<label>New password
+<div class="password-control">
+<input autocomplete="new-password" id="changeNewPassword" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s]).{8,}" required title="Use at least 8 characters with an uppercase letter, lowercase letter, number and symbol." type="password"/>
+<button aria-controls="changeNewPassword" aria-label="Show password" class="password-toggle" data-password-toggle="changeNewPassword" type="button">Show</button>
+</div>
+</label>
+<label>Confirm new password
+<div class="password-control">
+<input autocomplete="new-password" id="changeConfirmPassword" minlength="8" required type="password"/>
+<button aria-controls="changeConfirmPassword" aria-label="Show password" class="password-toggle" data-password-toggle="changeConfirmPassword" type="button">Show</button>
+</div>
+</label>
+<ul aria-live="polite" class="password-requirements" data-password-requirements-for="changeNewPassword">
+<li data-rule="length">At least 8 characters</li>
+<li data-rule="uppercase">One uppercase letter</li>
+<li data-rule="lowercase">One lowercase letter</li>
+<li data-rule="number">One number</li>
+<li data-rule="symbol">One symbol</li>
+<li data-rule="match" data-confirm-password="changeConfirmPassword">Both new passwords match</li>
+</ul>
+<button class="btn primary" type="submit">Update password</button>
+<p aria-live="polite" class="auth-message" id="changePasswordMessage"></p>
+</form>
+</section>
+</dialog>
 <script src="./vendor/supabase.js?v=2.110.7"></script>
-<script src="./config.js?v=4.6.5"></script>
-<script defer src="./supabase-integration.js?v=4.6.5"></script>
-<script defer src="./pwa.js?v=4.6.5"></script>
-<script defer src="./app.js?v=4.6.5"></script>
+<script src="./config.js?v=4.6.6"></script>
+<script defer src="./supabase-integration.js?v=4.6.6"></script>
+<script defer src="./pwa.js?v=4.6.6"></script>
+<script defer src="./app.js?v=4.6.6"></script>
 </body>
 </html>
