@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./styles.css?v=4.4.0-beta.1" rel="stylesheet"/>
+<link href="./styles.css?v=4.5.0-beta.1" rel="stylesheet"/>
 </head>
 <body class="auth-required">
 <div class="app-shell">
@@ -296,20 +296,8 @@
 <h2 id="word-suggestion-title">Suggest one or several German words</h2>
 
 <form class="contribution-form" id="wordSuggestionForm">
-<div class="signed-contributor-identity hidden" id="suggestionAccountIdentity">
-<span aria-hidden="true" class="signed-contributor-icon">◎</span>
-<div><small>Submitting as</small><strong id="suggestionAccountName">Learner</strong><span id="suggestionAccountEmail"></span></div>
-</div>
-<div class="form-grid contributor-details" id="suggestionIdentityFields">
-<div class="form-field">
-<label for="suggestionName">Name</label>
-<input autocomplete="name" id="suggestionName" maxlength="80" name="name" required="" type="text"/>
-</div>
-<div class="form-field">
-<label for="suggestionEmail">Email</label>
-<input autocomplete="email" id="suggestionEmail" maxlength="160" name="email" required="" type="email"/>
-</div>
-</div>
+<input id="suggestionName" name="name" type="hidden"/>
+<input id="suggestionEmail" name="email" type="hidden"/>
 <div class="leaderboard-consent-card form-wide">
 <label class="consent-row leaderboard-consent-row">
 <input id="leaderboardOptIn" type="checkbox"/>
@@ -421,23 +409,11 @@
 <h2 id="feedback-title">Share an idea or report a problem</h2>
 <p class="contribution-copy">Tell us what would make the learning experience better.</p>
 <form class="contribution-form" id="feedbackForm">
-<div class="signed-contributor-identity hidden" id="feedbackAccountIdentity">
-<span aria-hidden="true" class="signed-contributor-icon">◎</span>
-<div><small>Sending as</small><strong id="feedbackAccountName">Learner</strong><span id="feedbackAccountEmail"></span></div>
-</div>
-<div class="form-grid" id="feedbackIdentityFields">
-<div class="form-field">
-<label for="feedbackName">Name</label>
-<input autocomplete="name" id="feedbackName" maxlength="80" name="name" required="" type="text"/>
-</div>
-<div class="form-field">
-<label for="feedbackEmail">Email</label>
-<input autocomplete="email" id="feedbackEmail" maxlength="160" name="email" required="" type="email"/>
-</div>
-<div class="form-field form-wide">
+<input id="feedbackName" name="name" type="hidden"/>
+<input id="feedbackEmail" name="email" type="hidden"/>
+<div class="form-field feedback-message-field">
 <label for="feedbackText">Suggestion or feedback</label>
-<textarea id="feedbackText" maxlength="2000" minlength="10" name="feedback" required="" rows="6"></textarea>
-</div>
+<textarea id="feedbackText" maxlength="2000" minlength="10" name="feedback" placeholder="Describe your idea, suggestion, or the problem you found…" required="" rows="8"></textarea>
 </div>
 <div aria-hidden="true" class="honeypot">
 <label for="feedbackWebsite">Website</label>
@@ -540,7 +516,7 @@
 <button aria-label="Close account window" class="dialog-close hidden" id="accountDialogClose" type="button">×</button>
 </header>
 <section id="authSignedOutPanel">
-<div aria-label="Account actions" class="auth-mode-tabs">
+<div aria-label="Account actions" class="auth-mode-tabs" id="authModeTabs">
 <button aria-pressed="true" class="active" id="authModeSignIn" type="button">Sign in</button>
 <button aria-pressed="false" id="authModeCreate" type="button">Create account</button>
 <button aria-pressed="false" id="authModeReset" type="button">Reset password</button>
@@ -562,6 +538,14 @@
 <p class="auth-help">A secure password-reset link will be sent to this address.</p>
 <button class="btn primary" type="submit">Send reset email</button>
 </form>
+<section class="auth-confirmation-panel hidden" id="authConfirmationPanel">
+<div aria-hidden="true" class="auth-confirmation-icon">✓</div>
+<h3>Check your email</h3>
+<p>We sent a confirmation link to:</p>
+<strong id="authConfirmationEmail"></strong>
+<p>Open the email and select <strong>Confirm email address</strong>. Check Spam or Promotions if it does not appear in your inbox.</p>
+<button class="btn primary" id="confirmationBackToSignIn" type="button">Back to sign in</button>
+</section>
 </section>
 <section class="hidden" id="authSignedInPanel">
 <div class="signed-in-summary">
@@ -587,8 +571,8 @@
 </div>
 </dialog>
 <script src="./vendor/supabase.js?v=2.110.7"></script>
-<script src="./config.js?v=4.4.0-beta.1"></script>
-<script defer src="./supabase-integration.js?v=4.4.0-beta.1"></script>
-<script defer="" src="./app.js?v=4.4.0-beta.1"></script>
+<script src="./config.js?v=4.5.0-beta.1"></script>
+<script defer src="./supabase-integration.js?v=4.5.0-beta.1"></script>
+<script defer="" src="./app.js?v=4.5.0-beta.1"></script>
 </body>
 </html>
