@@ -15,10 +15,10 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="./manifest.webmanifest?v=4.6.6" rel="manifest"/>
-<link href="./icons/apple-touch-icon.png?v=4.6.6" rel="apple-touch-icon"/>
-<link href="./icons/icon-192.png?v=4.6.6" rel="icon" sizes="192x192" type="image/png"/>
-<link href="./styles.css?v=4.6.6" rel="stylesheet"/>
+<link href="./manifest.webmanifest?v=4.6.7" rel="manifest"/>
+<link href="./icons/apple-touch-icon.png?v=4.6.7" rel="apple-touch-icon"/>
+<link href="./icons/icon-192.png?v=4.6.7" rel="icon" sizes="192x192" type="image/png"/>
+<link href="./styles.css?v=4.6.7" rel="stylesheet"/>
 </head>
 <body class="auth-required">
 <div aria-hidden="true" class="system-safe-area"></div>
@@ -495,7 +495,7 @@
 <section class="feedback-dialog-card">
 <header class="feedback-dialog-header">
 <div><p class="eyebrow">Private feedback</p><h2 id="feedbackDialogTitle">Share an idea or report a problem</h2></div>
-<button aria-label="Close feedback" class="dialog-close" id="feedbackDialogClose" type="button">×</button>
+<button aria-label="Close feedback" class="dialog-close" id="feedbackDialogClose" type="button"><span aria-hidden="true">×</span></button>
 </header>
 <p class="contribution-copy">Feedback is separate from vocabulary contributions and is stored privately for admin review.</p>
 <form class="contribution-form" id="feedbackForm">
@@ -531,9 +531,9 @@
 <h2 class="account-brand-title" id="accountDialogTitle">Deutsche Vokabeltrainer</h2>
 <button aria-label="Switch to dark mode" class="theme-toggle theme-toggle-auth" data-theme-toggle type="button">
 <span aria-hidden="true" class="theme-toggle-icon">☾</span>
-<span class="theme-toggle-label">Dark mode</span>
+<span class="sr-only theme-toggle-label">Dark mode</span>
 </button>
-<button aria-label="Close account menu" class="dialog-close" id="accountDialogClose" type="button">×</button>
+<button aria-label="Close account menu" class="dialog-close" id="accountDialogClose" type="button"><span aria-hidden="true">×</span></button>
 </header>
 <section id="authSignedOutPanel">
 <div aria-label="Account actions" class="auth-mode-tabs" id="authModeTabs">
@@ -637,7 +637,7 @@
 
 <dialog aria-labelledby="changePasswordDialogTitle" class="change-password-dialog" id="changePasswordDialog">
 <section class="change-password-dialog-card">
-<header class="change-password-dialog-header"><div><p class="eyebrow">Account security</p><h2 id="changePasswordDialogTitle">Change password</h2><p>Update your password in a separate secure section.</p></div><button aria-label="Close change password" class="dialog-close" id="changePasswordCloseButton" type="button">×</button></header>
+<header class="change-password-dialog-header"><div><p class="eyebrow">Account security</p><h2 id="changePasswordDialogTitle">Change password</h2><p>Update your password in a separate secure section.</p></div><button aria-label="Close change password" class="dialog-close" id="changePasswordCloseButton" type="button"><span aria-hidden="true">×</span></button></header>
 <form class="auth-form" id="changePasswordForm">
 <label>Current password
 <div class="password-control">
@@ -671,9 +671,9 @@
 </section>
 </dialog>
 <script src="./vendor/supabase.js?v=2.110.7"></script>
-<script src="./config.js?v=4.6.6"></script>
-<script defer src="./supabase-integration.js?v=4.6.6"></script>
-<script defer src="./pwa.js?v=4.6.6"></script>
-<script defer src="./app.js?v=4.6.6"></script>
+<script src="./config.js?v=4.6.7"></script>
+<script defer src="./supabase-integration.js?v=4.6.7"></script>
+<script defer src="./pwa.js?v=4.6.7"></script>
+<script defer src="./app.js?v=4.6.7"></script>
 </body>
 </html>
